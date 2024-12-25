@@ -55,7 +55,6 @@ import TraitDataVariable from '../../data_sources/model/TraitDataVariable';
 import { ConditionalVariableType, DataCondition } from '../../data_sources/model/conditional_variables/DataCondition';
 import { isDynamicValue, isDynamicValueDefinition } from '../../data_sources/model/utils';
 import { DynamicValueDefinition } from '../../data_sources/types';
-import { componentCollectionKey } from '../../data_sources/model/collection_component/CollectionComponent';
 
 export interface IComponent extends ExtractMethods<Component> { }
 
