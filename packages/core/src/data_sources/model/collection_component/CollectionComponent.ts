@@ -94,7 +94,8 @@ export default class CollectionComponent extends Component {
         const model = type.model;
         blockComponent = new model(clonedBlock, opt);
       }
-      const cmpDefinition = resolveComponent(blockComponent!, block, collectionsStateMap, em);
+      const instance = em.Components.addSymbol(blockComponent!);
+      const cmpDefinition = resolveComponent(instance!, block, collectionsStateMap, em);
 
       components.push(cmpDefinition);
     }
@@ -150,24 +151,24 @@ function listDataSourceVariables(dataSource_id: string, em: EditorModel) {
 }
 
 function resolveComponent(
-  symbol: Component,
+  component: Component,
   block: ComponentDefinition,
   collectionsStateMap: CollectionsStateMap,
   em: EditorModel,
 ) {
-  const instance = em.Components.addSymbol(symbol);
-  const { resolvedCollectionValues: overrideKeys } = resolveBlockValues(collectionsStateMap, block);
-  Object.keys(overrideKeys).length && instance!.setSymbolOverride(Object.keys(overrideKeys));
-  instance!.set(overrideKeys);
+  const { resolvedCollectionValues } = resolveBlockValues(collectionsStateMap, block);
+  Object.keys(resolvedCollectionValues).length && component!.setSymbolOverride(Object.keys(resolvedCollectionValues));
+  component!.set(resolvedCollectionValues);
 
   const children: ComponentDefinition[] = [];
-  for (let index = 0; index < instance!.components().length; index++) {
-    const childComponent = symbol!.components().at(index);
+  for (let index = 0; index < component!.components().length; index++) {
+    const childSymbol = component!.components().at(index);
     const childBlock = block['components']![index];
-    children.push(resolveComponent(childComponent, childBlock, collectionsStateMap, em));
+    const childJSON = resolveComponent(childSymbol, childBlock, collectionsStateMap, em);
+    children.push(childJSON);
   }
 
-  const componentJSON = instance!.toJSON();
+  const componentJSON = component!.toJSON();
   const componentDefinition: ComponentDefinition = {
     ...componentJSON,
     components: children,
