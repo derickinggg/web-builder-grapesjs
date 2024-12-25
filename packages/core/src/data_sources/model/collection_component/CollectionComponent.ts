@@ -8,9 +8,11 @@ import DataSource from '../DataSource';
 import { ObjectAny } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 
-export const CollectionVariableType = 'collection-component';
+export const CollectionComponentType = 'collection-component';
+export const CollectionVariableType = 'parent-collection-variable';
+
 type CollectionVariable = {
-  type: 'parent-collection-variable';
+  type: typeof CollectionVariableType;
   variable_type: keyof CollectionState;
   collection_name?: string;
   path?: string;
@@ -39,7 +41,7 @@ type CollectionsStateMap = {
 };
 
 type CollectionDefinition = {
-  type: typeof CollectionVariableType;
+  type: typeof CollectionComponentType;
   collection_name?: string;
   config: CollectionConfig;
   block: ComponentDefinition;
@@ -99,7 +101,7 @@ export default class CollectionComponent extends Component {
 
     const conditionalCmptDef = {
       ...props,
-      type: CollectionVariableType,
+      type: CollectionComponentType,
       components: components,
       dropbbable: false,
     };
@@ -108,7 +110,7 @@ export default class CollectionComponent extends Component {
   }
 
   static isComponent(el: HTMLElement) {
-    return toLowerCase(el.tagName) === CollectionVariableType;
+    return toLowerCase(el.tagName) === CollectionComponentType;
   }
 }
 
@@ -186,11 +188,11 @@ function resolveBlockValues(collectionsStateMap: CollectionsStateMap, block: Obj
       let hasCollectionVariable = false;
 
       if (typeof blockValue === 'object') {
-        const isCollectionVariable = blockValue.type === 'parent-collection-variable';
+        const isCollectionVariable = blockValue.type === CollectionVariableType;
         if (isCollectionVariable) {
           const {
             variable_type,
-            collection_name = 'innerMostCollectionItem',
+            collection_name = innerCollectionStateKey,
             path = '',
           } = blockValue as CollectionVariable;
           const collectionItem = collectionsStateMap[collection_name];
