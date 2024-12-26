@@ -51,15 +51,15 @@ import {
   updateSymbolComps,
   updateSymbolProps,
 } from './SymbolUtils';
-import { ComponentDynamicValueListener } from './ComponentDynamicValueListener';
+import { ComponentDynamicValueWatcher } from './ComponentDynamicValueListener';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
 
-export interface IComponent extends ExtractMethods<Component> {}
+export interface IComponent extends ExtractMethods<Component> { }
 export interface DynamicWatchersOptions {
   skipWatcherUpdates?: boolean;
 }
-export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {}
-export interface ComponentSetOptions extends SetOptions, DynamicWatchersOptions {}
+export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions { }
+export interface ComponentSetOptions extends SetOptions, DynamicWatchersOptions { }
 
 const escapeRegExp = (str: string) => {
   return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
@@ -226,12 +226,12 @@ export default class Component extends StyleableModel<ComponentProperties> {
     return this.frame?.getPage();
   }
 
-  preInit() {}
+  preInit() { }
 
   /**
    * Hook method, called once the model is created
    */
-  init() {}
+  init() { }
 
   /**
    * Hook method, called when the model has been updated (eg. updated some model's property)
@@ -239,12 +239,12 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @param {*} value Property value, if triggered after some property update
    * @param {*} previous Property previous value, if triggered after some property update
    */
-  updated(property: string, value: any, previous: any) {}
+  updated(property: string, value: any, previous: any) { }
 
   /**
    * Hook method, called once the model has been removed
    */
-  removed() {}
+  removed() { }
 
   em!: EditorModel;
   opt!: ComponentOptions;
@@ -261,12 +261,12 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @private
    * @ts-ignore */
   collection!: Components;
-  componentDVListener: ComponentDynamicValueListener;
+  componentDVListener: ComponentDynamicValueWatcher;
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
-    const evaluatedProps = ComponentDynamicValueListener.evaluateComponentDef(props, opt.em);
+    const evaluatedProps = ComponentDynamicValueWatcher.evaluateComponentDef(props, opt.em);
     super(evaluatedProps, opt);
-    this.componentDVListener = new ComponentDynamicValueListener(this, opt.em);
+    this.componentDVListener = new ComponentDynamicValueWatcher(this, opt.em);
     this.componentDVListener.watchComponentDef(props);
 
     bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps');
@@ -360,7 +360,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     if (areStaticAttributes) {
       evaluatedAttributes = attributes;
     } else {
-      evaluatedAttributes = ComponentDynamicValueListener.evaluateComponentDef(attributes, this.em);
+      evaluatedAttributes = ComponentDynamicValueWatcher.evaluateComponentDef(attributes, this.em);
     }
 
     if (!options.skipWatcherUpdates) {

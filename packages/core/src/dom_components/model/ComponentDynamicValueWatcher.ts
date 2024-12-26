@@ -3,7 +3,7 @@ import EditorModel from '../../editor/model/Editor';
 import Component, { dynamicAttrKey } from './Component';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
 
-export class ComponentDynamicValueListener {
+export class ComponentDynamicValueWatcher {
   private propertyWatcher: DynamicValueWatcher;
   private attributeWatcher: DynamicValueWatcher;
   private traitsWatcher: DynamicValueWatcher;
