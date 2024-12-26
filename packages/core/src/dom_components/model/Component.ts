@@ -346,7 +346,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     let options: ComponentSetOptions = { skipWatcherUpdates: false };
     if (typeof keyOrAttributes === 'object') {
       attributes = keyOrAttributes;
-      options = valueOrOptions as ComponentSetOptions;
+      options = valueOrOptions || options as ComponentSetOptions;
     } else if (typeof keyOrAttributes === 'string') {
       attributes = { [keyOrAttributes as string]: valueOrOptions };
       options = optionsOrUndefined || options;
