@@ -365,7 +365,7 @@ const ParserHtml = (em?: EditorModel, config: ParserConfig & { returnArray?: boo
         if (styleStr) res.css = parserCss.parse(styleStr);
       }
 
-      em?.Parser.__emitEvent(ParserEvents.htmlRoot, { input, root });
+      em?.Parser?.__emitEvent(ParserEvents.htmlRoot, { input, root });
       let resHtml: HTMLParseResult['html'] = [];
 
       if (asDocument) {
@@ -379,7 +379,7 @@ const ParserHtml = (em?: EditorModel, config: ParserConfig & { returnArray?: boo
       }
 
       res.html = resHtml;
-      em?.Parser.__emitEvent(ParserEvents.html, { input, output: res, options });
+      em?.Parser?.__emitEvent(ParserEvents.html, { input, output: res, options });
 
       return res;
     },

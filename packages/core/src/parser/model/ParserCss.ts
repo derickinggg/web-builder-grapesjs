@@ -26,7 +26,7 @@ const ParserCss = (em?: EditorModel, config: ParserConfig = {}) => ({
     }
 
     nodes.forEach((node) => (output = output.concat(this.checkNode(node))));
-    em?.Parser.__emitEvent(ParserEvents.css, { input, output, nodes, error });
+    em?.Parser?.__emitEvent(ParserEvents.css, { input, output, nodes, error });
 
     return output;
   },
