@@ -53,6 +53,7 @@ import {
 } from './SymbolUtils';
 import { ComponentDynamicValueWatcher } from './ComponentDynamicValueWatcher';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
+import { DynamicValueDefinition } from '../../data_sources/types';
 
 export interface IComponent extends ExtractMethods<Component> {}
 export interface DynamicWatchersOptions {
@@ -74,7 +75,6 @@ export const keySymbol = '__symbol';
 export const keySymbolOvrd = '__symbol_ovrd';
 export const keyUpdate = ComponentsEvents.update;
 export const keyUpdateInside = ComponentsEvents.updateInside;
-export const dynamicAttrKey = 'attributes-dynamic-value';
 
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
@@ -355,15 +355,9 @@ export default class Component extends StyleableModel<ComponentProperties> {
       options = optionsOrUndefined || options;
     }
 
-    const areStaticAttributes = DynamicValueWatcher.areStaticValues(attributes);
-    let evaluatedAttributes: Partial<ComponentProperties>;
-    if (areStaticAttributes) {
-      evaluatedAttributes = attributes;
-    } else {
-      // @ts-ignore
-      const em = this.em || options.em;
-      evaluatedAttributes = ComponentDynamicValueWatcher.evaluateComponentDef(attributes, em);
-    }
+    // @ts-ignore
+    const em = this.em || options.em;
+    const evaluatedAttributes = DynamicValueWatcher.getStaticValues(attributes, em);
 
     const shouldSkipWatcherUpdates = options.skipWatcherUpdates || options.fromDataSource;
     if (!shouldSkipWatcherUpdates) {
@@ -962,7 +956,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     const event = 'change:traits';
     this.off(event, this.initTraits);
     this.__loadTraits();
-    const attrs = { ...this.get('attributes') };
+    const attrs: { [key: string]: string | DynamicValueDefinition } = {};
     const traits = this.traits;
     traits.each((trait) => {
       const name = trait.getName();
@@ -974,7 +968,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
         if (name && value) attrs[name] = value;
       }
     });
-    traits.length && this.set('attributes', attrs);
+    traits.length && this.addAttributes(attrs);
     this.on(event, this.initTraits);
     changed && em && em.trigger('component:toggled');
     return this;
@@ -1581,12 +1575,11 @@ export default class Component extends StyleableModel<ComponentProperties> {
   toJSON(opts: ObjectAny = {}): ComponentDefinition {
     let obj = Model.prototype.toJSON.call(this, opts);
     obj = { ...obj, ...this.componentDVListener.getDynamicPropsDefs() };
-    obj.attributes = this.componentDVListener.getAttributesDefsOrValues(this.getAttributes({ noClass: true }));
-    obj[dynamicAttrKey] = this.serializeDynamicTraits();
+    obj.attributes = this.componentDVListener.getAttributesDefsOrValues(this.getAttributes());
     delete obj.componentDVListener;
-    delete obj.traits;
     delete obj.attributes.class;
     delete obj.toolbar;
+    delete obj.traits;
     delete obj.status;
     delete obj.open; // used in Layers
     delete obj._undoexc;
@@ -1608,26 +1601,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
 
     return obj;
-  }
-
-  /**
-   * Serialize dynamic traits into an array of objects with name and value.
-   * @return {ObjectAny[]}
-   * @private
-   */
-  private serializeDynamicTraits(): ObjectAny[] | undefined {
-    const dynamicTraitsObj = this.componentDVListener.getTraitsDefs();
-    const keys = Object.entries(dynamicTraitsObj);
-    if (keys.length === 0) return undefined;
-
-    return keys.map(([key, value]) => {
-      const traitJSON = this.getTrait(key).toJSON();
-      return {
-        ...traitJSON,
-        name: key,
-        value,
-      };
-    });
   }
 
   /**

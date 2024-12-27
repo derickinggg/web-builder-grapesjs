@@ -9,9 +9,7 @@ import TraitsEvents, { TraitGetValueOptions, TraitOption, TraitProperties, Trait
 import TraitView from '../view/TraitView';
 import Traits from './Traits';
 import TraitDataVariable from '../../data_sources/model/TraitDataVariable';
-import { DataVariableType } from '../../data_sources/model/DataVariable';
 import DynamicVariableListenerManager from '../../data_sources/model/DataVariableListenerManager';
-import { isDynamicValueDefinition } from '../../data_sources/model/utils';
 
 /**
  * @property {String} id Trait id, eg. `my-trait-id`.

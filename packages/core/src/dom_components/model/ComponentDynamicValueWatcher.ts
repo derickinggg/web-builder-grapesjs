@@ -1,12 +1,11 @@
 import { ObjectAny } from '../../common';
 import EditorModel from '../../editor/model/Editor';
-import Component, { dynamicAttrKey } from './Component';
+import Component from './Component';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
 
 export class ComponentDynamicValueWatcher {
   private propertyWatcher: DynamicValueWatcher;
   private attributeWatcher: DynamicValueWatcher;
-  private traitsWatcher: DynamicValueWatcher;
 
   constructor(
     private component: Component,
@@ -14,7 +13,6 @@ export class ComponentDynamicValueWatcher {
   ) {
     this.propertyWatcher = new DynamicValueWatcher(this.createPropertyUpdater(), em);
     this.attributeWatcher = new DynamicValueWatcher(this.createAttributeUpdater(), em);
-    this.traitsWatcher = new DynamicValueWatcher(this.createTraitUpdater(), em);
   }
 
   private createPropertyUpdater() {
@@ -29,44 +27,9 @@ export class ComponentDynamicValueWatcher {
     };
   }
 
-  private createTraitUpdater() {
-    return (key: string, value: any) => {
-      this.component.updateTrait(key, { value });
-      const trait = this.component.getTrait(key);
-      trait.setTargetValue(value);
-    };
-  }
-
-  static evaluateComponentDef(values: ObjectAny, em: EditorModel) {
-    const props = DynamicValueWatcher.getStaticValues(values, em);
-
-    if (values.attributes) {
-      props.attributes = DynamicValueWatcher.getStaticValues(values.attributes, em);
-    }
-
-    if (Array.isArray(values[dynamicAttrKey]) && values[dynamicAttrKey].length > 0) {
-      values.traits = values.traits ? [...values[dynamicAttrKey], ...values.traits] : values[dynamicAttrKey];
-    }
-
-    if (values.traits) {
-      const evaluatedTraitsValues = DynamicValueWatcher.getStaticValues(
-        values.traits.map((trait: any) => trait.value),
-        em,
-      );
-
-      props.traits = values.traits.map((trait: any, index: number) => ({
-        ...trait,
-        value: evaluatedTraitsValues[index],
-      }));
-    }
-
-    return props;
-  }
-
   watchComponentDef(values: ObjectAny) {
     this.addProps(values);
     this.addAttributes(values.attributes);
-    this.addTraits(values.traits);
   }
 
   addProps(props: ObjectAny) {
@@ -85,28 +48,12 @@ export class ComponentDynamicValueWatcher {
     this.attributeWatcher.addDynamicValues(attributes);
   }
 
-  addTraits(traits: (string | ObjectAny)[]) {
-    const evaluatedTraits: { [key: string]: ObjectAny } = {};
-
-    traits?.forEach((trait: any) => {
-      if (typeof trait === 'object' && trait.name) {
-        evaluatedTraits[trait.name] = trait.value;
-      }
-    });
-
-    this.traitsWatcher.addDynamicValues(evaluatedTraits);
-  }
-
   removeAttributes(attributes: string[]) {
     this.attributeWatcher.removeListeners(attributes);
   }
 
   getAttributesDefsOrValues(attributes: ObjectAny) {
     return this.attributeWatcher.getSerializableValues(attributes);
-  }
-
-  getTraitsDefs() {
-    return this.traitsWatcher.getAllSerializableValues();
   }
 
   getPropsDefsOrValues(props: ObjectAny) {
@@ -116,6 +63,5 @@ export class ComponentDynamicValueWatcher {
   destroy() {
     this.propertyWatcher.removeListeners();
     this.attributeWatcher.removeListeners();
-    this.traitsWatcher.removeListeners();
   }
 }
