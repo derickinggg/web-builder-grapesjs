@@ -172,7 +172,7 @@ function resolveComponent(
   const componentDefinition: ComponentDefinition = {
     ...componentJSON,
     components: children,
-    [collectionsStateMapKey]: collectionsStateMap
+    [collectionsStateMapKey]: collectionsStateMap,
   };
 
   return componentDefinition;
@@ -246,14 +246,22 @@ function resolveCurrentItem(
   collectionItem: CollectionState,
   path: string,
 ) {
-  const valueIsDataVariable = collectionItem.current_item?.type === DataVariableType;
-  if (variableType === 'current_item' && valueIsDataVariable) {
-    const currentItem_path = collectionItem.current_item.path;
-    const resolvedPath = currentItem_path ? `${currentItem_path}.${path}` : path;
-    return {
-      ...collectionItem.current_item,
-      path: resolvedPath,
-    };
+  if (variableType === 'current_item') {
+    const valueIsDataVariable = collectionItem.current_item?.type === DataVariableType;
+    if (valueIsDataVariable) {
+      const currentItem_path = collectionItem.current_item.path;
+      const resolvedPath = currentItem_path ? `${currentItem_path}.${path}` : path;
+      return {
+        ...collectionItem.current_item,
+        path: resolvedPath,
+      };
+    } else if (!!path) {
+      if (!collectionItem.current_item?.[path]) {
+        throw new Error(`Path not found in current item: ${path}`);
+      }
+
+      return collectionItem.current_item[path];
+    }
   }
   return collectionItem[variableType];
 }
