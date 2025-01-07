@@ -1,3 +1,4 @@
+import { isSymbol } from 'underscore';
 import { Component, DataSource, DataSourceManager } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import {
@@ -5,8 +6,10 @@ import {
   CollectionVariableType,
 } from '../../../../../src/data_sources/model/collection_component/constants';
 import { CollectionStateVariableType } from '../../../../../src/data_sources/model/collection_component/types';
+import { keySymbol } from '../../../../../src/dom_components/model/Component';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { filterObjectForSnapshot, setupTestEditor } from '../../../../common';
+import { getSymbolMain, getSymbolTop } from '../../../../../src/dom_components/model/SymbolUtils';
 
 describe('Collection component', () => {
   let em: EditorModel;
@@ -31,37 +34,53 @@ describe('Collection component', () => {
     em.destroy();
   });
 
-  test('Should be undroppable', () => { 
+  test('Should be undroppable', () => {
     const cmp = wrapper.components({
       type: CollectionComponentType,
+      collectionDefinition: {
+        block: {
+          type: 'default',
+        },
+        config: {
+          dataSource: {
+            type: DataVariableType,
+            path: 'my_data_source_id',
+          },
+        },
+      },
     })[0];
 
     expect(cmp.get('droppable')).toBe(false);
   });
 
-  describe('Collection symbols', () => {
-    test('Basic usage', () => {
-      const cmp = wrapper.components({
-        type: CollectionComponentType,
-        collectionDefinition: {
-          block: {
-            type: 'default',
-          },
-          config: {
-            dataSource: {
-              type: DataVariableType,
-              path: 'my_data_source_id',
+  test('Collection items should be symbols', () => {
+    const cmp = wrapper.components({
+      type: CollectionComponentType,
+      collectionDefinition: {
+        block: {
+          type: 'default',
+          components: [
+            {
+              type: 'default',
             },
+          ],
+        },
+        config: {
+          dataSource: {
+            type: DataVariableType,
+            path: 'my_data_source_id',
           },
         },
-      })[0];
+      },
+    })[0];
 
-      expect(cmp.components()).toHaveLength(3);
-      const firstChild = cmp.components().at(0);
-      const secondChild = cmp.components().at(1);
+    expect(cmp.components()).toHaveLength(3);
+    cmp.components().forEach((child) => expect(child.get('type')).toBe('default'));
+    const children = cmp.components();
+    const firstChild = children.at(0);
 
-      expect(firstChild.get('type')).toBe('default');
-      expect(secondChild.get('type')).toBe('default');
+    children.slice(1).forEach((component) => {
+      expect(getSymbolMain(component)).toBe(firstChild);
     });
   });
 
