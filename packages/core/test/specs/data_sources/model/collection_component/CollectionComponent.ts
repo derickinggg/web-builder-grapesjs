@@ -31,6 +31,14 @@ describe('Collection component', () => {
     em.destroy();
   });
 
+  test('Should be undroppable', () => { 
+    const cmp = wrapper.components({
+      type: CollectionComponentType,
+    })[0];
+
+    expect(cmp.get('droppable')).toBe(false);
+  });
+
   describe('Collection symbols', () => {
     test('Basic usage', () => {
       const cmp = wrapper.components({

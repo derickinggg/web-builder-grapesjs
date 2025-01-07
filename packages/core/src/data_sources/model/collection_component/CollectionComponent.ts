@@ -22,7 +22,7 @@ export default class CollectionComponent extends Component {
     const conditionalCmptDef = {
       ...props,
       type: CollectionComponentType,
-      dropbbable: false,
+      droppable: false,
     };
 
     // @ts-ignore

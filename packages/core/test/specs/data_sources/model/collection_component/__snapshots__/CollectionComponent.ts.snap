@@ -39,7 +39,7 @@ exports[`Collection component Stringfication Collection with dynamic datasource 
       "start_index": 0,
     },
   },
-  "dropbbable": false,
+  "droppable": false,
   "type": "collection-component",
 }
 `;
