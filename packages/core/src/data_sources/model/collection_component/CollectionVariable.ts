@@ -24,6 +24,10 @@ export default class CollectionVariable extends Model<CollectionVariableDefiniti
     this.updateDataVariable();
   }
 
+  hasDynamicValue() {
+    return !!this.dataVariable;
+  }
+
   getDataValue() {
     const { resolvedValue } = this.updateDataVariable();
 

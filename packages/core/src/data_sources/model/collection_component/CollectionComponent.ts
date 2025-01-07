@@ -1,7 +1,7 @@
 import DataVariable, { DataVariableType } from './../DataVariable';
 import { isArray } from 'underscore';
 import Component, { keySymbol, keySymbolOvrd, keySymbols } from '../../../dom_components/model/Component';
-import { ComponentDefinition, ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
+import { ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
 import { ObjectAny } from '../../../common';

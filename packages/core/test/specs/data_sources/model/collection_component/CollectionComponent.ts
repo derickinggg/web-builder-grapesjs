@@ -1,5 +1,5 @@
 import { isSymbol } from 'underscore';
-import { Component, DataSource, DataSourceManager } from '../../../../../src';
+import { Component, DataRecord, DataSource, DataSourceManager } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import {
   CollectionComponentType,
@@ -16,6 +16,8 @@ describe('Collection component', () => {
   let dsm: DataSourceManager;
   let dataSource: DataSource;
   let wrapper: Component;
+  let firstRecord: DataRecord;
+  let secondRecord: DataRecord;
 
   beforeEach(() => {
     ({ em, dsm } = setupTestEditor());
@@ -28,6 +30,9 @@ describe('Collection component', () => {
         { id: 'user3', user: 'user3', age: '16' },
       ],
     });
+
+    firstRecord = dataSource.getRecord('user1')!;
+    secondRecord = dataSource.getRecord('user2')!;
   });
 
   afterEach(() => {
@@ -85,39 +90,57 @@ describe('Collection component', () => {
   });
 
   describe('Collection variables', () => {
-    test('Properties', () => {
-      const cmp = wrapper.components({
-        type: CollectionComponentType,
-        collectionDefinition: {
-          block: {
-            type: 'default',
-            content: {
-              type: CollectionVariableType,
-              variable_type: CollectionStateVariableType.current_item,
-              path: 'user',
+    describe('Properties', () => {
+      let cmp: Component;
+      let firstChild!: Component;
+      let secondChild!: Component;
+
+      beforeEach(() => {
+        cmp = wrapper.components({
+          type: CollectionComponentType,
+          collectionDefinition: {
+            block: {
+              type: 'default',
+              content: {
+                type: CollectionVariableType,
+                variable_type: CollectionStateVariableType.current_item,
+                path: 'user',
+              },
+              custom_property: {
+                type: CollectionVariableType,
+                variable_type: CollectionStateVariableType.current_item,
+                path: 'user',
+              },
             },
-            custom_property: {
-              type: CollectionVariableType,
-              variable_type: CollectionStateVariableType.current_item,
-              path: 'user',
+            config: {
+              dataSource: {
+                type: DataVariableType,
+                path: 'my_data_source_id',
+              },
             },
           },
-          config: {
-            dataSource: {
-              type: DataVariableType,
-              path: 'my_data_source_id',
-            },
-          },
-        },
-      })[0];
-      const firstChild = cmp.components().at(0);
-      const secondChild = cmp.components().at(1);
+        })[0];
 
-      expect(firstChild.get('content')).toBe('user1');
-      expect(firstChild.get('custom_property')).toBe('user1');
+        firstChild = cmp.components().at(0);
+        secondChild = cmp.components().at(1);
+      });
 
-      expect(secondChild.get('content')).toBe('user2');
-      expect(secondChild.get('custom_property')).toBe('user2');
+      test('Evaluating to static value', () => {
+        expect(firstChild.get('content')).toBe('user1');
+        expect(firstChild.get('custom_property')).toBe('user1');
+
+        expect(secondChild.get('content')).toBe('user2');
+        expect(secondChild.get('custom_property')).toBe('user2');
+      });
+
+      test('Updating the record', async () => {
+        firstRecord.set('user', 'new_user1_value');
+        expect(firstChild.get('content')).toBe('new_user1_value');
+        expect(firstChild.get('custom_property')).toBe('new_user1_value');
+
+        expect(secondChild.get('content')).toBe('user2');
+        expect(secondChild.get('custom_property')).toBe('user2');
+      });
     });
 
     test('Attributes', () => {
@@ -332,3 +355,7 @@ describe('Collection component', () => {
     });
   });
 });
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

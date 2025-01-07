@@ -6,6 +6,8 @@ import DataVariable, { DataVariableType } from './DataVariable';
 import { DynamicValue } from '../types';
 import { DataCondition, ConditionalVariableType } from './conditional_variables/DataCondition';
 import ComponentDataVariable from './ComponentDataVariable';
+import { CollectionVariableType } from './collection_component/constants';
+import CollectionVariable from './collection_component/CollectionVariable';
 
 export interface DynamicVariableListenerManagerOptions {
   em: EditorModel;
@@ -41,6 +43,13 @@ export default class DynamicVariableListenerManager {
     const type = dynamicVariable.get('type');
     let dataListeners: DataVariableListener[] = [];
     switch (type) {
+      case CollectionVariableType:
+        const collectionVariable = dynamicVariable as CollectionVariable;
+        if (collectionVariable.hasDynamicValue()) {
+          dataListeners = this.listenToDataVariable(collectionVariable.dataVariable!, em);
+        }
+
+        break;
       case DataVariableType:
         dataListeners = this.listenToDataVariable(dynamicVariable as DataVariable | ComponentDataVariable, em);
         break;
