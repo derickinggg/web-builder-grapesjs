@@ -27,16 +27,17 @@ export default class CollectionComponent extends Component {
     const conditionalCmptDef = {
       ...props,
       type: CollectionComponentType,
-      components: components,
       dropbbable: false,
     };
 
     // @ts-ignore
-    super(conditionalCmptDef, opt);
-
+    const cmp: CollectionComponent = super(conditionalCmptDef, opt);
     if (this.hasDynamicDataSource()) {
       this.watchDataSource(em, collectionDefinition, parentCollectionStateMap, opt);
     }
+    cmp.components(components);
+
+    return cmp as CollectionComponent;
   }
 
   static isComponent(el: HTMLElement) {
@@ -114,7 +115,7 @@ function getCollectionItems(
   const end_index = Math.min(items.length - 1, config.end_index !== undefined ? config.end_index : Number.MAX_VALUE);
 
   const total_items = end_index - start_index + 1;
-  let blockComponent: Component;
+  let blockSymbolMain: Component;
   for (let index = start_index; index <= end_index; index++) {
     const item = items[index];
     const collectionState: CollectionState = {
@@ -137,15 +138,16 @@ function getCollectionItems(
       // @ts-ignore
       const type = em.Components.getType(block?.type || 'default');
       const model = type.model;
-      blockComponent = new model(
+
+      blockSymbolMain = new model(
         {
           ...block,
           [keyCollectionsStateMap]: collectionsStateMap,
         },
         opt,
-      );
+      ).clone({ symbol: true });
     }
-    const instance = em.Components.addSymbol(blockComponent!);
+    const instance = blockSymbolMain!.clone({ symbol: true });
     const cmpDefinition = resolveComponent(instance!, block, collectionsStateMap, em);
 
     components.push(cmpDefinition);
