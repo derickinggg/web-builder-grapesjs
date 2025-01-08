@@ -1,3 +1,4 @@
+import { DynamicWatchersOptions } from './DynamicValueWatcher';
 import Frame from '../../canvas/model/Frame';
 import { AddOptions, Nullable, OptionAsDocument } from '../../common';
 import EditorModel from '../../editor/model/Editor';
@@ -253,7 +254,7 @@ export interface ComponentProperties {
   [key: string]: any;
 }
 
-export interface SymbolToUpOptions {
+export interface SymbolToUpOptions extends DynamicWatchersOptions {
   changed?: string;
   fromInstance?: boolean;
   noPropagate?: boolean;

@@ -130,8 +130,14 @@ export const logSymbol = (symb: Component, type: string, toUp: Component[], opts
 };
 
 export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {}) => {
-  const changed = symbol.changedAttributes() || {};
-  const attrs = changed.attributes || {};
+  const changed = {
+    ...(symbol.changedAttributes() || {}),
+    ...symbol.componentDVListener.getDynamicPropsDefs(),
+  };
+  const attrs = {
+    ...(changed.attributes || {}),
+    ...symbol.componentDVListener.getDynamicAttributesDefs(),
+  };
   delete changed.status;
   delete changed.open;
   delete changed[keySymbols];
@@ -148,7 +154,9 @@ export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {
     const toUp = getSymbolsToUpdate(symbol, opts);
     // Avoid propagating overrides to other symbols
     keys(changed).map((prop) => {
-      if (isSymbolOverride(symbol, prop)) delete changed[prop];
+      const shouldPropagate =
+        !isSymbolOverride(symbol, prop) || (symbol.get('isCollectionItem') && !opts.fromDataSource);
+      if (!shouldPropagate) delete changed[prop];
     });
 
     logSymbol(symbol, 'props', toUp, { opts, changed });
@@ -156,7 +164,9 @@ export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {
       const propsChanged = { ...changed };
       // Avoid updating those with override
       keys(propsChanged).map((prop) => {
-        if (isSymbolOverride(child, prop)) delete propsChanged[prop];
+        const shouldPropagate =
+          !isSymbolOverride(child, prop) || (child.get('isCollectionItem') && !opts.fromDataSource);
+        if (!shouldPropagate) delete propsChanged[prop];
       });
       child.set(propsChanged, { fromInstance: symbol, ...opts });
     });

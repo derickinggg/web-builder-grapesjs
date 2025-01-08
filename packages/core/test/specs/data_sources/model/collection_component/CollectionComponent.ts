@@ -1,4 +1,3 @@
-import { isSymbol } from 'underscore';
 import { Component, DataRecord, DataSource, DataSourceManager } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import {
@@ -6,7 +5,6 @@ import {
   CollectionVariableType,
 } from '../../../../../src/data_sources/model/collection_component/constants';
 import { CollectionStateVariableType } from '../../../../../src/data_sources/model/collection_component/types';
-import { keySymbol } from '../../../../../src/dom_components/model/Component';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { filterObjectForSnapshot, setupTestEditor } from '../../../../common';
 import { getSymbolMain, getSymbolTop } from '../../../../../src/dom_components/model/SymbolUtils';
@@ -94,6 +92,7 @@ describe('Collection component', () => {
       let cmp: Component;
       let firstChild!: Component;
       let secondChild!: Component;
+      let thirdChild!: Component;
 
       beforeEach(() => {
         cmp = wrapper.components({
@@ -123,6 +122,7 @@ describe('Collection component', () => {
 
         firstChild = cmp.components().at(0);
         secondChild = cmp.components().at(1);
+        thirdChild = cmp.components().at(2);
       });
 
       test('Evaluating to static value', () => {
@@ -140,6 +140,52 @@ describe('Collection component', () => {
 
         expect(secondChild.get('content')).toBe('user2');
         expect(secondChild.get('custom_property')).toBe('user2');
+      });
+
+      test('Updating the value to a static value', async () => {
+        firstChild.set('content', 'new_content_value');
+        expect(firstChild.get('content')).toBe('new_content_value');
+        expect(secondChild.get('content')).toBe('new_content_value');
+
+        firstRecord.set('user', 'wrong_value');
+        expect(firstChild.get('content')).toBe('new_content_value');
+        expect(secondChild.get('content')).toBe('new_content_value');
+      });
+
+      test('Updating the value to a diffirent collection variable', async () => {
+        firstChild.set('content', {
+          // @ts-ignore
+          type: CollectionVariableType,
+          variable_type: CollectionStateVariableType.current_item,
+          path: 'age',
+        });
+        expect(firstChild.get('content')).toBe('12');
+        expect(secondChild.get('content')).toBe('14');
+
+        firstRecord.set('age', 'new_value_12');
+        secondRecord.set('age', 'new_value_14');
+
+        firstRecord.set('user', 'wrong_value');
+        secondRecord.set('user', 'wrong_value');
+
+        expect(firstChild.get('content')).toBe('new_value_12');
+        expect(secondChild.get('content')).toBe('new_value_14');
+      });
+
+      test('Updating the value to a diffirent dynamic variable', async () => {
+        firstChild.set('content', {
+          // @ts-ignore
+          type: DataVariableType,
+          path: 'my_data_source_id.user2.user',
+        });
+        expect(firstChild.get('content')).toBe('user2');
+        expect(secondChild.get('content')).toBe('user2');
+        expect(thirdChild.get('content')).toBe('user2');
+
+        secondRecord.set('user', 'new_value');
+        expect(firstChild.get('content')).toBe('new_value');
+        expect(secondChild.get('content')).toBe('new_value');
+        expect(thirdChild.get('content')).toBe('new_value');
       });
     });
 

@@ -2,9 +2,10 @@ import { ObjectAny } from '../../common';
 import { CollectionVariableType } from '../../data_sources/model/collection_component/constants';
 import { CollectionsStateMap } from '../../data_sources/model/collection_component/types';
 import EditorModel from '../../editor/model/Editor';
-import Component, { keyCollectionsStateMap } from './Component';
+import Component from './Component';
 import { DynamicWatchersOptions } from './DynamicValueWatcher';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
+import { getSymbolsToUpdate } from './SymbolUtils';
 
 export class ComponentDynamicValueWatcher {
   private propertyWatcher: DynamicValueWatcher;

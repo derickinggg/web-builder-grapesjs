@@ -335,7 +335,9 @@ Component> {
         ...parentCollectionsStateMap,
       });
 
-      mdl.set('isCollectionItem', this.opt.isCollectionItem);
+      if (!mdl.get('isCollectionItem') && this.opt.isCollectionItem) {
+        mdl.set('isCollectionItem', this.opt.isCollectionItem);
+      }
 
       return mdl;
     }
