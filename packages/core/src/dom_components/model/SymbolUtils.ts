@@ -130,55 +130,58 @@ export const logSymbol = (symb: Component, type: string, toUp: Component[], opts
   symb.em.log(type, { model: symb, toUp, context: 'symbols', opts });
 };
 
-export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {}) => {
-  const changed = {
-    ...(symbol.changedAttributes() || {}),
-    ...symbol.componentDVListener.getDynamicPropsDefs(),
-  };
-  const attrs = {
-    ...(changed.attributes || {}),
-    ...symbol.componentDVListener.getDynamicAttributesDefs(),
-  };
-  delete changed.status;
-  delete changed.open;
-  const toUp = getSymbolsToUpdate(symbol, opts);
-  if (
-    symbol.get('isCollectionItem') &&
-    !(Object.keys(changed).length === 1 && Object.keys(changed)[0] === keySymbolOvrd)
-  ) {
-    toUp.forEach((child) => {
-      child.setSymbolOverride(symbol.getSymbolOverride() || [], { fromDataSource: true });
+export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {}): void => {
+  const changed = symbol.componentDVListener.getPropsDefsOrValues({ ...symbol.changedAttributes() } || {});
+  const attrs = symbol.componentDVListener.getAttributesDefsOrValues({ ...changed.attributes } || {});
+
+  cleanChangedProperties(changed, attrs);
+
+  if (!isEmptyObj(changed)) {
+    const toUpdate = getSymbolsToUpdate(symbol, opts);
+
+    // Filter properties to propagate
+    filterPropertiesForPropagation(changed, symbol);
+
+    logSymbol(symbol, 'props', toUpdate, { opts, changed });
+
+    // Update child symbols
+    toUpdate.forEach((child) => {
+      const propsToUpdate = { ...changed };
+      filterPropertiesForPropagation(propsToUpdate, child);
+      child.set(propsToUpdate, { fromInstance: symbol, ...opts });
     });
   }
-  delete changed[keySymbols];
-  delete changed[keySymbol];
-  delete changed[keySymbolOvrd];
-  delete changed.attributes;
+};
+
+const cleanChangedProperties = (changed: Record<string, any>, attrs: Record<string, any>): void => {
+  const keysToDelete = ['status', 'open', keySymbols, keySymbol, keySymbolOvrd, 'attributes'];
+  keysToDelete.forEach((key) => delete changed[key]);
   delete attrs.id;
 
   if (!isEmptyObj(attrs)) {
     changed.attributes = attrs;
   }
+};
 
-  if (!isEmptyObj(changed)) {
-    const toUp = getSymbolsToUpdate(symbol, opts);
-    // Avoid propagating overrides to other symbols
-    keys(changed).map((prop) => {
-      const shouldPropagate = isSymbolOverride(symbol, prop) && !(changed[prop].type === CollectionVariableType);
-      if (shouldPropagate) delete changed[prop];
-    });
+const filterPropertiesForPropagation = (props: Record<string, any>, component: Component): void => {
+  keys(props).forEach((prop) => {
+    if (!shouldPropagateProperty(props, prop, component)) {
+      delete props[prop];
+    }
+  });
+};
 
-    logSymbol(symbol, 'props', toUp, { opts, changed });
-    toUp.forEach((child) => {
-      const propsChanged = { ...changed };
-      // Avoid updating those with override
-      keys(propsChanged).map((prop) => {
-        const shouldPropagate = isSymbolOverride(child, prop) && !(propsChanged[prop].type === CollectionVariableType);
-        if (shouldPropagate) delete propsChanged[prop];
-      });
-      child.set(propsChanged, { fromInstance: symbol, ...opts });
-    });
-  }
+const shouldPropagateProperty = (props: Record<string, any>, prop: string, component: Component): boolean => {
+  const isCollectionVariableDefinition = (() => {
+    if (prop === 'attributes') {
+      const attributes = props['attributes'];
+      return Object.values(attributes).some((attr: any) => attr?.type === CollectionVariableType);
+    }
+
+    return props[prop]?.type === CollectionVariableType;
+  })();
+
+  return !isSymbolOverride(component, prop) || isCollectionVariableDefinition;
 };
 
 export const updateSymbolCls = (symbol: Component, opts: any = {}) => {

@@ -5,6 +5,7 @@ import DynamicVariableListenerManager from '../../data_sources/model/DataVariabl
 import { evaluateDynamicValueDefinition, isDynamicValueDefinition } from '../../data_sources/model/utils';
 import EditorModel from '../../editor/model/Editor';
 import Component from './Component';
+import { CollectionVariableType } from '../../data_sources/model/collection_component/constants';
 
 export interface DynamicWatchersOptions {
   skipWatcherUpdates?: boolean;
@@ -24,6 +25,28 @@ export class DynamicValueWatcher {
 
   bindComponent(component: Component) {
     this.component = component;
+  }
+
+  updateCollectionStateMap(collectionsStateMap: CollectionsStateMap) {
+    this.options = {
+      ...this.options,
+      collectionsStateMap,
+    };
+
+    const collectionVariablesKeys = this.getDynamicValuesOfType(CollectionVariableType);
+    const collectionVariablesObject = collectionVariablesKeys.reduce(
+      (acc: { [key: string]: DynamicValueDefinition | null }, key) => {
+        acc[key] = null;
+        return acc;
+      },
+      {},
+    );
+    const newVariables = this.getSerializableValues(collectionVariablesObject);
+    const evaluatedValues = this.addDynamicValues(newVariables);
+
+    Object.keys(evaluatedValues).forEach((key) => {
+      this.updateFn(this.component, key, evaluatedValues[key]);
+    });
   }
 
   setDynamicValues(values: ObjectAny | undefined, options: DynamicWatchersOptions = {}) {

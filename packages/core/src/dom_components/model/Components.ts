@@ -346,13 +346,7 @@ Component> {
     let model = mdl;
 
     if (processor) {
-      model = {
-        [keyCollectionsStateMap]: {
-          ...this.opt.collectionsStateMap,
-        },
-        isCollectionItem: this.opt.isCollectionItem,
-        ...model,
-      }; // Avoid 'Cannot delete property ...'
+      model = { ...model }; // Avoid 'Cannot delete property ...'
       const modelPr = processor(model);
       if (modelPr) {
         //@ts-ignore
@@ -394,7 +388,15 @@ Component> {
       extend(model, res.props);
     }
 
-    return model;
+    return {
+      ...(this.opt.isCollectionItem && {
+        isCollectionItem: this.opt.isCollectionItem,
+        [keyCollectionsStateMap]: {
+          ...this.opt.collectionsStateMap,
+        },
+      }),
+      ...model,
+    };
   }
 
   onAdd(model: Component, c?: any, opts: { temporary?: boolean } = {}) {

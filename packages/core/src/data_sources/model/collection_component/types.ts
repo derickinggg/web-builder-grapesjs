@@ -1,6 +1,6 @@
 import { CollectionComponentType, keyCollectionDefinition } from './constants';
 
-import { ComponentDefinition, ComponentProperties } from '../../../dom_components/model/types';
+import { ComponentDefinition } from '../../../dom_components/model/types';
 import { CollectionVariableDefinition } from '../../../../test/specs/dom_components/model/ComponentTypes';
 import { DataVariableDefinition } from '../DataVariable';
 

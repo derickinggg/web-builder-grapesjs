@@ -300,8 +300,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     opt.em = em;
     this.opt = {
       ...opt,
-      // @ts-ignore
-      [keyCollectionsStateMap]: props[keyCollectionsStateMap],
+      collectionsStateMap: props[keyCollectionsStateMap],
       isCollectionItem: !!props['isCollectionItem'],
     };
     this.em = em!;
@@ -320,6 +319,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.listenTo(this, 'change:tagName', this.tagUpdated);
     this.listenTo(this, 'change:attributes', this.attrUpdated);
     this.listenTo(this, 'change:attributes:id', this._idUpdated);
+    this.listenTo(this, `change:${keyCollectionsStateMap}`, this._collectionsStateUpdated);
     this.on('change:toolbar', this.__emitUpdateTlb);
     this.on('change', this.__onChange);
     this.on(keyUpdateInside, this.__propToParent);
@@ -345,6 +345,16 @@ export default class Component extends StyleableModel<ComponentProperties> {
       isSymbol(this) && initSymbol(this);
       em?.trigger(ComponentsEvents.create, this, opt);
     }
+  }
+
+  getCollectionStateMap(): CollectionsStateMap {
+    const collectionStateMapProp = this.get(keyCollectionsStateMap);
+    if (collectionStateMapProp) {
+      return collectionStateMapProp;
+    }
+
+    const parent = this.parent() || this.opt.parent;
+    return parent?.getCollectionStateMap() || {};
   }
 
   set<A extends string>(
@@ -1595,6 +1605,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     delete obj.open; // used in Layers
     delete obj._undoexc;
     delete obj.delegate;
+    delete obj[keyCollectionsStateMap];
 
     if (!opts.fromUndo) {
       const symbol = obj[keySymbol];
@@ -1661,9 +1672,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @return {this}
    */
   setId(id: string, opts?: SetOptions & { idUpdate?: boolean }) {
-    const attrs = { ...this.get('attributes') };
-    attrs.id = id;
-    this.set('attributes', attrs, opts);
+    this.addAttributes({ id });
     return this;
   }
 
@@ -1964,6 +1973,13 @@ export default class Component extends StyleableModel<ComponentProperties> {
     // Update the style selector name
     const selector = this._getStyleSelector({ id: idPrev });
     selector && selector.set({ name: id, label: id });
+  }
+
+  _collectionsStateUpdated(m: any, v: CollectionsStateMap, opts = {}) {
+    this.componentDVListener.updateCollectionStateMap(v);
+    this.components().forEach((child) => {
+      child.set(keyCollectionsStateMap, v);
+    });
   }
 
   static typeExtends = new Set<string>();

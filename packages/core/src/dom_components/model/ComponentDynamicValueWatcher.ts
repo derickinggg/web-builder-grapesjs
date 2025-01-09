@@ -2,7 +2,7 @@ import { ObjectAny } from '../../common';
 import { CollectionVariableType } from '../../data_sources/model/collection_component/constants';
 import { CollectionsStateMap } from '../../data_sources/model/collection_component/types';
 import EditorModel from '../../editor/model/Editor';
-import Component from './Component';
+import Component, { keyCollectionsStateMap } from './Component';
 import { DynamicWatchersOptions } from './DynamicValueWatcher';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
 import { getSymbolsToUpdate } from './SymbolUtils';
@@ -43,10 +43,15 @@ export class ComponentDynamicValueWatcher {
     this.updateSymbolOverride();
   }
 
+  updateCollectionStateMap(collectionsStateMap: CollectionsStateMap) {
+    this.propertyWatcher.updateCollectionStateMap(collectionsStateMap);
+    this.attributeWatcher.updateCollectionStateMap(collectionsStateMap);
+  }
+
   addProps(props: ObjectAny, options: DynamicWatchersOptions = {}) {
     const evaluatedProps = this.propertyWatcher.addDynamicValues(props, options);
     if (props.attributes) {
-      const evaluatedAttributes = this.attributeWatcher.setDynamicValues({ ...props.attributes }, options);
+      const evaluatedAttributes = this.attributeWatcher.setDynamicValues(props.attributes, options);
       evaluatedProps['attributes'] = evaluatedAttributes;
     }
 
@@ -63,17 +68,20 @@ export class ComponentDynamicValueWatcher {
     this.updateSymbolOverride();
   }
 
-  updateSymbolOverride() {
+  private updateSymbolOverride() {
     if (!this.component || !this.component.get('isCollectionItem')) return;
-
+    
     const keys = this.propertyWatcher.getDynamicValuesOfType(CollectionVariableType);
     const attributesKeys = this.attributeWatcher.getDynamicValuesOfType(CollectionVariableType);
-
-    const combinedKeys = [...keys];
+    
+    const combinedKeys = [keyCollectionsStateMap, ...keys];
     const haveOverridenAttributes = Object.keys(attributesKeys).length;
     if (haveOverridenAttributes) combinedKeys.push('attributes');
 
-    if (!combinedKeys.length && !this.component.getSymbolOverride()) return;
+    const toUp = getSymbolsToUpdate(this.component);
+    toUp.forEach((child) => {
+      child.setSymbolOverride(combinedKeys, { fromDataSource: true });
+    });
     this.component.setSymbolOverride(combinedKeys, { fromDataSource: true });
   }
 
@@ -83,6 +91,10 @@ export class ComponentDynamicValueWatcher {
 
   getDynamicAttributesDefs() {
     return this.attributeWatcher.getAllSerializableValues();
+  }
+
+  getPropsDefsOrValues(props: ObjectAny) {
+    return this.propertyWatcher.getSerializableValues(props);
   }
 
   getAttributesDefsOrValues(attributes: ObjectAny) {

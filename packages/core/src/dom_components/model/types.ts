@@ -323,4 +323,6 @@ export interface ComponentOptions {
   temporary?: boolean;
   avoidChildren?: boolean;
   collectionsStateMap?: CollectionsStateMap;
+  isCollectionItem?: boolean;
+  parent?: Component;
 }
