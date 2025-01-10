@@ -1,6 +1,125 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Collection component Serialization Serializion with Collection Variables to JSON 1`] = `
+exports[`Collection component Serialization Saving: Collection with grandchildren 1`] = `
+{
+  "collectionDefinition": {
+    "block": {
+      "attributes": {
+        "attribute_trait": {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variable_type": "current_item",
+        },
+        "content": {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variable_type": "current_item",
+        },
+      },
+      "components": [
+        {
+          "attributes": {
+            "attribute_trait": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+            "content": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+          },
+          "components": [
+            {
+              "content": {
+                "path": "user",
+                "type": "parent-collection-variable",
+                "variable_type": "current_index",
+              },
+              "type": "default",
+            },
+          ],
+          "content": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "custom_prop": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_index",
+          },
+          "property_trait": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "type": "default",
+        },
+        {
+          "attributes": {
+            "attribute_trait": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+            "content": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+          },
+          "content": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "custom_prop": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_index",
+          },
+          "property_trait": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "type": "default",
+        },
+      ],
+      "content": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_item",
+      },
+      "custom_prop": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_index",
+      },
+      "property_trait": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_item",
+      },
+      "type": "default",
+    },
+    "collection_name": "my_collection",
+    "config": {
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "end_index": 1,
+      "start_index": 0,
+    },
+  },
+  "type": "collection-component",
+}
+`;
+
+exports[`Collection component Serialization Saving: Collection with no grandchildren 1`] = `
 {
   "collectionDefinition": {
     "block": {
@@ -109,7 +228,7 @@ exports[`Collection component Serialization Serializion with Collection Variable
 }
 `;
 
-exports[`Collection component Serialization Serializion with Collection Variables to JSON 2`] = `
+exports[`Collection component Serialization Serializion with Collection Variables to JSON: Collection with grandchildren 1`] = `
 {
   "collectionDefinition": {
     "block": {
@@ -149,6 +268,115 @@ exports[`Collection component Serialization Serializion with Collection Variable
               "type": "default",
             },
           ],
+          "content": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "custom_prop": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_index",
+          },
+          "property_trait": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "type": "default",
+        },
+        {
+          "attributes": {
+            "attribute_trait": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+            "content": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+          },
+          "content": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "custom_prop": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_index",
+          },
+          "property_trait": {
+            "path": "user",
+            "type": "parent-collection-variable",
+            "variable_type": "current_item",
+          },
+          "type": "default",
+        },
+      ],
+      "content": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_item",
+      },
+      "custom_prop": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_index",
+      },
+      "property_trait": {
+        "path": "user",
+        "type": "parent-collection-variable",
+        "variable_type": "current_item",
+      },
+      "type": "default",
+    },
+    "collection_name": "my_collection",
+    "config": {
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "end_index": 1,
+      "start_index": 0,
+    },
+  },
+  "type": "collection-component",
+}
+`;
+
+exports[`Collection component Serialization Serializion with Collection Variables to JSON: Collection with no grandchildren 1`] = `
+{
+  "collectionDefinition": {
+    "block": {
+      "attributes": {
+        "attribute_trait": {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variable_type": "current_item",
+        },
+        "content": {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variable_type": "current_item",
+        },
+      },
+      "components": [
+        {
+          "attributes": {
+            "attribute_trait": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+            "content": {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variable_type": "current_item",
+            },
+          },
           "content": {
             "path": "user",
             "type": "parent-collection-variable",
