@@ -1,4 +1,4 @@
-import { ObjectAny } from '../../common';
+import { Model, ObjectAny } from '../../common';
 import { CollectionVariableType, keyIsCollectionItem } from '../../data_sources/model/collection_component/constants';
 import { CollectionsStateMap } from '../../data_sources/model/collection_component/types';
 import EditorModel from '../../editor/model/Editor';
@@ -7,7 +7,7 @@ import { DynamicWatchersOptions } from './DynamicValueWatcher';
 import { DynamicValueWatcher } from './DynamicValueWatcher';
 import { getSymbolsToUpdate } from './SymbolUtils';
 
-export class ComponentDynamicValueWatcher {
+export class ComponentDynamicValueWatcher extends Model<Component> {
   private propertyWatcher: DynamicValueWatcher;
   private attributeWatcher: DynamicValueWatcher;
 
@@ -18,6 +18,7 @@ export class ComponentDynamicValueWatcher {
       collectionsStateMap?: CollectionsStateMap;
     },
   ) {
+    super(component, options);
     this.propertyWatcher = new DynamicValueWatcher(component, this.createPropertyUpdater(), options);
     this.attributeWatcher = new DynamicValueWatcher(component, this.createAttributeUpdater(), options);
   }
@@ -102,7 +103,6 @@ export class ComponentDynamicValueWatcher {
   }
 
   destroy() {
-    this.propertyWatcher.removeListeners();
-    this.attributeWatcher.removeListeners();
+    return this.propertyWatcher.destroy() && this.attributeWatcher.destroy();
   }
 }

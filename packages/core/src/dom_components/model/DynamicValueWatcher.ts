@@ -1,29 +1,33 @@
 import { DynamicValueDefinition } from './../../data_sources/types';
 import { CollectionsStateMap } from '../../data_sources/model/collection_component/types';
-import { ObjectAny } from '../../common';
+import { Model, ObjectAny } from '../../common';
 import DynamicVariableListenerManager from '../../data_sources/model/DataVariableListenerManager';
 import { evaluateDynamicValueDefinition, isDynamicValueDefinition } from '../../data_sources/model/utils';
 import EditorModel from '../../editor/model/Editor';
 import Component from './Component';
 import { CollectionVariableType } from '../../data_sources/model/collection_component/constants';
+import { ModelDestroyOptions } from 'backbone';
 
 export interface DynamicWatchersOptions {
   skipWatcherUpdates?: boolean;
   fromDataSource?: boolean;
 }
 
-export class DynamicValueWatcher {
+type UpdateFn = (component: Component | undefined, key: string, value: any) => void;
+
+export class DynamicValueWatcher extends Model<{ component: Component | undefined; updateFn: UpdateFn }> {
   private dynamicVariableListeners: { [key: string]: DynamicVariableListenerManager } = {};
   private em: EditorModel;
   private collectionsStateMap?: CollectionsStateMap;
   constructor(
     private component: Component | undefined,
-    private updateFn: (component: Component | undefined, key: string, value: any) => void,
+    private updateFn: UpdateFn,
     options: {
       em: EditorModel;
       collectionsStateMap?: CollectionsStateMap;
     },
   ) {
+    super({ component, updateFn }, options);
     this.em = options.em;
     this.collectionsStateMap = options.collectionsStateMap;
   }
@@ -166,5 +170,10 @@ export class DynamicValueWatcher {
     });
 
     return keys;
+  }
+
+  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+    this.removeListeners();
+    return super.destroy();
   }
 }

@@ -545,7 +545,7 @@ describe('Collection component', () => {
     });
 
     test('Serializion with Collection Variables to JSON', () => {
-      expect(filterObjectForSnapshot(cmp.toJSON())).toMatchSnapshot(`Collection with no grandchildren`);
+      expect(cmp.toJSON()).toMatchSnapshot(`Collection with no grandchildren`);
 
       const firstChild = cmp.components().at(0);
       const newChildDefinition = {
@@ -557,7 +557,7 @@ describe('Collection component', () => {
         },
       };
       firstChild.components().at(0).components(newChildDefinition);
-      expect(filterObjectForSnapshot(cmp.toJSON())).toMatchSnapshot(`Collection with grandchildren`);
+      expect(cmp.toJSON()).toMatchSnapshot(`Collection with grandchildren`);
     });
 
     test('Saving', () => {
@@ -566,7 +566,7 @@ describe('Collection component', () => {
       const frame = page.frames[0];
       const component = frame.component.components[0];
 
-      expect(filterObjectForSnapshot(component)).toMatchSnapshot(`Collection with no grandchildren`);
+      expect(component).toMatchSnapshot(`Collection with no grandchildren`);
 
       const firstChild = cmp.components().at(0);
       const newChildDefinition = {
@@ -578,7 +578,7 @@ describe('Collection component', () => {
         },
       };
       firstChild.components().at(0).components(newChildDefinition);
-      expect(filterObjectForSnapshot(cmp.toJSON())).toMatchSnapshot(`Collection with grandchildren`);
+      expect(cmp.toJSON()).toMatchSnapshot(`Collection with grandchildren`);
     });
 
     test('Loading', () => {

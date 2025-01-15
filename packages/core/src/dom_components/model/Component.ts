@@ -1637,11 +1637,8 @@ export default class Component extends StyleableModel<ComponentProperties> {
       delete obj[keyCollectionsStateMap];
       delete obj[keyIsCollectionItem];
       delete obj.attributes.id;
-      obj['components'] = this.components()
-        .toArray()
-        .map((cmp) => cmp.toJSON());
+      delete obj.deepPropagate;
     }
-    delete obj.deepPropagate;
 
     if (!opts.fromUndo) {
       const symbol = obj[keySymbol];
@@ -1708,7 +1705,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @return {this}
    */
   setId(id: string, opts?: SetOptions & { idUpdate?: boolean }) {
-    this.addAttributes({ id }, opts );
+    this.addAttributes({ id }, opts);
     return this;
   }
 
