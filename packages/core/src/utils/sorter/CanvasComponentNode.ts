@@ -13,8 +13,6 @@ export default class CanvasComponentNode extends BaseComponentNode {
    * @returns {boolean} - True if the move is allowed, false otherwise.
    */
   canMove(source: BaseComponentNode, index: number): boolean {
-    console.log('🚀 ~ CanvasComponentNode ~ canMove ~ this.model:', this.model);
-    console.log('🚀 ~ CanvasComponentNode ~ canMove ~ source.model:', source.model);
     return this.model.em.Components.canMove(this.model, source.model, this.getRealIndex(index)).result;
   }
   /**
