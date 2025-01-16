@@ -306,8 +306,11 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.opt = { ...opt };
     this.em = em!;
     this.config = opt.config || {};
-    this.addAttributes({
+    const dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+    this.setAttributes({
       ...(result(this, 'defaults').attributes || {}),
+      ...(this.get('attributes') || {}),
+      ...dynamicAttributes,
     });
     this.ccid = Component.createId(this, opt);
     this.preInit();
