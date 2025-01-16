@@ -8,6 +8,7 @@ export default class ComponentDataCollectionVariableView extends ComponentView<C
   initialize(opt = {}) {
     super.initialize(opt);
     this.postRender();
+
     this.collectionVariableListener = new DynamicVariableListenerManager({
       em: this.em!,
       dataVariable: this.model.datacollectionVariable,
@@ -17,6 +18,7 @@ export default class ComponentDataCollectionVariableView extends ComponentView<C
 
   postRender() {
     const { model, el } = this;
+    if (!el) return;
     el.innerHTML = model.datacollectionVariable.getDataValue();
 
     super.postRender();

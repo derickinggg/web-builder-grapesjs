@@ -1,0 +1,135 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Collection variable components Serialization Saving: Collection with collection variable component ( no grandchildren ) 1`] = `
+{
+  "collectionDef": {
+    "collectionConfig": {
+      "collectionId": "my_collection",
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "endIndex": 2,
+      "startIndex": 0,
+    },
+    "componentDef": {
+      "components": [
+        {
+          "type": "default",
+        },
+        {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variableType": "currentItem",
+        },
+      ],
+      "type": "default",
+    },
+  },
+  "type": "collection-component",
+}
+`;
+
+exports[`Collection variable components Serialization Saving: Collection with collection variable component ( with grandchildren ) 1`] = `
+{
+  "collectionDef": {
+    "collectionConfig": {
+      "collectionId": "my_collection",
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "endIndex": 2,
+      "startIndex": 0,
+    },
+    "componentDef": {
+      "components": [
+        {
+          "components": [
+            {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variableType": "currentIndex",
+            },
+          ],
+          "type": "default",
+        },
+        {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variableType": "currentItem",
+        },
+      ],
+      "type": "default",
+    },
+  },
+  "type": "collection-component",
+}
+`;
+
+exports[`Collection variable components Serialization Serializion to JSON: Collection with collection variable component ( no grandchildren ) 1`] = `
+{
+  "collectionDef": {
+    "collectionConfig": {
+      "collectionId": "my_collection",
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "endIndex": 2,
+      "startIndex": 0,
+    },
+    "componentDef": {
+      "components": [
+        {
+          "type": "default",
+        },
+        {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variableType": "currentItem",
+        },
+      ],
+      "type": "default",
+    },
+  },
+  "type": "collection-component",
+}
+`;
+
+exports[`Collection variable components Serialization Serializion to JSON: Collection with collection variable component ( with grandchildren ) 1`] = `
+{
+  "collectionDef": {
+    "collectionConfig": {
+      "collectionId": "my_collection",
+      "dataSource": {
+        "path": "my_data_source_id",
+        "type": "data-variable",
+      },
+      "endIndex": 2,
+      "startIndex": 0,
+    },
+    "componentDef": {
+      "components": [
+        {
+          "components": [
+            {
+              "path": "user",
+              "type": "parent-collection-variable",
+              "variableType": "currentIndex",
+            },
+          ],
+          "type": "default",
+        },
+        {
+          "path": "user",
+          "type": "parent-collection-variable",
+          "variableType": "currentItem",
+        },
+      ],
+      "type": "default",
+    },
+  },
+  "type": "collection-component",
+}
+`;
