@@ -18,9 +18,9 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
   defaults(): Partial<ResolvedDataCollectionVariable> {
     return {
       type: CollectionVariableType,
+      collectionName: undefined,
       variableType: undefined,
-      path: '',
-      collectionName: keyInnerCollectionState,
+      path: undefined,
       value: undefined,
     };
   }
@@ -86,7 +86,16 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
   destroy() {
     this.dynamicValueListener?.destroy();
     this.dataVariable?.destroy();
+
     return super.destroy();
+  }
+
+  toJSON(options?: any) {
+    const json = super.toJSON(options);
+    delete json.value;
+    !json.collectionName && delete json.collectionName;
+
+    return json;
   }
 }
 

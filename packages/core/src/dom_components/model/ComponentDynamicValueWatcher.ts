@@ -56,8 +56,8 @@ export class ComponentDynamicValueWatcher extends Model<Component> {
       Object.entries(props).map(([key, value]) =>
         excludedFromEvaluation.includes(key)
           ? [key, value] // Return excluded keys as they are
-          : [key, this.propertyWatcher.addDynamicValues({ [key]: value }, options)[key]]
-      )
+          : [key, this.propertyWatcher.addDynamicValues({ [key]: value }, options)[key]],
+      ),
     );
 
     if (props.attributes) {

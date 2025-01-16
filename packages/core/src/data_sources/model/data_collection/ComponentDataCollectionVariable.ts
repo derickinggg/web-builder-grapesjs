@@ -13,9 +13,9 @@ export default class ComponentDataCollectionVariable extends Component {
       // @ts-ignore
       ...super.defaults,
       type: CollectionVariableType,
-      variableType: '',
-      path: '',
-      collectionName: keyInnerCollectionState,
+      collectionName: undefined,
+      variableType: undefined,
+      path: undefined,
     };
   }
 
