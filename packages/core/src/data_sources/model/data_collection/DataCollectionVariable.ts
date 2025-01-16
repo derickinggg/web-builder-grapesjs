@@ -2,16 +2,31 @@ import { DataCollectionVariableDefinition } from './types';
 import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableType } from '../DataVariable';
-import { keyInnerCollectionState } from './constants';
+import { CollectionVariableType, keyInnerCollectionState } from './constants';
 import { DataCollectionState, DataCollectionStateMap } from './types';
+import DynamicVariableListenerManager from '../DataVariableListenerManager';
+type ResolvedDataCollectionVariable = DataCollectionVariableDefinition & {
+  value?: any;
+};
 
-export default class CollectionVariable extends Model<DataCollectionVariableDefinition> {
+export default class DataCollectionVariable extends Model<ResolvedDataCollectionVariable> {
   em: EditorModel;
   collectionsStateMap: DataCollectionStateMap;
   dataVariable?: DataVariable;
+  dynamicValueListener?: DynamicVariableListenerManager;
+
+  defaults(): Partial<ResolvedDataCollectionVariable> {
+    return {
+      type: CollectionVariableType,
+      variableType: undefined,
+      path: '',
+      collectionName: keyInnerCollectionState,
+      value: undefined,
+    };
+  }
 
   constructor(
-    attrs: DataCollectionVariableDefinition,
+    attrs: ResolvedDataCollectionVariable,
     options: {
       em: EditorModel;
       collectionsStateMap: DataCollectionStateMap;
@@ -20,7 +35,6 @@ export default class CollectionVariable extends Model<DataCollectionVariableDefi
     super(attrs, options);
     this.em = options.em;
     this.collectionsStateMap = options.collectionsStateMap;
-
     this.updateDataVariable();
   }
 
@@ -34,10 +48,13 @@ export default class CollectionVariable extends Model<DataCollectionVariableDefi
     if (resolvedValue?.type === DataVariableType) {
       return this.dataVariable!.getDataValue();
     }
+
     return resolvedValue;
   }
 
   private updateDataVariable() {
+    if (!this.collectionsStateMap) return { resolvedValue: undefined };
+
     const resolvedValue = resolveCollectionVariable(
       this.attributes as DataCollectionVariableDefinition,
       this.collectionsStateMap,
@@ -48,13 +65,28 @@ export default class CollectionVariable extends Model<DataCollectionVariableDefi
     if (resolvedValue?.type === DataVariableType) {
       dataVariable = new DataVariable(resolvedValue, { em: this.em });
       this.dataVariable = dataVariable;
+
+      this.dynamicValueListener?.destroy();
+      this.dynamicValueListener = new DynamicVariableListenerManager({
+        em: this.em,
+        dataVariable,
+        updateValueFromDataVariable: this.updateDataVariable,
+      });
     }
 
+    this.set('value', resolvedValue);
     return { resolvedValue, dataVariable };
   }
 
+  updateCollectionsStateMap(collectionsStateMap: DataCollectionStateMap) {
+    this.collectionsStateMap = collectionsStateMap;
+    this.updateDataVariable();
+  }
+
   destroy() {
-    return this.dataVariable?.destroy?.() || super.destroy();
+    this.dynamicValueListener?.destroy();
+    this.dataVariable?.destroy();
+    return super.destroy();
   }
 }
 

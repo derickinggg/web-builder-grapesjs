@@ -1,0 +1,53 @@
+import Component, { keyCollectionsStateMap, keySymbolOvrd } from '../../../dom_components/model/Component';
+import { ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
+import { toLowerCase } from '../../../utils/mixins';
+import DataCollectionVariable from './DataCollectionVariable';
+import { CollectionVariableType, keyInnerCollectionState } from './constants';
+import { DataCollectionStateMap, DataCollectionVariableDefinition } from './types';
+
+export default class ComponentDataCollectionVariable extends Component {
+  datacollectionVariable: DataCollectionVariable;
+
+  get defaults() {
+    return {
+      // @ts-ignore
+      ...super.defaults,
+      type: CollectionVariableType,
+      variableType: '',
+      path: '',
+      collectionName: keyInnerCollectionState,
+    };
+  }
+
+  constructor(props: DataCollectionVariableDefinition & ComponentProperties, opt: ComponentOptions) {
+    super(props, opt);
+    const em = opt.em;
+    const { type, variableType, path, collectionName } = props;
+
+    this.datacollectionVariable = new DataCollectionVariable(
+      { type, variableType, path, collectionName },
+      {
+        em,
+        collectionsStateMap: this.get(keyCollectionsStateMap),
+      },
+    );
+
+    this.listenTo(this, `change:${keyCollectionsStateMap}`, this.handleCollectionsMapStateUpdate);
+  }
+
+  private handleCollectionsMapStateUpdate(m: any, v: DataCollectionStateMap, opts = {}) {
+    this.datacollectionVariable.updateCollectionsStateMap(v);
+  }
+
+  getDataValue() {
+    return this.datacollectionVariable.getDataValue();
+  }
+
+  getInnerHTML() {
+    return this.getDataValue();
+  }
+
+  static isComponent(el: HTMLElement) {
+    return toLowerCase(el.tagName) === CollectionVariableType;
+  }
+}

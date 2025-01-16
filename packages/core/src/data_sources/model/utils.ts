@@ -1,8 +1,7 @@
 import EditorModel from '../../editor/model/Editor';
 import { DynamicValue, DynamicValueDefinition } from '../types';
 import { DataCollectionStateMap } from './data_collection/types';
-import CollectionVariable from './data_collection/CollectionVariable';
-import { DataCollectionVariableDefinition } from './data_collection/types';
+import DataCollectionVariable from './data_collection/DataCollectionVariable';
 import { CollectionVariableType } from './data_collection/constants';
 import { ConditionalVariableType, DataCondition } from './conditional_variables/DataCondition';
 import DataVariable, { DataVariableType } from './DataVariable';
@@ -52,7 +51,7 @@ export function getDynamicValueInstance(
     }
     case CollectionVariableType: {
       // @ts-ignore
-      dynamicVariable = new CollectionVariable(valueDefinition, options);
+      dynamicVariable = new DataCollectionVariable(valueDefinition, options);
       break;
     }
     default:

@@ -95,6 +95,7 @@ export default class ComponentDataCollection extends Component {
       },
       { em },
     );
+
     new DynamicVariableListenerManager({
       em: em,
       dataVariable,

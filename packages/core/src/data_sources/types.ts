@@ -1,5 +1,5 @@
 import { ObjectAny } from '../common';
-import CollectionVariable from './model/data_collection/CollectionVariable';
+import DataCollectionVariable from './model/data_collection/DataCollectionVariable';
 import { DataCollectionVariableDefinition } from './model/data_collection/types';
 import ComponentDataVariable from './model/ComponentDataVariable';
 import DataRecord from './model/DataRecord';
@@ -7,7 +7,7 @@ import DataRecords from './model/DataRecords';
 import DataVariable, { DataVariableDefinition } from './model/DataVariable';
 import { ConditionalVariableDefinition, DataCondition } from './model/conditional_variables/DataCondition';
 
-export type DynamicValue = DataVariable | ComponentDataVariable | DataCondition | CollectionVariable;
+export type DynamicValue = DataVariable | ComponentDataVariable | DataCondition | DataCollectionVariable;
 export type DynamicValueDefinition =
   | DataVariableDefinition
   | ConditionalVariableDefinition

@@ -6,7 +6,7 @@ import {
 } from '../../../../../src/data_sources/model/data_collection/constants';
 import { DataCollectionStateVariableType } from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
-import { filterObjectForSnapshot, setupTestEditor } from '../../../../common';
+import { setupTestEditor } from '../../../../common';
 import { getSymbolMain } from '../../../../../src/dom_components/model/SymbolUtils';
 import { ProjectData } from '../../../../../src/storage_manager';
 
