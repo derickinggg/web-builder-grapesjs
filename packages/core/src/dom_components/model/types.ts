@@ -83,8 +83,6 @@ export interface ComponentDelegateProps {
   layer?: (cmp: Component) => Component | Nullable;
 }
 
-export type DeepPropagationArray = (keyof ComponentProperties | ((component: Component) => void))[];
-
 export interface ComponentProperties {
   /**
    * Component type, eg. `text`, `image`, `video`, etc.
@@ -232,37 +230,6 @@ export interface ComponentProperties {
        * @default []
        */
   propagate?: (keyof ComponentProperties)[];
-
-  /**
-   * @property {Array<String|Function>} [deepPropagate=[]]
-   *
-   * Indicates an array of properties or functions that will be inherited by all descendant
-   * components, including those nested within multiple levels of child components.
-   *
-   * **Properties:**
-   *   The names of properties (as strings) that will be inherited by all descendants.
-   *
-   * **Functions:**
-   *   Functions that will be executed on each descendant component during the propagation process.
-   *   Functions can optionally receive the current component as an argument,
-   *   allowing them to interact with or modify the component's properties or behavior.
-   *
-   * **Example:**
-   *
-   * ```typescript
-   * {
-   *   removable: false,
-   *   draggable: false,
-   *   deepPropagate: ['removable', 'draggable', applyDefaultStyles]
-   * }
-   * ```
-   *
-   * In this example:
-   *   - `removable` and `draggable` properties will be inherited by all descendants.
-   *   - `applyDefaultStyles` is a function that will be executed on each descendant
-   *     component during the propagation process.
-   */
-  deepPropagate?: DeepPropagationArray;
 
   /**
    * Set an array of items to show up inside the toolbar when the component is selected (move, clone, delete).

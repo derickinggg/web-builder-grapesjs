@@ -26,7 +26,6 @@ import {
   ComponentDefinitionDefined,
   ComponentOptions,
   ComponentProperties,
-  DeepPropagationArray,
   DragMode,
   ResetComponentsOptions,
   SymbolToUpOptions,
@@ -129,8 +128,6 @@ export const keyCollectionsStateMap = '__collections_state_map';
  * @property {Array<String>} [propagate=[]] Indicates an array of properties which will be inhereted by all NEW appended children.
  *  For example if you create a component likes this: `{ removable: false, draggable: false, propagate: ['removable', 'draggable'] }`
  *  and append some new component inside, the new added component will get the exact same properties indicated in the `propagate` array (and the `propagate` property itself). Default: `[]`
- * @property {Array<String|Function>} [deepPropagate=[]] Indicates an array of properties or functions that will be inherited by all descendant
- * components, including those nested within multiple levels of child components.
  * @property {Array<Object>} [toolbar=null] Set an array of items to show up inside the toolbar when the component is selected (move, clone, delete).
  * Eg. `toolbar: [ { attributes: {class: 'fa fa-arrows'}, command: 'tlb-move' }, ... ]`.
  * By default, when `toolbar` property is falsy the editor will add automatically commands `core:component-exit` (select parent component, added if there is one), `tlb-move` (added if `draggable`) , `tlb-clone` (added if `copyable`), `tlb-delete` (added if `removable`).
@@ -177,7 +174,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       attributes: {},
       traits: ['id', 'title'],
       propagate: '',
-      deepPropagate: '',
       dmode: '',
       toolbar: null,
       delegate: null,
@@ -265,7 +261,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @ts-ignore */
   collection!: Components;
   componentDVListener: ComponentDynamicValueWatcher;
-  accumulatedPropagatedProps: DeepPropagationArray = [];
   collectionStateListeners: string[] = [];
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
@@ -352,16 +347,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
   }
 
-  getCollectionStateMap(): DataCollectionStateMap {
-    const collectionStateMapProp = this.get(keyCollectionsStateMap);
-    if (collectionStateMapProp) {
-      return collectionStateMapProp;
-    }
-
-    const parent = this.parent();
-    return parent?.getCollectionStateMap() || {};
-  }
-
   set<A extends string>(
     keyOrAttributes: A | Partial<ComponentProperties>,
     valueOrOptions?: ComponentProperties[A] | ComponentSetOptions,
@@ -385,28 +370,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     const evaluatedProps = this.componentDVListener.addProps(attributes, options);
 
     return super.set(evaluatedProps, options);
-  }
-
-  propagateDeeplyFromParent() {
-    const parent = this.parent();
-    if (!parent) return;
-    const parentDeepPropagate = parent.accumulatedPropagatedProps;
-
-    // Execute functions and set inherited properties
-    if (parentDeepPropagate) {
-      const newAttr: Partial<ComponentProperties> = {};
-      parentDeepPropagate.forEach((prop) => {
-        if (typeof prop === 'string' && isUndefined(this.get(prop))) {
-          newAttr[prop] = parent.get(prop as string);
-        } else if (typeof prop === 'function') {
-          prop(this); // Execute function on current component
-        }
-      });
-
-      this.set({ ...newAttr });
-    }
-
-    this.accumulatedPropagatedProps = [...(this.get('deepPropagate') ?? []), ...parentDeepPropagate];
   }
 
   __postAdd(opts: { recursive?: boolean } = {}) {
@@ -1640,7 +1603,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       delete obj[keyCollectionsStateMap];
       delete obj[keyIsCollectionItem];
       delete obj.attributes.id;
-      delete obj.deepPropagate;
     }
 
     if (!opts.fromUndo) {
