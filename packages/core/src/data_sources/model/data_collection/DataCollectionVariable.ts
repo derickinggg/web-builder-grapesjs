@@ -2,7 +2,7 @@ import { DataCollectionVariableDefinition } from './types';
 import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableType } from '../DataVariable';
-import { CollectionVariableType, keyInnerCollectionState } from './constants';
+import { CollectionVariableType } from './constants';
 import { DataCollectionState, DataCollectionStateMap } from './types';
 import DynamicVariableListenerManager from '../DataVariableListenerManager';
 type ResolvedDataCollectionVariable = DataCollectionVariableDefinition & {
@@ -106,7 +106,7 @@ function resolveCollectionVariable(
   collectionsStateMap: DataCollectionStateMap,
   em: EditorModel,
 ) {
-  const { collectionId = keyInnerCollectionState, variableType, path } = collectionVariableDefinition;
+  const { collectionId, variableType, path } = collectionVariableDefinition;
   if (!collectionsStateMap) return;
 
   const collectionItem = collectionsStateMap[collectionId];

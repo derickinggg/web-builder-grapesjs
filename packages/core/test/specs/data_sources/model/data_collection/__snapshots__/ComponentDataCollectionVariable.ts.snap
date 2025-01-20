@@ -18,6 +18,7 @@ exports[`Collection variable components Serialization Saving: Collection with co
           "type": "default",
         },
         {
+          "collectionId": "my_collection",
           "path": "user",
           "type": "parent-collection-variable",
           "variableType": "currentItem",
@@ -47,6 +48,7 @@ exports[`Collection variable components Serialization Saving: Collection with co
         {
           "components": [
             {
+              "collectionId": "my_collection",
               "path": "user",
               "type": "parent-collection-variable",
               "variableType": "currentIndex",
@@ -55,6 +57,7 @@ exports[`Collection variable components Serialization Saving: Collection with co
           "type": "default",
         },
         {
+          "collectionId": "my_collection",
           "path": "user",
           "type": "parent-collection-variable",
           "variableType": "currentItem",
@@ -85,6 +88,7 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
           "type": "default",
         },
         {
+          "collectionId": "my_collection",
           "path": "user",
           "type": "parent-collection-variable",
           "variableType": "currentItem",
@@ -114,6 +118,7 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
         {
           "components": [
             {
+              "collectionId": "my_collection",
               "path": "user",
               "type": "parent-collection-variable",
               "variableType": "currentIndex",
@@ -122,6 +127,7 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
           "type": "default",
         },
         {
+          "collectionId": "my_collection",
           "path": "user",
           "type": "parent-collection-variable",
           "variableType": "currentItem",

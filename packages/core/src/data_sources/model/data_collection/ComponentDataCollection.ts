@@ -1,7 +1,7 @@
 import DataVariable, { DataVariableType } from '../DataVariable';
 import { isArray } from 'underscore';
 import Component from '../../../dom_components/model/Component';
-import { ComponentOptions } from '../../../dom_components/model/types';
+import { ComponentDefinition, ComponentOptions } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
 import { ObjectAny } from '../../../common';
@@ -9,16 +9,12 @@ import EditorModel from '../../../editor/model/Editor';
 import { keyCollectionsStateMap } from '../../../dom_components/model/Component';
 import {
   ComponentDataCollectionDefinition,
+  DataCollectionConfig,
   DataCollectionDefinition,
   DataCollectionState,
   DataCollectionStateMap,
 } from './types';
-import {
-  keyCollectionDefinition,
-  keyInnerCollectionState,
-  CollectionComponentType,
-  keyIsCollectionItem,
-} from './constants';
+import { keyCollectionDefinition, CollectionComponentType, keyIsCollectionItem } from './constants';
 import DynamicVariableListenerManager from '../DataVariableListenerManager';
 
 export default class ComponentDataCollection extends Component {
@@ -114,18 +110,8 @@ function getCollectionItems(
   opt: ComponentOptions,
 ) {
   const { componentDef, collectionConfig } = collectionDef;
-  if (!collectionConfig) {
-    em.logError('The "collectionConfig" property is required in the collection definition.');
-    return [];
-  }
-
-  if (!componentDef) {
-    em.logError('The "componentDef" property is required in the collection definition.');
-    return [];
-  }
-
-  if (!collectionConfig?.dataSource) {
-    em.logError('The "collectionConfig.dataSource" property is required in the collection definition.');
+  const result = validateCollectionConfig(collectionConfig, componentDef, em);
+  if (!result) {
     return [];
   }
 
@@ -154,10 +140,16 @@ function getCollectionItems(
       remainingItems: totalItems - (index + 1),
     };
 
+    if (parentCollectionStateMap[collectionId]) {
+      em.logError(
+        `The collection ID "${collectionId}" already exists in the parent collection state. Overriding it is not allowed.`,
+      );
+      return [];
+    }
+
     const collectionsStateMap: DataCollectionStateMap = {
       ...parentCollectionStateMap,
-      ...(collectionId && { [collectionId]: collectionState }),
-      [keyInnerCollectionState]: collectionState,
+      [collectionId]: collectionState,
     };
 
     if (index === startIndex) {
@@ -224,6 +216,35 @@ function setCollectionStateMapAndPropagate(
         setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(component);
       });
   };
+}
+
+function logErrorIfMissing(property: any, propertyPath: string, em: EditorModel) {
+  if (!property) {
+    em.logError(`The "${propertyPath}" property is required in the collection definition.`);
+    return false;
+  }
+  return true;
+}
+
+function validateCollectionConfig(
+  collectionConfig: DataCollectionConfig,
+  componentDef: ComponentDefinition,
+  em: EditorModel,
+) {
+  const validations = [
+    { property: collectionConfig, propertyPath: 'collectionConfig' },
+    { property: componentDef, propertyPath: 'componentDef' },
+    { property: collectionConfig?.collectionId, propertyPath: 'collectionConfig.collectionId' },
+    { property: collectionConfig?.dataSource, propertyPath: 'collectionConfig.dataSource' },
+  ];
+
+  for (const { property, propertyPath } of validations) {
+    if (!logErrorIfMissing(property, propertyPath, em)) {
+      return [];
+    }
+  }
+
+  return true;
 }
 
 function setCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {

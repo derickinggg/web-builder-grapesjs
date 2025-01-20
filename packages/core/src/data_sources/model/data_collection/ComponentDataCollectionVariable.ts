@@ -2,7 +2,7 @@ import Component, { keyCollectionsStateMap, keySymbolOvrd } from '../../../dom_c
 import { ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataCollectionVariable from './DataCollectionVariable';
-import { CollectionVariableType, keyInnerCollectionState } from './constants';
+import { CollectionVariableType } from './constants';
 import { DataCollectionStateMap, DataCollectionVariableDefinition } from './types';
 
 export default class ComponentDataCollectionVariable extends Component {

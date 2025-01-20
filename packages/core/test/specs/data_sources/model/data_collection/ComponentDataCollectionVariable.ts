@@ -48,11 +48,13 @@ describe('Collection variable components', () => {
             {
               type: CollectionVariableType,
               variableType: DataCollectionStateVariableType.currentItem,
+              collectionId: 'my_collection',
               path: 'user',
             },
           ],
         },
         collectionConfig: {
+          collectionId: 'my_collection',
           dataSource: {
             type: DataVariableType,
             path: 'my_data_source_id',
@@ -77,10 +79,12 @@ describe('Collection variable components', () => {
           components: {
             type: CollectionVariableType,
             variableType: DataCollectionStateVariableType.currentItem,
+            collectionId: 'my_collection',
             path: 'user',
           },
         },
         collectionConfig: {
+          collectionId: 'my_collection',
           dataSource: {
             type: DataVariableType,
             path: 'my_data_source_id',
@@ -104,6 +108,7 @@ describe('Collection variable components', () => {
       const variableCmpDef = {
         type: CollectionVariableType,
         variableType: DataCollectionStateVariableType.currentItem,
+        collectionId: 'my_collection',
         path: 'user',
       };
 
@@ -141,6 +146,7 @@ describe('Collection variable components', () => {
       const newChildDefinition = {
         type: CollectionVariableType,
         variableType: DataCollectionStateVariableType.currentIndex,
+        collectionId: 'my_collection',
         path: 'user',
       };
       firstChild.components().at(0).components(newChildDefinition);
@@ -159,6 +165,7 @@ describe('Collection variable components', () => {
       const newChildDefinition = {
         type: CollectionVariableType,
         variableType: DataCollectionStateVariableType.currentIndex,
+        collectionId: 'my_collection',
         path: 'user',
       };
 
@@ -183,6 +190,7 @@ describe('Collection variable components', () => {
                             {
                               type: CollectionVariableType,
                               variableType: DataCollectionStateVariableType.currentItem,
+                              collectionId: 'my_collection',
                               path: 'user',
                             },
                           ],
