@@ -54,7 +54,7 @@ import {
 } from './SymbolUtils';
 import { ComponentDynamicValueWatcher } from './ComponentDynamicValueWatcher';
 import { DynamicWatchersOptions } from './DynamicValueWatcher';
-import { keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
+import { keyIsCollectionItem, keyCollectionsStateMap } from '../../data_sources/model/data_collection/constants';
 
 export interface IComponent extends ExtractMethods<Component> {}
 export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {}
@@ -72,7 +72,6 @@ export const keySymbol = '__symbol';
 export const keySymbolOvrd = '__symbol_ovrd';
 export const keyUpdate = ComponentsEvents.update;
 export const keyUpdateInside = ComponentsEvents.updateInside;
-export const keyCollectionsStateMap = '__collections_state_map';
 
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
@@ -270,9 +269,8 @@ export default class Component extends StyleableModel<ComponentProperties> {
     });
     super(props, {
       ...opt,
-      // @ts-ignore
       componentDVListener,
-    });
+    } as any);
     componentDVListener.bindComponent(this);
     this.componentDVListener = componentDVListener;
 
@@ -299,7 +297,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
 
     opt.em = em;
-    this.opt = { ...opt };
+    this.opt = opt;
     this.em = em!;
     this.config = opt.config || {};
     const dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
@@ -352,7 +350,9 @@ export default class Component extends StyleableModel<ComponentProperties> {
     optionsOrUndefined?: ComponentSetOptions,
   ): this {
     let attributes: Partial<ComponentProperties>;
-    let options: ComponentSetOptions = { skipWatcherUpdates: false, fromDataSource: false };
+    let options: ComponentSetOptions & {
+      componentDVListener?: ComponentDynamicValueWatcher;
+    } = { skipWatcherUpdates: false, fromDataSource: false };
     if (typeof keyOrAttributes === 'object') {
       attributes = keyOrAttributes;
       options = valueOrOptions || (options as ComponentSetOptions);
@@ -364,7 +364,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       options = optionsOrUndefined || options;
     }
 
-    // @ts-ignore
     this.componentDVListener = this.componentDVListener || options.componentDVListener;
     const evaluatedProps = this.componentDVListener.addProps(attributes, options);
 
@@ -1061,7 +1060,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       return coll as any;
     } else {
       coll.reset(undefined, opts);
-      // @ts-ignore
       return components ? this.append(components, opts) : ([] as any);
     }
   }

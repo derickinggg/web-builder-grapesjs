@@ -50,7 +50,6 @@ export function getDynamicValueInstance(
       break;
     }
     case CollectionVariableType: {
-      // @ts-ignore
       dynamicVariable = new DataCollectionVariable(valueDefinition, options);
       break;
     }

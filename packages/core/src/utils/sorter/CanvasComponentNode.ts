@@ -7,15 +7,6 @@ export default class CanvasComponentNode extends BaseComponentNode {
     maxUndroppableDimension: 15, // In px
   };
   /**
-   * Check if a source node can be moved to a specified index within this component.
-   * @param {BaseComponentNode} source - The source node to move.
-   * @param {number} index - The display index to move the source to.
-   * @returns {boolean} - True if the move is allowed, false otherwise.
-   */
-  canMove(source: BaseComponentNode, index: number): boolean {
-    return this.model.em.Components.canMove(this.model, source.model, this.getRealIndex(index)).result;
-  }
-  /**
    * Get the associated view of this component.
    * @returns The view associated with the component, or undefined if none.
    */

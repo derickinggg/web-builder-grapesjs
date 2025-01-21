@@ -1,17 +1,19 @@
-import Component, { keyCollectionsStateMap, keySymbolOvrd } from '../../../dom_components/model/Component';
+import Component from '../../../dom_components/model/Component';
 import { ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataCollectionVariable from './DataCollectionVariable';
-import { CollectionVariableType } from './constants';
+import { CollectionVariableType, keyCollectionsStateMap } from './constants';
 import { DataCollectionStateMap, DataCollectionVariableDefinition } from './types';
 
 export default class ComponentDataCollectionVariable extends Component {
   datacollectionVariable: DataCollectionVariable;
 
   get defaults() {
+    // @ts-expect-error
+    const componentDefaults = super.defaults;
+
     return {
-      // @ts-ignore
-      ...super.defaults,
+      ...componentDefaults,
       type: CollectionVariableType,
       collectionId: undefined,
       variableType: undefined,

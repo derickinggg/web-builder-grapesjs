@@ -11,7 +11,7 @@ type ResolvedDataCollectionVariable = DataCollectionVariableDefinition & {
 
 export default class DataCollectionVariable extends Model<ResolvedDataCollectionVariable> {
   em: EditorModel;
-  collectionsStateMap: DataCollectionStateMap;
+  collectionsStateMap?: DataCollectionStateMap;
   dataVariable?: DataVariable;
   dynamicValueListener?: DynamicVariableListenerManager;
 
@@ -29,7 +29,7 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
     attrs: ResolvedDataCollectionVariable,
     options: {
       em: EditorModel;
-      collectionsStateMap: DataCollectionStateMap;
+      collectionsStateMap?: DataCollectionStateMap;
     },
   ) {
     super(attrs, options);

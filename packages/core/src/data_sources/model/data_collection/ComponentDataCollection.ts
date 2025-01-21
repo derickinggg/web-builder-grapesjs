@@ -6,7 +6,6 @@ import { toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
 import { ObjectAny } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
-import { keyCollectionsStateMap } from '../../../dom_components/model/Component';
 import {
   ComponentDataCollectionDefinition,
   DataCollectionConfig,
@@ -14,28 +13,31 @@ import {
   DataCollectionState,
   DataCollectionStateMap,
 } from './types';
-import { keyCollectionDefinition, CollectionComponentType, keyIsCollectionItem } from './constants';
+import {
+  keyCollectionDefinition,
+  keyCollectionsStateMap,
+  CollectionComponentType,
+  keyIsCollectionItem,
+} from './constants';
 import DynamicVariableListenerManager from '../DataVariableListenerManager';
 
 export default class ComponentDataCollection extends Component {
   constructor(props: ComponentDataCollectionDefinition, opt: ComponentOptions) {
     const collectionDef = props[keyCollectionDefinition];
     if (opt.forCloning) {
-      // @ts-ignore
-      return super(props, opt);
+      // If we are cloning, leave setting the collection items to the main symbol collection
+      return super(props as any, opt) as unknown as ComponentDataCollection;
     }
 
     const em = opt.em;
-    // @ts-ignore
     const cmp: ComponentDataCollection = super(
-      // @ts-ignore
       {
         ...props,
         components: undefined,
         droppable: false,
-      },
+      } as any,
       opt,
-    );
+    ) as unknown as ComponentDataCollection;
 
     if (!collectionDef) {
       em.logError('missing collection definition');
@@ -158,15 +160,22 @@ function getCollectionItems(
     };
 
     if (index === startIndex) {
-      // @ts-ignore
-      const type = em.Components.getType(componentDef?.type || 'default');
+      const componentType = (componentDef?.type as string) || 'default';
+      let type = em.Components.getType(componentType);
+      // Handle the case where the type is not found
+      if (!type) {
+        em.logWarning(`Component type "${componentType}" not found. Using default type.`);
+        const defaultType = em.Components.getType('default');
+        if (!defaultType) {
+          throw new Error('Default component type not found. Cannot proceed.');
+        }
+        type = defaultType;
+      }
       const model = type.model;
 
       blockSymbolMain = new model(
         {
           ...componentDef,
-          [keyCollectionsStateMap]: collectionsStateMap,
-          [keyIsCollectionItem]: true,
           draggable: false,
         },
         opt,
