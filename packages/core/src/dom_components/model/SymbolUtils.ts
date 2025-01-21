@@ -3,7 +3,7 @@ import Component, { keySymbol, keySymbolOvrd, keySymbols } from './Component';
 import { SymbolToUpOptions } from './types';
 import { isEmptyObj } from '../../utils/mixins';
 import Components from './Components';
-import { CollectionVariableType } from '../../data_sources/model/data_collection/constants';
+import { CollectionVariableType, keyCollectionDefinition } from '../../data_sources/model/data_collection/constants';
 
 export const isSymbolMain = (cmp: Component) => isArray(cmp.get(keySymbols));
 
@@ -208,13 +208,25 @@ export const updateSymbolComps = (symbol: Component, m: Component, c: Components
       changed: 'components:reset',
     });
     const cmps = coll.models;
+    const newSymbols = new Set<Component>();
     logSymbol(symbol, 'reset', toUp, { components: cmps });
 
     toUp.forEach((rel) => {
       const relCmps = rel.components();
       const toReset = cmps.map((cmp, i) => {
-        return cmp.clone({ symbol: isSymbol(cmp) });
+        if (symbol.get(keyCollectionDefinition)) {
+          return cmp.clone({ symbol: isSymbol(cmp) });
+        }
+        // This particular case here is to handle reset from `resetFromString`
+        // where we can receive an array of regulat components or already
+        // existing symbols (updated already before reset)
+        if (!isSymbol(cmp) || newSymbols.has(cmp)) {
+          newSymbols.add(cmp);
+          return cmp.clone({ symbol: true });
+        }
+        return relCmps.at(i);
       });
+
       relCmps.reset(toReset, { fromInstance: symbol, ...c } as any);
     });
     // Add
