@@ -102,7 +102,7 @@ export default class ComponentDataCollection extends Component {
       dataVariable,
       updateValueFromDataVariable: () => {
         const collectionItems = getCollectionItems(em, collectionDef, parentCollectionStateMap, opt);
-        this.components(collectionItems);
+        this.components().reset(collectionItems);
       },
     });
   }
