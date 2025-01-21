@@ -201,15 +201,15 @@ describe('Collection component', () => {
         const updatedFirstChild = cmp.components().at(0);
         const updatedSecondChild = cmp.components().at(1);
 
-        expect(updatedFirstChild.get('name')).toBe("user2");
-        expect(updatedSecondChild.get('name')).toBe("user3");
+        expect(updatedFirstChild.get('name')).toBe('user2');
+        expect(updatedSecondChild.get('name')).toBe('user3');
 
         // Verify that the grandchild components are also updated
         const updatedFirstGrandchild = updatedFirstChild.components().at(0);
         const updatedSecondGrandchild = updatedSecondChild.components().at(0);
 
-        expect(updatedFirstGrandchild.get('name')).toBe("user2");
-        expect(updatedSecondGrandchild.get('name')).toBe("user3");
+        expect(updatedFirstGrandchild.get('name')).toBe('user2');
+        expect(updatedSecondGrandchild.get('name')).toBe('user3');
       });
 
       test('Adding a record updates the collection component correctly', () => {
