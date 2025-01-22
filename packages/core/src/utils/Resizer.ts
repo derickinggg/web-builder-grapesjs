@@ -672,15 +672,21 @@ export default class Resizer {
     const maxDim = opts.maxDim;
     const deltaX = data.delta!.x;
     const deltaY = data.delta!.y;
+    const parentEl = this.getParentEl();
+    const parentRect = parentEl ? this.getElementPos(parentEl) : { top: 0, left: 0, width: 0, height: 0 };
     const parentW = this.parentDim!.w;
     const parentH = this.parentDim!.h;
     const unitWidth = this.opts.unitWidth;
     const unitHeight = this.opts.unitHeight;
     const startW = unitWidth === '%' ? (startDim.w / 100) * parentW : startDim.w;
     const startH = unitHeight === '%' ? (startDim.h / 100) * parentH : startDim.h;
+
+    // Check if the parent or any ancestor has `position: relative`, `absolute`, `fixed`, or `sticky`
+    const hasPositionedParent = parentEl && this.hasPositionedParent(parentEl);
+
     const box: RectDim = {
-      t: startDim.t,
-      l: startDim.l,
+      t: hasPositionedParent ? startDim.t - parentRect.top : startDim.t, // Subtract only if parent or ancestor is positioned
+      l: hasPositionedParent ? startDim.l - parentRect.left : startDim.l, // Subtract only if parent or ancestor is positioned
       w: startW,
       h: startH,
     };
@@ -749,5 +755,21 @@ export default class Resizer {
     }
 
     return box;
+  }
+
+  hasPositionedParent(element: HTMLElement | null): boolean {
+    if (!element) return false;
+
+    let currentElement: HTMLElement | null = element;
+
+    while (currentElement) {
+      const position = window.getComputedStyle(currentElement).position;
+      if (position === 'relative' || position === 'absolute' || position === 'fixed' || position === 'sticky') {
+        return true;
+      }
+      currentElement = currentElement.parentElement;
+    }
+
+    return false;
   }
 }
