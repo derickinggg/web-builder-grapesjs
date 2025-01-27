@@ -760,16 +760,7 @@ export default class Resizer {
   hasPositionedParent(element: HTMLElement | null): boolean {
     if (!element) return false;
 
-    let currentElement: HTMLElement | null = element;
-
-    while (currentElement) {
-      const position = window.getComputedStyle(currentElement).position;
-      if (position === 'relative' || position === 'absolute' || position === 'fixed' || position === 'sticky') {
-        return true;
-      }
-      currentElement = currentElement.parentElement;
-    }
-
-    return false;
+    // If the element's offsetParent is not the body or null, it has a positioned ancestor
+    return element.offsetParent !== document.body && element.offsetParent !== null;
   }
 }
