@@ -6,20 +6,21 @@ export default class ComponentDataCollectionVariableView extends ComponentView<C
   collectionVariableListener?: DynamicVariableListenerManager;
 
   initialize(opt = {}) {
-    super.initialize(opt);
+super.initialize(opt);
     this.postRender();
 
     this.collectionVariableListener = new DynamicVariableListenerManager({
       em: this.em!,
       dataVariable: this.model.datacollectionVariable,
-      updateValueFromDataVariable: this.postRender,
+      updateValueFromDataVariable: this.postRender.bind(this),
     });
   }
 
   postRender() {
     const { model, el } = this;
-    if (!el) return;
-    el.innerHTML = model.datacollectionVariable.getDataValue();
+    if (el) {
+      el.innerHTML = model.datacollectionVariable.getDataValue();
+    }
 
     super.postRender();
   }
