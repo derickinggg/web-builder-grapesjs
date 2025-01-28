@@ -130,7 +130,7 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
     const propsKeys = keys ? keys : Object.keys(this.dynamicVariableListeners);
     propsKeys.forEach((key) => {
       if (this.dynamicVariableListeners[key]) {
-        this.dynamicVariableListeners[key].destroy();
+        this.dynamicVariableListeners[key].destroy?.();
         delete this.dynamicVariableListeners[key];
       }
     });

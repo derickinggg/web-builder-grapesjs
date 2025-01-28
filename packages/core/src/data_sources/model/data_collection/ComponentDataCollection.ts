@@ -51,7 +51,7 @@ export default class ComponentDataCollection extends Component {
     cmp.components(components);
 
     if (this.hasDynamicDataSource()) {
-      this.watchDataSource(em, collectionDef, parentCollectionStateMap, opt);
+      this.watchDataSource(em, parentCollectionStateMap, opt);
     }
 
     return cmp;
@@ -69,7 +69,7 @@ export default class ComponentDataCollection extends Component {
   toJSON(opts?: ObjectAny) {
     const json = super.toJSON.call(this, opts) as ComponentDataCollectionDefinition;
 
-    const firstChild = this.getBlockDefinition();
+    const firstChild = this.getComponentDef();
     json[keyCollectionDefinition].componentDef = firstChild;
 
     delete json.components;
@@ -77,19 +77,19 @@ export default class ComponentDataCollection extends Component {
     return json;
   }
 
-  private getBlockDefinition() {
-    const firstChild = this.components().at(0)?.toJSON() || {};
-    delete firstChild.draggable;
+  private getComponentDef() {
+    const firstChild = this.components().at(0);
+    const firstChildJSON = firstChild?.toJSON() ?? {};
+    const shouldHaveChildren = firstChild && !firstChild.get(keyCollectionDefinition) && firstChild.components().length;
+    if (shouldHaveChildren) {
+      firstChildJSON.components = firstChild.components().map((component) => component.toJSON());
+    }
+    delete firstChildJSON.draggable;
 
-    return firstChild;
+    return firstChildJSON;
   }
 
-  private watchDataSource(
-    em: EditorModel,
-    collectionDef: DataCollectionDefinition,
-    parentCollectionStateMap: DataCollectionStateMap,
-    opt: ComponentOptions,
-  ) {
+  private watchDataSource(em: EditorModel, parentCollectionStateMap: DataCollectionStateMap, opt: ComponentOptions) {
     const path = this.get(keyCollectionDefinition).collectionConfig.dataSource?.path;
     const dataVariable = new DataVariable(
       {
@@ -103,6 +103,10 @@ export default class ComponentDataCollection extends Component {
       em: em,
       dataVariable,
       updateValueFromDataVariable: () => {
+        const collectionDef = {
+          ...this.get(keyCollectionDefinition),
+          componentDef: this.getComponentDef(),
+        };
         const collectionItems = getCollectionItems(em, collectionDef, parentCollectionStateMap, opt);
         this.components().reset(collectionItems);
       },
