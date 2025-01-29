@@ -69,8 +69,8 @@ export default class ComponentDataCollection extends Component {
   toJSON(opts?: ObjectAny) {
     const json = super.toJSON.call(this, opts) as ComponentDataCollectionDefinition;
 
-    const firstChild = this.getComponentDef();
-    json[keyCollectionDefinition].componentDef = firstChild;
+    const firstChildJSON = this.getComponentDef();
+    json[keyCollectionDefinition].componentDef = firstChildJSON ?? this.get(keyCollectionDefinition);
 
     delete json.components;
     delete json.droppable;
@@ -78,8 +78,9 @@ export default class ComponentDataCollection extends Component {
   }
 
   private getComponentDef() {
-    const firstChildJSON = JSON.parse(JSON.stringify(this.components().at(0)));
-    delete firstChildJSON.draggable;
+    const firstChild = this.components().at(0);
+    const firstChildJSON = firstChild?.toJSON();
+    delete firstChildJSON?.draggable;
 
     return firstChildJSON;
   }
