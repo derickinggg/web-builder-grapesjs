@@ -78,12 +78,7 @@ export default class ComponentDataCollection extends Component {
   }
 
   private getComponentDef() {
-    const firstChild = this.components().at(0);
-    const firstChildJSON = firstChild?.toJSON() ?? {};
-    const shouldHaveChildren = firstChild && !firstChild.get(keyCollectionDefinition) && firstChild.components().length;
-    if (shouldHaveChildren) {
-      firstChildJSON.components = firstChild.components().map((component) => component.toJSON());
-    }
+    const firstChildJSON = JSON.parse(JSON.stringify(this.components().at(0)));
     delete firstChildJSON.draggable;
 
     return firstChildJSON;
