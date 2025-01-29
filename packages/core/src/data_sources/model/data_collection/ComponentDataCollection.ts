@@ -217,12 +217,12 @@ function setCollectionStateMapAndPropagate(
       model.collectionStateListeners.push(listenerKey);
 
       // Add a 'remove' listener to clean up
-      const removeListener = () => {
-        model.stopListening(model.components(), 'add', addListener); // Remove the 'add' listener
-        model.off(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange); // Remove the change listener
-        const index = model.collectionStateListeners.indexOf(listenerKey);
+      const removeListener = (component: Component) => {
+        component.stopListening(component.components(), 'add', addListener); // Remove the 'add' listener
+        component.off(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange); // Remove the change listener
+        const index = component.collectionStateListeners.indexOf(listenerKey);
         if (index > -1) {
-          model.collectionStateListeners.splice(index, 1); // Remove the listener key
+          component.collectionStateListeners.splice(index, 1); // Remove the listener key
         }
       };
 
