@@ -1,7 +1,7 @@
 import DataVariable, { DataVariableType } from '../DataVariable';
 import { isArray } from 'underscore';
 import Component from '../../../dom_components/model/Component';
-import { ComponentDefinition, ComponentOptions } from '../../../dom_components/model/types';
+import { ComponentDefinition, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
 import { ObjectAny } from '../../../common';
@@ -68,9 +68,7 @@ export default class ComponentDataCollection extends Component {
 
   toJSON(opts?: ObjectAny) {
     const json = super.toJSON.call(this, opts) as ComponentDataCollectionDefinition;
-
-    const firstChildJSON = this.getComponentDef();
-    json[keyCollectionDefinition].componentDef = firstChildJSON ?? this.get(keyCollectionDefinition);
+    json[keyCollectionDefinition].componentDef = this.getComponentDef();
 
     delete json.components;
     delete json.droppable;
@@ -79,7 +77,8 @@ export default class ComponentDataCollection extends Component {
 
   private getComponentDef() {
     const firstChild = this.components().at(0);
-    const firstChildJSON = firstChild?.toJSON();
+
+    const firstChildJSON = firstChild ? this.deepToJSON(firstChild) : this.get(keyCollectionDefinition).componentDef;
     delete firstChildJSON?.draggable;
 
     return firstChildJSON;
@@ -99,15 +98,30 @@ export default class ComponentDataCollection extends Component {
       em: em,
       dataVariable,
       updateValueFromDataVariable: () => {
-        const collectionItems = getCollectionItems(
-          em,
-          this.get(keyCollectionDefinition),
-          parentCollectionStateMap,
-          opt,
-        );
+        const collectionDef = {
+          ...this.get(keyCollectionDefinition),
+          componentDef: this.getComponentDef(),
+        };
+
+        const collectionItems = getCollectionItems(em, collectionDef, parentCollectionStateMap, opt);
+
         this.components().reset(collectionItems);
       },
     });
+  }
+
+  private deepToJSON(component: Component) {
+    const componentJSON: Partial<ComponentDefinitionDefined> = {
+      ...component.toJSON(),
+      components: component.components().map((cmp) => this.deepToJSON(cmp)),
+    };
+    const hasNoChildren = component.components().length === 0;
+    const isCollectionComponent = component.get(keyCollectionDefinition);
+    if (hasNoChildren || isCollectionComponent) {
+      delete componentJSON.components;
+    }
+
+    return componentJSON;
   }
 }
 
@@ -176,7 +190,7 @@ function getCollectionItems(
 
       blockSymbolMain = new model(
         {
-          ...componentDef,
+          ...deepClone(componentDef),
           draggable: false,
         },
         opt,
@@ -324,4 +338,16 @@ function listDataSourceVariables(dataSource_id: string, em: EditorModel) {
     type: DataVariableType,
     path: dataSource_id + '.' + key,
   }));
+}
+
+function deepClone(obj: ObjectAny) {
+  if (obj === null || typeof obj !== 'object') return obj;
+
+  const clone = Array.isArray(obj) ? [] : {};
+
+  Object.keys(obj).forEach((key) => {
+    (clone as any)[key] = deepClone((obj as any)[key]);
+  });
+
+  return clone;
 }
