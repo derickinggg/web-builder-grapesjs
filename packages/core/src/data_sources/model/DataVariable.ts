@@ -21,7 +21,7 @@ export default class DataVariable extends Model {
     };
   }
 
-  constructor(props: DataVariableProps, options: any) {
+  constructor(props: DataVariableProps, options: { em?: EditorModel }) {
     super(props, options);
     this.em = options.em;
     this.listenToDataSource();

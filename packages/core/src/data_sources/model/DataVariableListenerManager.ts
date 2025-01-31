@@ -5,7 +5,6 @@ import EditorModel from '../../editor/model/Editor';
 import DataVariable, { DataVariableType } from './DataVariable';
 import { DynamicValue } from '../types';
 import { DataCondition, DataConditionType } from './conditional_variables/DataCondition';
-import ComponentDataVariable from './ComponentDataVariable';
 import { DataCollectionVariableType } from './data_collection/constants';
 import DataCollectionVariable from './data_collection/DataCollectionVariable';
 
@@ -36,41 +35,43 @@ export default class DynamicVariableListenerManager {
   };
 
   listenToDynamicVariable() {
-    const { em, dynamicVariable } = this;
+    const { dynamicVariable } = this;
     this.removeListeners();
-
+    let dataListeners: DataVariableListener[] = [];
     // @ts-ignore
     const type = dynamicVariable.get('type');
-    let dataListeners: DataVariableListener[] = [];
+
     switch (type) {
       case DataCollectionVariableType:
         dataListeners = this.listenToDataCollectionVariable(dynamicVariable as DataCollectionVariable);
         break;
       case DataVariableType:
-        dataListeners = this.listenToDataVariable(dynamicVariable as DataVariable | ComponentDataVariable, em);
+        dataListeners = this.listenToDataVariable(dynamicVariable as DataVariable);
         break;
       case DataConditionType:
-        dataListeners = this.listenToConditionalVariable(dynamicVariable as DataCondition, em);
+        dataListeners = this.listenToConditionalVariable(dynamicVariable as DataCondition);
         break;
     }
-    dataListeners.forEach((ls) => this.model.listenTo(ls.obj, ls.event, this.onChange));
 
+    dataListeners.forEach((ls) => this.model.listenTo(ls.obj, ls.event, this.onChange));
     this.dataListeners = dataListeners;
   }
 
-  private listenToConditionalVariable(dataVariable: DataCondition, em: EditorModel) {
+  private listenToConditionalVariable(dataVariable: DataCondition) {
+    const { em } = this;
     const dataListeners = dataVariable.getDependentDataVariables().flatMap((dataVariable) => {
-      return this.listenToDataVariable(new DataVariable(dataVariable, { em: this.em }), em);
+      return this.listenToDataVariable(new DataVariable(dataVariable, { em }));
     });
 
     return dataListeners;
   }
 
-  private listenToDataVariable(dataVariable: DataVariable | ComponentDataVariable, em: EditorModel) {
+  private listenToDataVariable(dataVariable: DataVariable) {
+    const { em } = this;
     const dataListeners: DataVariableListener[] = [];
     const { path } = dataVariable.attributes;
     const normPath = stringToPath(path || '').join('.');
-    const [ds, dr] = this.em.DataSources.fromPath(path);
+    const [ds, dr] = em.DataSources.fromPath(path);
     ds && dataListeners.push({ obj: ds.records, event: 'add remove reset' });
     dr && dataListeners.push({ obj: dr, event: 'change' });
     dataListeners.push(

@@ -1,4 +1,4 @@
-import { ObjectAny } from '../common';
+import { Model, Collection, ObjectAny } from '../common';
 import DataCollectionVariable from './model/data_collection/DataCollectionVariable';
 import { DataCollectionVariableProps } from './model/data_collection/types';
 import ComponentDataVariable from './model/ComponentDataVariable';
@@ -26,7 +26,7 @@ export interface DataRecordProps extends ObjectAny {
 }
 
 export interface DataVariableListener {
-  obj: any;
+  obj: Model | Collection;
   event: string;
 }
 
