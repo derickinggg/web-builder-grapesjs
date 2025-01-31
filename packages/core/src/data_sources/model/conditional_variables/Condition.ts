@@ -29,7 +29,7 @@ export class Condition extends Model {
   /**
    * Recursively evaluates conditions and logic groups.
    */
-  private evaluateCondition(condition: any): boolean {
+  private evaluateCondition(condition: ConditionProps): boolean {
     if (typeof condition === 'boolean') return condition;
 
     if (this.isLogicGroup(condition)) {
@@ -78,10 +78,7 @@ export class Condition extends Model {
   /**
    * Recursively extracts variables from expressions or logic groups.
    */
-  private extractVariables(
-    condition: boolean | LogicGroupProps | ExpressionProps,
-    variables: DataVariableProps[],
-  ): void {
+  private extractVariables(condition: ConditionProps, variables: DataVariableProps[]): void {
     if (this.isExpression(condition)) {
       if (isDataVariable(condition.left)) variables.push(condition.left);
       if (isDataVariable(condition.right)) variables.push(condition.right);

@@ -1,13 +1,13 @@
+import { Model } from '../../../common';
+import EditorModel from '../../../editor/model/Editor';
+import DataVariable, { DataVariableProps } from '../DataVariable';
+import DynamicVariableListenerManager from '../DataVariableListenerManager';
+import { evaluateVariable, isDataVariable } from '../utils';
+import { Condition, ConditionProps } from './Condition';
+import { GenericOperation } from './operators/GenericOperator';
+import { LogicalOperation } from './operators/LogicalOperator';
 import { NumberOperation } from './operators/NumberOperator';
 import { StringOperation } from './operators/StringOperations';
-import { GenericOperation } from './operators/GenericOperator';
-import { Model } from '../../../common';
-import { LogicalOperation } from './operators/LogicalOperator';
-import DynamicVariableListenerManager from '../DataVariableListenerManager';
-import EditorModel from '../../../editor/model/Editor';
-import { Condition, ConditionProps } from './Condition';
-import DataVariable, { DataVariableProps } from '../DataVariable';
-import { evaluateVariable, isDataVariable } from '../utils';
 
 export const DataConditionType = 'data-condition';
 
@@ -35,7 +35,6 @@ interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'
 
 export class DataCondition extends Model<DataConditionPropsDefined> {
   lastEvaluationResult: boolean;
-  private condition: Condition;
   private em: EditorModel;
   private variableListeners: DynamicVariableListenerManager[] = [];
   private _onValueChange?: () => void;
@@ -57,11 +56,14 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
       ifTrue,
       ifFalse,
     });
-    this.condition = conditionInstance;
     this.em = opts.em;
     this.lastEvaluationResult = this.evaluate();
     this.listenToDataVariables();
     this._onValueChange = opts.onValueChange;
+  }
+
+  get condition() {
+    return this.get('condition')!;
   }
 
   evaluate() {
