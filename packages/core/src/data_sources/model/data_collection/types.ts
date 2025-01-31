@@ -1,8 +1,8 @@
-import { CollectionComponentType, CollectionVariableType, keyCollectionDefinition } from './constants';
-import { ComponentDefinition } from '../../../dom_components/model/types';
-import { DataVariableDefinition } from '../DataVariable';
+import { DataCollectionType, DataCollectionVariableType, keyCollectionDefinition } from './constants';
+import { ComponentDefinition, ComponentProperties } from '../../../dom_components/model/types';
+import { DataVariableProps } from '../DataVariable';
 
-export type DataCollectionDataSource = any[] | DataVariableDefinition | DataCollectionVariableDefinition;
+export type DataCollectionDataSource = any[] | DataVariableProps | DataCollectionVariableProps;
 
 export interface DataCollectionConfig {
   collectionId: string;
@@ -35,19 +35,23 @@ export interface DataCollectionStateMap {
   [key: string]: DataCollectionState;
 }
 
-export interface ComponentDataCollectionDefinition extends ComponentDefinition {
-  [keyCollectionDefinition]: DataCollectionDefinition;
+export interface ComponentDataCollectionProps extends ComponentDefinition {
+  [keyCollectionDefinition]: DataCollectionProps;
 }
 
-export interface DataCollectionDefinition {
-  type: typeof CollectionComponentType;
+export interface ComponentDataCollectionVariableProps
+  extends DataCollectionVariableProps,
+    Omit<ComponentProperties, 'type'> {}
+
+export interface DataCollectionProps {
+  type: typeof DataCollectionType;
   collectionConfig: DataCollectionConfig;
   componentDef: ComponentDefinition;
 }
 
-export type DataCollectionVariableDefinition = {
-  type: typeof CollectionVariableType;
+export interface DataCollectionVariableProps {
+  type: typeof DataCollectionVariableType;
   variableType: DataCollectionStateVariableType;
   collectionId: string;
   path?: string;
-};
+}

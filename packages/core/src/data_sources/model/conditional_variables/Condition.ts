@@ -1,7 +1,7 @@
-import { DataVariableDefinition, DataVariableType } from './../DataVariable';
+import { DataVariableProps } from './../DataVariable';
 import EditorModel from '../../../editor/model/Editor';
 import { evaluateVariable, isDataVariable } from '../utils';
-import { ExpressionDefinition, LogicGroupDefinition } from './DataCondition';
+import { ExpressionProps, LogicGroupProps } from './DataCondition';
 import { LogicalGroupStatement } from './LogicalGroupStatement';
 import { Operator } from './operators';
 import { GenericOperation, GenericOperator } from './operators/GenericOperator';
@@ -10,13 +10,15 @@ import { NumberOperator, NumberOperation } from './operators/NumberOperator';
 import { StringOperator, StringOperation } from './operators/StringOperations';
 import { Model } from '../../../common';
 
+export type ConditionProps = ExpressionProps | LogicGroupProps | boolean;
+
 export class Condition extends Model {
-  private condition: ExpressionDefinition | LogicGroupDefinition | boolean;
+  private condition: ConditionProps;
   private em: EditorModel;
 
-  constructor(condition: ExpressionDefinition | LogicGroupDefinition | boolean, opts: { em: EditorModel }) {
-    super(condition);
-    this.condition = condition;
+  constructor(props: ConditionProps, opts: { em: EditorModel }) {
+    super(props);
+    this.condition = props;
     this.em = opts.em;
   }
 
@@ -68,7 +70,7 @@ export class Condition extends Model {
    * Extracts all data variables from the condition, including nested ones.
    */
   getDataVariables() {
-    const variables: DataVariableDefinition[] = [];
+    const variables: DataVariableProps[] = [];
     this.extractVariables(this.condition, variables);
     return variables;
   }
@@ -77,8 +79,8 @@ export class Condition extends Model {
    * Recursively extracts variables from expressions or logic groups.
    */
   private extractVariables(
-    condition: boolean | LogicGroupDefinition | ExpressionDefinition,
-    variables: DataVariableDefinition[],
+    condition: boolean | LogicGroupProps | ExpressionProps,
+    variables: DataVariableProps[],
   ): void {
     if (this.isExpression(condition)) {
       if (isDataVariable(condition.left)) variables.push(condition.left);
@@ -91,14 +93,14 @@ export class Condition extends Model {
   /**
    * Checks if a condition is a LogicGroup.
    */
-  private isLogicGroup(condition: any): condition is LogicGroupDefinition {
+  private isLogicGroup(condition: any): condition is LogicGroupProps {
     return condition && typeof condition.logicalOperator !== 'undefined' && Array.isArray(condition.statements);
   }
 
   /**
    * Checks if a condition is an Expression.
    */
-  private isExpression(condition: any): condition is ExpressionDefinition {
+  private isExpression(condition: any): condition is ExpressionProps {
     return condition && typeof condition.left !== 'undefined' && typeof condition.operator === 'string';
   }
 

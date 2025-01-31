@@ -3,7 +3,10 @@ import Component, { keySymbol, keySymbolOvrd, keySymbols } from './Component';
 import { SymbolToUpOptions } from './types';
 import { isEmptyObj } from '../../utils/mixins';
 import Components from './Components';
-import { CollectionVariableType, keyCollectionDefinition } from '../../data_sources/model/data_collection/constants';
+import {
+  DataCollectionVariableType,
+  keyCollectionDefinition,
+} from '../../data_sources/model/data_collection/constants';
 
 export const isSymbolMain = (cmp: Component) => isArray(cmp.get(keySymbols));
 
@@ -175,10 +178,10 @@ const shouldPropagateProperty = (props: Record<string, any>, prop: string, compo
   const isCollectionVariableDefinition = (() => {
     if (prop === 'attributes') {
       const attributes = props['attributes'];
-      return Object.values(attributes).some((attr: any) => attr?.type === CollectionVariableType);
+      return Object.values(attributes).some((attr: any) => attr?.type === DataCollectionVariableType);
     }
 
-    return props[prop]?.type === CollectionVariableType;
+    return props[prop]?.type === DataCollectionVariableType;
   })();
 
   return !isSymbolOverride(component, prop) || isCollectionVariableDefinition;

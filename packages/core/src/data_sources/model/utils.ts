@@ -1,15 +1,14 @@
 import EditorModel from '../../editor/model/Editor';
-import { DynamicValue, DynamicValueDefinition } from '../types';
+import { DynamicValue, DynamicValueProps } from '../types';
 import { DataCollectionStateMap } from './data_collection/types';
 import DataCollectionVariable from './data_collection/DataCollectionVariable';
-import { CollectionVariableType } from './data_collection/constants';
-import { ConditionalVariableType, DataCondition } from './conditional_variables/DataCondition';
+import { DataCollectionVariableType } from './data_collection/constants';
+import { DataConditionType, DataCondition } from './conditional_variables/DataCondition';
 import DataVariable, { DataVariableType } from './DataVariable';
 
-export function isDynamicValueDefinition(value: any): value is DynamicValueDefinition {
+export function isDynamicValueDefinition(value: any): value is DynamicValueProps {
   return (
-    typeof value === 'object' &&
-    [DataVariableType, ConditionalVariableType, CollectionVariableType].includes(value?.type)
+    typeof value === 'object' && [DataVariableType, DataConditionType, DataCollectionVariableType].includes(value?.type)
   );
 }
 
@@ -22,7 +21,7 @@ export function isDataVariable(variable: any) {
 }
 
 export function isDataCondition(variable: any) {
-  return variable?.type === ConditionalVariableType;
+  return variable?.type === DataConditionType;
 }
 
 export function evaluateVariable(variable: any, em: EditorModel) {
@@ -30,7 +29,7 @@ export function evaluateVariable(variable: any, em: EditorModel) {
 }
 
 export function getDynamicValueInstance(
-  valueDefinition: DynamicValueDefinition,
+  valueDefinition: DynamicValueProps,
   options: {
     em: EditorModel;
     collectionsStateMap?: DataCollectionStateMap;
@@ -44,12 +43,12 @@ export function getDynamicValueInstance(
     case DataVariableType:
       dynamicVariable = new DataVariable(valueDefinition, { em: em });
       break;
-    case ConditionalVariableType: {
+    case DataConditionType: {
       const { condition, ifTrue, ifFalse } = valueDefinition;
       dynamicVariable = new DataCondition(condition, ifTrue, ifFalse, { em: em });
       break;
     }
-    case CollectionVariableType: {
+    case DataCollectionVariableType: {
       dynamicVariable = new DataCollectionVariable(valueDefinition, options);
       break;
     }
@@ -61,7 +60,7 @@ export function getDynamicValueInstance(
 }
 
 export function evaluateDynamicValueDefinition(
-  valueDefinition: DynamicValueDefinition,
+  valueDefinition: DynamicValueProps,
   options: {
     em: EditorModel;
     collectionsStateMap?: DataCollectionStateMap;

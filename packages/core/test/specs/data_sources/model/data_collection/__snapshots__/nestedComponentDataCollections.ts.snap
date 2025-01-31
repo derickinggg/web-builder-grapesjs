@@ -22,15 +22,15 @@ exports[`Collection component Nested collections are correctly serialized 1`] = 
         "componentDef": {
           "name": {
             "path": "user",
-            "type": "parent-collection-variable",
+            "type": "data-collection-variable",
             "variableType": "currentItem",
           },
           "type": "default",
         },
       },
-      "type": "collection-component",
+      "type": "data-collection",
     },
   },
-  "type": "collection-component",
+  "type": "data-collection",
 }
 `;

@@ -1,23 +1,24 @@
-import { DataCollectionVariableDefinition } from './types';
+import { DataCollectionVariableProps } from './types';
 import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableType } from '../DataVariable';
-import { CollectionVariableType } from './constants';
+import { DataCollectionVariableType } from './constants';
 import { DataCollectionState, DataCollectionStateMap } from './types';
 import DynamicVariableListenerManager from '../DataVariableListenerManager';
-type ResolvedDataCollectionVariable = DataCollectionVariableDefinition & {
-  value?: any;
-};
 
-export default class DataCollectionVariable extends Model<ResolvedDataCollectionVariable> {
+interface DataCollectionVariablePropsDefined extends DataCollectionVariableProps {
+  value?: any;
+}
+
+export default class DataCollectionVariable extends Model<DataCollectionVariablePropsDefined> {
   em: EditorModel;
   collectionsStateMap?: DataCollectionStateMap;
   dataVariable?: DataVariable;
   dynamicValueListener?: DynamicVariableListenerManager;
 
-  defaults(): Partial<ResolvedDataCollectionVariable> {
+  defaults(): Partial<DataCollectionVariablePropsDefined> {
     return {
-      type: CollectionVariableType,
+      type: DataCollectionVariableType,
       collectionId: undefined,
       variableType: undefined,
       path: undefined,
@@ -26,13 +27,13 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
   }
 
   constructor(
-    attrs: ResolvedDataCollectionVariable,
+    props: DataCollectionVariablePropsDefined,
     options: {
       em: EditorModel;
       collectionsStateMap?: DataCollectionStateMap;
     },
   ) {
-    super(attrs, options);
+    super(props, options);
     this.em = options.em;
     this.collectionsStateMap = options.collectionsStateMap;
     this.updateDataVariable();
@@ -56,7 +57,7 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
     if (!this.collectionsStateMap) return { resolvedValue: undefined };
 
     const resolvedValue = resolveCollectionVariable(
-      this.attributes as DataCollectionVariableDefinition,
+      this.attributes as DataCollectionVariableProps,
       this.collectionsStateMap,
       this.em,
     );
@@ -102,7 +103,7 @@ export default class DataCollectionVariable extends Model<ResolvedDataCollection
 }
 
 function resolveCollectionVariable(
-  collectionVariableDefinition: DataCollectionVariableDefinition,
+  collectionVariableDefinition: DataCollectionVariableProps,
   collectionsStateMap: DataCollectionStateMap,
   em: EditorModel,
 ) {

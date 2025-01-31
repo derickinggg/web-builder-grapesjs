@@ -1,9 +1,9 @@
 import Component from '../../../dom_components/model/Component';
-import { ComponentOptions, ComponentProperties } from '../../../dom_components/model/types';
+import { ComponentOptions } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import DataCollectionVariable from './DataCollectionVariable';
-import { CollectionVariableType, keyCollectionsStateMap } from './constants';
-import { DataCollectionStateMap, DataCollectionVariableDefinition } from './types';
+import { DataCollectionVariableType, keyCollectionsStateMap } from './constants';
+import { ComponentDataCollectionVariableProps, DataCollectionStateMap } from './types';
 
 export default class ComponentDataCollectionVariable extends Component {
   datacollectionVariable: DataCollectionVariable;
@@ -14,14 +14,14 @@ export default class ComponentDataCollectionVariable extends Component {
 
     return {
       ...componentDefaults,
-      type: CollectionVariableType,
+      type: DataCollectionVariableType,
       collectionId: undefined,
       variableType: undefined,
       path: undefined,
     };
   }
 
-  constructor(props: DataCollectionVariableDefinition & ComponentProperties, opt: ComponentOptions) {
+  constructor(props: ComponentDataCollectionVariableProps, opt: ComponentOptions) {
     super(props, opt);
     const em = opt.em;
     const { type, variableType, path, collectionId } = props;
@@ -50,6 +50,6 @@ export default class ComponentDataCollectionVariable extends Component {
   }
 
   static isComponent(el: HTMLElement) {
-    return toLowerCase(el.tagName) === CollectionVariableType;
+    return toLowerCase(el.tagName) === DataCollectionVariableType;
   }
 }

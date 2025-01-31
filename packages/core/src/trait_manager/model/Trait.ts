@@ -1,4 +1,4 @@
-import { ConditionalVariableType, DataCondition } from './../../data_sources/model/conditional_variables/DataCondition';
+import { DataCondition } from './../../data_sources/model/conditional_variables/DataCondition';
 import { isString, isUndefined } from 'underscore';
 import Category from '../../abstract/ModuleCategory';
 import { LocaleOptions, Model, SetOptions } from '../../common';

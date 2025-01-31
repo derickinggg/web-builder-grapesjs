@@ -1,30 +1,23 @@
 import Component from '../../../dom_components/model/Component';
-import Components from '../../../dom_components/model/Components';
 import { ComponentDefinition, ComponentOptions } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
-import { DataCondition, ConditionalVariableType, ExpressionDefinition, LogicGroupDefinition } from './DataCondition';
+import { DataCondition, DataConditionProps, DataConditionType } from './DataCondition';
 
-type ConditionalComponentDefinition = {
-  condition: ExpressionDefinition | LogicGroupDefinition | boolean;
-  ifTrue: any;
-  ifFalse: any;
-};
-
-export default class ComponentConditionalVariable extends Component {
+export default class ComponentDataCondition extends Component {
   dataCondition: DataCondition;
-  componentDefinition: ConditionalComponentDefinition;
+  componentDefinition: DataConditionProps;
 
-  constructor(componentDefinition: ConditionalComponentDefinition, opt: ComponentOptions) {
-    const { condition, ifTrue, ifFalse } = componentDefinition;
+  constructor(props: DataConditionProps, opt: ComponentOptions) {
+    const { condition, ifTrue, ifFalse } = props;
     const dataConditionInstance = new DataCondition(condition, ifTrue, ifFalse, { em: opt.em });
     const initialComponentsProps = dataConditionInstance.getDataValue();
     const conditionalCmptDef = {
-      type: ConditionalVariableType,
+      type: DataConditionType,
       components: initialComponentsProps,
     };
     super(conditionalCmptDef, opt);
 
-    this.componentDefinition = componentDefinition;
+    this.componentDefinition = props;
     this.dataCondition = dataConditionInstance;
     this.dataCondition.onValueChange = this.handleConditionChange.bind(this);
   }
@@ -37,7 +30,7 @@ export default class ComponentConditionalVariable extends Component {
   }
 
   static isComponent(el: HTMLElement) {
-    return toLowerCase(el.tagName) === ConditionalVariableType;
+    return toLowerCase(el.tagName) === DataConditionType;
   }
 
   toJSON(): ComponentDefinition {

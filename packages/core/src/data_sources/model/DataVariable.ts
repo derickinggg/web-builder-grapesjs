@@ -3,11 +3,12 @@ import EditorModel from '../../editor/model/Editor';
 import { stringToPath } from '../../utils/mixins';
 
 export const DataVariableType = 'data-variable';
-export type DataVariableDefinition = {
+
+export interface DataVariableProps {
   type: typeof DataVariableType;
   path: string;
   defaultValue?: string;
-};
+}
 
 export default class DataVariable extends Model {
   em?: EditorModel;
@@ -20,8 +21,8 @@ export default class DataVariable extends Model {
     };
   }
 
-  constructor(attrs: DataVariableDefinition, options: any) {
-    super(attrs, options);
+  constructor(props: DataVariableProps, options: any) {
+    super(props, options);
     this.em = options.em;
     this.listenToDataSource();
   }

@@ -1,28 +1,23 @@
-import DataVariable, { DataVariableType } from '../DataVariable';
 import { isArray } from 'underscore';
+import { ObjectAny } from '../../../common';
 import Component from '../../../dom_components/model/Component';
 import { ComponentDefinition, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
+import EditorModel from '../../../editor/model/Editor';
 import { toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
-import { ObjectAny } from '../../../common';
-import EditorModel from '../../../editor/model/Editor';
+import DataVariable, { DataVariableType } from '../DataVariable';
+import DynamicVariableListenerManager from '../DataVariableListenerManager';
+import { DataCollectionType, keyCollectionDefinition, keyCollectionsStateMap, keyIsCollectionItem } from './constants';
 import {
-  ComponentDataCollectionDefinition,
+  ComponentDataCollectionProps,
   DataCollectionConfig,
-  DataCollectionDefinition,
+  DataCollectionProps,
   DataCollectionState,
   DataCollectionStateMap,
 } from './types';
-import {
-  keyCollectionDefinition,
-  keyCollectionsStateMap,
-  CollectionComponentType,
-  keyIsCollectionItem,
-} from './constants';
-import DynamicVariableListenerManager from '../DataVariableListenerManager';
 
 export default class ComponentDataCollection extends Component {
-  constructor(props: ComponentDataCollectionDefinition, opt: ComponentOptions) {
+  constructor(props: ComponentDataCollectionProps, opt: ComponentOptions) {
     const collectionDef = props[keyCollectionDefinition];
     if (opt.forCloning) {
       // If we are cloning, leave setting the collection items to the main symbol collection
@@ -58,7 +53,7 @@ export default class ComponentDataCollection extends Component {
   }
 
   static isComponent(el: HTMLElement) {
-    return toLowerCase(el.tagName) === CollectionComponentType;
+    return toLowerCase(el.tagName) === DataCollectionType;
   }
 
   hasDynamicDataSource() {
@@ -67,7 +62,7 @@ export default class ComponentDataCollection extends Component {
   }
 
   toJSON(opts?: ObjectAny) {
-    const json = super.toJSON.call(this, opts) as ComponentDataCollectionDefinition;
+    const json = super.toJSON.call(this, opts) as ComponentDataCollectionProps;
     json[keyCollectionDefinition].componentDef = this.getComponentDef();
 
     delete json.components;
@@ -127,7 +122,7 @@ export default class ComponentDataCollection extends Component {
 
 function getCollectionItems(
   em: EditorModel,
-  collectionDef: DataCollectionDefinition,
+  collectionDef: DataCollectionProps,
   parentCollectionStateMap: DataCollectionStateMap,
   opt: ComponentOptions,
 ) {

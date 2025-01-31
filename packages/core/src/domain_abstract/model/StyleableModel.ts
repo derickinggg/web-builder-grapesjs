@@ -1,23 +1,23 @@
 import { isArray, isString, keys } from 'underscore';
-import { Model, ObjectAny, ObjectHash, SetOptions, View } from '../../common';
+import { Model, ObjectAny, ObjectHash, SetOptions } from '../../common';
 import ParserHtml from '../../parser/model/ParserHtml';
 import Selectors from '../../selector_manager/model/Selectors';
 import { shallowDiff } from '../../utils/mixins';
 import EditorModel from '../../editor/model/Editor';
 import StyleDataVariable from '../../data_sources/model/StyleDataVariable';
-import { DataVariableDefinition, DataVariableType } from '../../data_sources/model/DataVariable';
+import { DataVariableProps, DataVariableType } from '../../data_sources/model/DataVariable';
 import DynamicVariableListenerManager from '../../data_sources/model/DataVariableListenerManager';
 import CssRuleView from '../../css_composer/view/CssRuleView';
 import ComponentView from '../../dom_components/view/ComponentView';
 import Frame from '../../canvas/model/Frame';
 import {
   DataCondition,
-  ConditionalVariableType,
-  ConditionalVariableDefinition,
+  DataConditionType,
+  DataConditionProps,
 } from '../../data_sources/model/conditional_variables/DataCondition';
 import { isDynamicValue, isDynamicValueDefinition } from '../../data_sources/model/utils';
-import { DynamicValueDefinition } from '../../data_sources/types';
-export type StyleProps = Record<string, string | string[] | DataVariableDefinition | ConditionalVariableDefinition>;
+import { DynamicValueProps } from '../../data_sources/types';
+export type StyleProps = Record<string, string | string[] | DataVariableProps | DataConditionProps>;
 
 export type UpdateStyleOptions = SetOptions & {
   partial?: boolean;
@@ -139,21 +139,21 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
     return newStyle;
   }
 
-  private resolveDynamicValue(styleValue: DynamicValueDefinition) {
+  private resolveDynamicValue(styleValue: DynamicValueProps) {
     const dynamicType = styleValue.type;
     let styleDynamicVariable;
     switch (dynamicType) {
       case DataVariableType:
         styleDynamicVariable = new StyleDataVariable(styleValue, { em: this.em });
         break;
-      case ConditionalVariableType: {
+      case DataConditionType: {
         const { condition, ifTrue, ifFalse } = styleValue;
         styleDynamicVariable = new DataCondition(condition, ifTrue, ifFalse, { em: this.em! });
         break;
       }
       default:
         throw new Error(
-          `Unsupported dynamic value type for styles. Only '${DataVariableType}' and '${ConditionalVariableType}' are supported. Received '${dynamicType}'.`,
+          `Unsupported dynamic value type for styles. Only '${DataVariableType}' and '${DataConditionType}' are supported. Received '${dynamicType}'.`,
         );
     }
 

@@ -1,8 +1,8 @@
 import { Component, DataRecord, DataSource, DataSourceManager, Editor } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import {
-  CollectionComponentType,
-  CollectionVariableType,
+  DataCollectionType,
+  DataCollectionVariableType,
 } from '../../../../../src/data_sources/model/data_collection/constants';
 import { DataCollectionStateVariableType } from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
@@ -52,15 +52,15 @@ describe('Collection component', () => {
 
   test('Nested collections bind to correct data sources', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 collectionId: 'nested_collection',
                 path: 'user',
@@ -95,15 +95,15 @@ describe('Collection component', () => {
 
   test('Updates in parent collection propagate to nested collections', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 collectionId: 'nested_collection',
                 path: 'user',
@@ -139,15 +139,15 @@ describe('Collection component', () => {
 
   test('Nested collections are correctly serialized', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 path: 'user',
               },
@@ -177,15 +177,15 @@ describe('Collection component', () => {
 
   test('Nested collections respect startIndex and endIndex', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 collectionId: 'nested_collection',
                 path: 'user',
@@ -218,15 +218,15 @@ describe('Collection component', () => {
 
   test('Nested collection gets and watches value from the parent collection', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 collectionId: 'parent_collection',
                 path: 'user',
@@ -264,15 +264,15 @@ describe('Collection component', () => {
 
   test('Nested collection switches to using its own collection variable', () => {
     const parentCollection = wrapper.components({
-      type: CollectionComponentType,
+      type: DataCollectionType,
       collectionDef: {
         componentDef: {
-          type: CollectionComponentType,
+          type: DataCollectionType,
           collectionDef: {
             componentDef: {
               type: 'default',
               name: {
-                type: CollectionVariableType,
+                type: DataCollectionVariableType,
                 variableType: DataCollectionStateVariableType.currentItem,
                 path: 'user',
                 collectionId: 'parent_collection',
@@ -303,7 +303,7 @@ describe('Collection component', () => {
     // Replace the collection variable with one from the inner collection
     firstChild.set('name', {
       // @ts-ignore
-      type: CollectionVariableType,
+      type: DataCollectionVariableType,
       variableType: DataCollectionStateVariableType.currentItem,
       path: 'user',
       collectionId: 'nested_collection',
@@ -319,12 +319,12 @@ describe('Collection component', () => {
     beforeEach(() => {
       // Initialize the parent and nested collections
       parentCollection = wrapper.components({
-        type: CollectionComponentType,
+        type: DataCollectionType,
         collectionDef: {
           componentDef: {
-            type: CollectionComponentType,
+            type: DataCollectionType,
             name: {
-              type: CollectionVariableType,
+              type: DataCollectionVariableType,
               variableType: DataCollectionStateVariableType.currentItem,
               collectionId: 'parent_collection',
               path: 'user',
@@ -333,7 +333,7 @@ describe('Collection component', () => {
               componentDef: {
                 type: 'default',
                 name: {
-                  type: CollectionVariableType,
+                  type: DataCollectionVariableType,
                   variableType: DataCollectionStateVariableType.currentItem,
                   collectionId: 'nested_collection',
                   path: 'user',

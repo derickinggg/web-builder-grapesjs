@@ -1,5 +1,5 @@
 import { Model, ObjectAny } from '../../common';
-import { CollectionVariableType, keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
+import { DataCollectionVariableType, keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import EditorModel from '../../editor/model/Editor';
 import Component from './Component';
@@ -82,8 +82,8 @@ export class ComponentDynamicValueWatcher extends Model<Component> {
   private updateSymbolOverride() {
     if (!this.component || !this.component.get(keyIsCollectionItem)) return;
 
-    const keys = this.propertyWatcher.getDynamicValuesOfType(CollectionVariableType);
-    const attributesKeys = this.attributeWatcher.getDynamicValuesOfType(CollectionVariableType);
+    const keys = this.propertyWatcher.getDynamicValuesOfType(DataCollectionVariableType);
+    const attributesKeys = this.attributeWatcher.getDynamicValuesOfType(DataCollectionVariableType);
 
     const combinedKeys = [keyCollectionsStateMap, ...keys];
     const haveOverridenAttributes = Object.keys(attributesKeys).length;

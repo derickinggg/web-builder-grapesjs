@@ -1,11 +1,11 @@
-import { DynamicValueDefinition } from './../../data_sources/types';
+import { DynamicValueProps } from './../../data_sources/types';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import { Model, ObjectAny } from '../../common';
 import DynamicVariableListenerManager from '../../data_sources/model/DataVariableListenerManager';
 import { evaluateDynamicValueDefinition, isDynamicValueDefinition } from '../../data_sources/model/utils';
 import EditorModel from '../../editor/model/Editor';
 import Component from './Component';
-import { CollectionVariableType } from '../../data_sources/model/data_collection/constants';
+import { DataCollectionVariableType } from '../../data_sources/model/data_collection/constants';
 import { ModelDestroyOptions } from 'backbone';
 
 export interface DynamicWatchersOptions {
@@ -39,9 +39,9 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
   updateCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
     this.collectionsStateMap = collectionsStateMap;
 
-    const collectionVariablesKeys = this.getDynamicValuesOfType(CollectionVariableType);
+    const collectionVariablesKeys = this.getDynamicValuesOfType(DataCollectionVariableType);
     const collectionVariablesObject = collectionVariablesKeys.reduce(
-      (acc: { [key: string]: DynamicValueDefinition | null }, key) => {
+      (acc: { [key: string]: DynamicValueProps | null }, key) => {
         acc[key] = null;
         return acc;
       },
@@ -163,7 +163,7 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
     return serializableValues;
   }
 
-  getDynamicValuesOfType(type: DynamicValueDefinition['type']) {
+  getDynamicValuesOfType(type: DynamicValueProps['type']) {
     const keys = Object.keys(this.dynamicVariableListeners).filter((key: string) => {
       // @ts-ignore
       return this.dynamicVariableListeners[key].dynamicVariable.get('type') === type;

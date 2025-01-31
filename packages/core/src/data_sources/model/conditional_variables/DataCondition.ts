@@ -5,37 +5,35 @@ import { Model } from '../../../common';
 import { LogicalOperation } from './operators/LogicalOperator';
 import DynamicVariableListenerManager from '../DataVariableListenerManager';
 import EditorModel from '../../../editor/model/Editor';
-import { Condition } from './Condition';
-import DataVariable, { DataVariableDefinition } from '../DataVariable';
+import { Condition, ConditionProps } from './Condition';
+import DataVariable, { DataVariableProps } from '../DataVariable';
 import { evaluateVariable, isDataVariable } from '../utils';
 
-export const ConditionalVariableType = 'conditional-variable';
-export type ExpressionDefinition = {
+export const DataConditionType = 'data-condition';
+
+export interface ExpressionProps {
   left: any;
   operator: GenericOperation | StringOperation | NumberOperation;
   right: any;
-};
+}
 
-export type LogicGroupDefinition = {
+export interface LogicGroupProps {
   logicalOperator: LogicalOperation;
-  statements: (ExpressionDefinition | LogicGroupDefinition | boolean)[];
-};
+  statements: ConditionProps[];
+}
 
-export type ConditionDefinition = ExpressionDefinition | LogicGroupDefinition | boolean;
-export type ConditionalVariableDefinition = {
-  type: typeof ConditionalVariableType;
-  condition: ConditionDefinition;
+export interface DataConditionProps {
+  type: typeof DataConditionType;
+  condition: ConditionProps;
   ifTrue: any;
   ifFalse: any;
-};
+}
 
-type DataConditionType = {
-  type: typeof ConditionalVariableType;
+interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'> {
   condition: Condition;
-  ifTrue: any;
-  ifFalse: any;
-};
-export class DataCondition extends Model<DataConditionType> {
+}
+
+export class DataCondition extends Model<DataConditionPropsDefined> {
   lastEvaluationResult: boolean;
   private condition: Condition;
   private em: EditorModel;
@@ -43,7 +41,7 @@ export class DataCondition extends Model<DataConditionType> {
   private _onValueChange?: () => void;
 
   constructor(
-    condition: ExpressionDefinition | LogicGroupDefinition | boolean,
+    condition: ConditionProps,
     public ifTrue: any,
     public ifFalse: any,
     opts: { em: EditorModel; onValueChange?: () => void },
@@ -54,7 +52,7 @@ export class DataCondition extends Model<DataConditionType> {
 
     const conditionInstance = new Condition(condition, { em: opts.em });
     super({
-      type: ConditionalVariableType,
+      type: DataConditionType,
       condition: conditionInstance,
       ifTrue,
       ifFalse,
@@ -107,7 +105,7 @@ export class DataCondition extends Model<DataConditionType> {
   }
 
   getDependentDataVariables() {
-    const dataVariables: DataVariableDefinition[] = this.condition.getDataVariables();
+    const dataVariables: DataVariableProps[] = this.condition.getDataVariables();
     if (isDataVariable(this.ifTrue)) dataVariables.push(this.ifTrue);
     if (isDataVariable(this.ifFalse)) dataVariables.push(this.ifFalse);
 
@@ -121,7 +119,7 @@ export class DataCondition extends Model<DataConditionType> {
 
   toJSON() {
     return {
-      type: ConditionalVariableType,
+      type: DataConditionType,
       condition: this.condition,
       ifTrue: this.ifTrue,
       ifFalse: this.ifFalse,
