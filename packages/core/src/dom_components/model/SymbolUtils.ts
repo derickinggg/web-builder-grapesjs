@@ -134,8 +134,8 @@ export const logSymbol = (symb: Component, type: string, toUp: Component[], opts
 };
 
 export const updateSymbolProps = (symbol: Component, opts: SymbolToUpOptions = {}): void => {
-  const changed = symbol.componentDVListener.getPropsDefsOrValues({ ...symbol.changedAttributes() });
-  const attrs = symbol.componentDVListener.getAttributesDefsOrValues({ ...changed.attributes });
+  const changed = symbol.dataResolverWatchers.getPropsDefsOrValues({ ...symbol.changedAttributes() });
+  const attrs = symbol.dataResolverWatchers.getAttributesDefsOrValues({ ...changed.attributes });
 
   cleanChangedProperties(changed, attrs);
 

@@ -266,7 +266,7 @@ function setCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
       ...collectionsStateMap,
     };
     cmp.set(keyCollectionsStateMap, updatedCollectionStateMap);
-    cmp.componentDVListener.updateCollectionStateMap(updatedCollectionStateMap);
+    cmp.dataResolverWatchers.updateCollectionStateMap(updatedCollectionStateMap);
   };
 }
 

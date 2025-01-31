@@ -258,20 +258,20 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @private
    * @ts-ignore */
   collection!: Components;
-  componentDVListener: ComponentDataResolverWatchers;
   collectionStateListeners: string[] = [];
+  dataResolverWatchers: ComponentDataResolverWatchers;
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
-    const componentDVListener = new ComponentDataResolverWatchers(undefined, {
+    const dataResolverWatchers = new ComponentDataResolverWatchers(undefined, {
       em: opt.em,
       collectionsStateMap: props[keyCollectionsStateMap],
     });
     super(props, {
       ...opt,
-      componentDVListener,
+      dataResolverWatchers,
     } as any);
-    componentDVListener.bindComponent(this);
-    this.componentDVListener = componentDVListener;
+    dataResolverWatchers.bindComponent(this);
+    this.dataResolverWatchers = dataResolverWatchers;
 
     bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps');
     const em = opt.em;
@@ -299,7 +299,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.opt = opt;
     this.em = em!;
     this.config = opt.config || {};
-    const dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+    const dynamicAttributes = this.dataResolverWatchers.getDynamicAttributesDefs();
     this.setAttributes({
       ...(result(this, 'defaults').attributes || {}),
       ...(this.get('attributes') || {}),
@@ -350,7 +350,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
   ): this {
     let attributes: Partial<ComponentProperties>;
     let options: ComponentSetOptions & {
-      componentDVListener?: ComponentDataResolverWatchers;
+      dataResolverWatchers?: ComponentDataResolverWatchers;
     } = { skipWatcherUpdates: false, fromDataSource: false };
     if (typeof keyOrAttributes === 'object') {
       attributes = keyOrAttributes;
@@ -363,8 +363,8 @@ export default class Component extends StyleableModel<ComponentProperties> {
       options = optionsOrUndefined || options;
     }
 
-    this.componentDVListener = this.componentDVListener || options.componentDVListener;
-    const evaluatedProps = this.componentDVListener.addProps(attributes, options);
+    this.dataResolverWatchers = this.dataResolverWatchers || options.dataResolverWatchers;
+    const evaluatedProps = this.dataResolverWatchers.addProps(attributes, options);
 
     return super.set(evaluatedProps, options);
   }
@@ -706,7 +706,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * component.addAttributes({ 'data-key': 'value' });
    */
   addAttributes(attrs: ObjectAny, opts: SetAttrOptions = {}) {
-    const dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+    const dynamicAttributes = this.dataResolverWatchers.getDynamicAttributesDefs();
     return this.setAttributes(
       {
         ...this.getAttributes({ noClass: true }),
@@ -728,7 +728,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
    */
   removeAttributes(attrs: string | string[] = [], opts: SetOptions = {}) {
     const attrArr = Array.isArray(attrs) ? attrs : [attrs];
-    this.componentDVListener.removeAttributes(attrArr);
+    this.dataResolverWatchers.removeAttributes(attrArr);
 
     const compAttr = this.getAttributes();
     attrArr.map((i) => delete compAttr[i]);
@@ -970,7 +970,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
         if (name && value) attrs[name] = value;
       }
     });
-    const dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+    const dynamicAttributes = this.dataResolverWatchers.getDynamicAttributesDefs();
     traits.length &&
       this.setAttributes({
         ...attrs,
@@ -1319,13 +1319,13 @@ export default class Component extends StyleableModel<ComponentProperties> {
     const em = this.em;
     const attr = {
       ...this.attributes,
-      ...this.componentDVListener.getDynamicPropsDefs(),
+      ...this.dataResolverWatchers.getDynamicPropsDefs(),
     };
     const opts = { ...this.opt };
     const id = this.getId();
     const cssc = em?.Css;
     attr.attributes = {
-      ...(attr.attributes ? this.componentDVListener.getAttributesDefsOrValues(attr.attributes) : undefined),
+      ...(attr.attributes ? this.dataResolverWatchers.getAttributesDefsOrValues(attr.attributes) : undefined),
     };
     // @ts-ignore
     attr.components = [];
@@ -1583,9 +1583,9 @@ export default class Component extends StyleableModel<ComponentProperties> {
    */
   toJSON(opts: ObjectAny = {}): ComponentDefinition {
     let obj = Model.prototype.toJSON.call(this, opts);
-    obj = { ...obj, ...this.componentDVListener.getDynamicPropsDefs() };
-    obj.attributes = this.componentDVListener.getAttributesDefsOrValues(this.getAttributes());
-    delete obj.componentDVListener;
+    obj = { ...obj, ...this.dataResolverWatchers.getDynamicPropsDefs() };
+    obj.attributes = this.dataResolverWatchers.getAttributesDefsOrValues(this.getAttributes());
+    delete obj.dataResolverWatchers;
     delete obj.attributes.class;
     delete obj.toolbar;
     delete obj.traits;
@@ -1830,7 +1830,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
   }
 
   destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
-    this.componentDVListener.destroy();
+    this.dataResolverWatchers.destroy();
     return super.destroy(options);
   }
 
