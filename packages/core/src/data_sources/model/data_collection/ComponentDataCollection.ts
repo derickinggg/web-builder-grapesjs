@@ -1,12 +1,13 @@
 import { isArray } from 'underscore';
 import { ObjectAny } from '../../../common';
 import Component from '../../../dom_components/model/Component';
-import { ComponentDefinition, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
+import { ComponentDefinition, ComponentOptions } from '../../../dom_components/model/types';
 import EditorModel from '../../../editor/model/Editor';
-import { isObject, toLowerCase } from '../../../utils/mixins';
+import { isObject, serialize, toLowerCase } from '../../../utils/mixins';
+import DataResolverListener from '../DataResolverListener';
 import DataSource from '../DataSource';
 import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
-import DataResolverListener from '../DataResolverListener';
+import { isDataVariable } from '../utils';
 import { DataCollectionType, keyCollectionDefinition, keyCollectionsStateMap, keyIsCollectionItem } from './constants';
 import {
   ComponentDataCollectionProps,
@@ -16,34 +17,25 @@ import {
   DataCollectionState,
   DataCollectionStateMap,
 } from './types';
-import { isDataVariable } from '../utils';
 
 export default class ComponentDataCollection extends Component {
   constructor(props: ComponentDataCollectionProps, opt: ComponentOptions) {
     const collectionDef = props[keyCollectionDefinition];
+    // If we are cloning, leave setting the collection items to the main symbol collection
     if (opt.forCloning) {
-      // If we are cloning, leave setting the collection items to the main symbol collection
       return super(props as any, opt) as unknown as ComponentDataCollection;
     }
 
     const em = opt.em;
-    const cmp: ComponentDataCollection = super(
-      {
-        ...props,
-        components: undefined,
-        droppable: false,
-      } as any,
-      opt,
-    ) as unknown as ComponentDataCollection;
+    const newProps = { ...props, components: undefined, droppable: false } as any;
+    const cmp: ComponentDataCollection = super(newProps, opt) as unknown as ComponentDataCollection;
 
     if (!collectionDef) {
       em.logError('missing collection definition');
-
       return cmp;
     }
 
     const parentCollectionStateMap = (props[keyCollectionsStateMap] || {}) as DataCollectionStateMap;
-
     const components: Component[] = getCollectionItems(em, collectionDef, parentCollectionStateMap, opt);
     cmp.components(components, opt);
 
@@ -62,14 +54,9 @@ export default class ComponentDataCollection extends Component {
     return this.collectionConfig.dataSource;
   }
 
-  static isComponent(el: HTMLElement) {
-    return toLowerCase(el.tagName) === DataCollectionType;
-  }
-
   toJSON(opts?: ObjectAny) {
     const json = super.toJSON.call(this, opts) as ComponentDataCollectionProps;
     json[keyCollectionDefinition].componentDef = this.getComponentDef();
-
     delete json.components;
     delete json.droppable;
     return json;
@@ -77,43 +64,29 @@ export default class ComponentDataCollection extends Component {
 
   private getComponentDef() {
     const firstChild = this.components().at(0);
-
-    const firstChildJSON = firstChild ? this.deepToJSON(firstChild) : this.get(keyCollectionDefinition).componentDef;
+    const firstChildJSON = firstChild ? serialize(firstChild) : this.get(keyCollectionDefinition).componentDef;
     delete firstChildJSON?.draggable;
-
     return firstChildJSON;
   }
 
   private watchDataSource(parentCollectionStateMap: DataCollectionStateMap, opt: ComponentOptions) {
     const { em } = this;
-    const path = this.collectionDataSource?.path!;
+    const path = this.collectionDataSource?.path;
+    if (!path) return;
 
     new DataResolverListener({
       em,
       resolver: new DataVariable({ type: DataVariableType, path }, { em }),
       onUpdate: () => {
-        const collectionDef = {
-          ...this.get(keyCollectionDefinition),
-          componentDef: this.getComponentDef(),
-        };
-
+        const collectionDef = { ...this.get(keyCollectionDefinition), componentDef: this.getComponentDef() };
         const collectionItems = getCollectionItems(em, collectionDef, parentCollectionStateMap, opt);
-
         this.components().reset(collectionItems);
       },
     });
   }
 
-  private deepToJSON(component: Component) {
-    const componentJSON: Partial<ComponentDefinitionDefined> = JSON.parse(JSON.stringify(component));
-
-    const hasNoChildren = component.components().length === 0;
-    const isCollectionComponent = component.get(keyCollectionDefinition);
-    if (hasNoChildren || isCollectionComponent) {
-      delete componentJSON.components;
-    }
-
-    return componentJSON;
+  static isComponent(el: HTMLElement) {
+    return toLowerCase(el.tagName) === DataCollectionType;
   }
 }
 
@@ -168,7 +141,7 @@ function getCollectionItems(
       const componentType = (componentDef?.type as string) || 'default';
       let type = em.Components.getType(componentType) || em.Components.getType('default');
       const Model = type.model;
-      symbolMain = new Model({ ...deepClone(componentDef), draggable: false }, opt);
+      symbolMain = new Model({ ...serialize(componentDef), draggable: false }, opt);
       setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(symbolMain);
     }
 
@@ -307,16 +280,4 @@ function listDataSourceVariables(dataSource_id: string, em: EditorModel): DataVa
     type: DataVariableType,
     path: dataSource_id + '.' + key,
   }));
-}
-
-function deepClone(obj: ObjectAny) {
-  if (obj === null || typeof obj !== 'object') return obj;
-
-  const clone = Array.isArray(obj) ? [] : {};
-
-  Object.keys(obj).forEach((key) => {
-    (clone as any)[key] = deepClone((obj as any)[key]);
-  });
-
-  return clone;
 }
