@@ -6,7 +6,7 @@ import EditorModel from '../../../editor/model/Editor';
 import { isObject, toLowerCase } from '../../../utils/mixins';
 import DataSource from '../DataSource';
 import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
-import DynamicVariableListenerManager from '../DataVariableListenerManager';
+import DataResolverListener from '../DataResolverListener';
 import { DataCollectionType, keyCollectionDefinition, keyCollectionsStateMap, keyIsCollectionItem } from './constants';
 import {
   ComponentDataCollectionProps,
@@ -87,12 +87,11 @@ export default class ComponentDataCollection extends Component {
   private watchDataSource(parentCollectionStateMap: DataCollectionStateMap, opt: ComponentOptions) {
     const { em } = this;
     const path = this.collectionDataSource?.path!;
-    const dataVariable = new DataVariable({ type: DataVariableType, path }, { em });
 
-    new DynamicVariableListenerManager({
+    new DataResolverListener({
       em,
-      dataVariable,
-      updateValueFromDataVariable: () => {
+      resolver: new DataVariable({ type: DataVariableType, path }, { em }),
+      onUpdate: () => {
         const collectionDef = {
           ...this.get(keyCollectionDefinition),
           componentDef: this.getComponentDef(),

@@ -1,33 +1,34 @@
-import { DynamicValueProps } from './../../data_sources/types';
-import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
-import { Model, ObjectAny } from '../../common';
-import DynamicVariableListenerManager from '../../data_sources/model/DataVariableListenerManager';
-import { evaluateDynamicValueDefinition, isDynamicValueDefinition } from '../../data_sources/model/utils';
-import EditorModel from '../../editor/model/Editor';
-import Component from './Component';
+import { ObjectAny } from '../../common';
 import { DataCollectionVariableType } from '../../data_sources/model/data_collection/constants';
-import { ModelDestroyOptions } from 'backbone';
+import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
+import DataResolverListener from '../../data_sources/model/DataResolverListener';
+import { getDataResolverInstanceValue, isDataResolverProps } from '../../data_sources/model/utils';
+import EditorModel from '../../editor/model/Editor';
+import { DataResolverProps } from '../../data_sources/types';
+import Component from './Component';
 
 export interface DynamicWatchersOptions {
   skipWatcherUpdates?: boolean;
   fromDataSource?: boolean;
 }
 
+export interface ComponentResolverWatcherOptions {
+  em: EditorModel;
+  collectionsStateMap?: DataCollectionStateMap;
+}
+
 type UpdateFn = (component: Component | undefined, key: string, value: any) => void;
 
-export class DynamicValueWatcher extends Model<{ component: Component | undefined; updateFn: UpdateFn }> {
-  private dynamicVariableListeners: { [key: string]: DynamicVariableListenerManager } = {};
+export class ComponentResolverWatcher {
   private em: EditorModel;
   private collectionsStateMap?: DataCollectionStateMap;
+  private resolverListeners: Record<string, DataResolverListener> = {};
+
   constructor(
     private component: Component | undefined,
     private updateFn: UpdateFn,
-    options: {
-      em: EditorModel;
-      collectionsStateMap?: DataCollectionStateMap;
-    },
+    options: ComponentResolverWatcherOptions,
   ) {
-    super({ component, updateFn }, options);
     this.em = options.em;
     this.collectionsStateMap = options.collectionsStateMap;
   }
@@ -41,7 +42,7 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
 
     const collectionVariablesKeys = this.getDynamicValuesOfType(DataCollectionVariableType);
     const collectionVariablesObject = collectionVariablesKeys.reduce(
-      (acc: { [key: string]: DynamicValueProps | null }, key) => {
+      (acc: { [key: string]: DataResolverProps | null }, key) => {
         acc[key] = null;
         return acc;
       },
@@ -80,41 +81,38 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
     const { em, collectionsStateMap } = this;
     this.removeListeners(Object.keys(values));
     const propsKeys = Object.keys(values);
+
     for (let index = 0; index < propsKeys.length; index++) {
       const key = propsKeys[index];
-      if (!isDynamicValueDefinition(values[key])) {
+      const resolverProps = values[key];
+
+      if (!isDataResolverProps(resolverProps)) {
         continue;
       }
 
-      const { variable } = evaluateDynamicValueDefinition(values[key], {
+      const { resolver } = getDataResolverInstanceValue(resolverProps, { em, collectionsStateMap });
+      this.resolverListeners[key] = new DataResolverListener({
         em,
-        collectionsStateMap,
-      });
-      this.dynamicVariableListeners[key] = new DynamicVariableListenerManager({
-        em,
-        dataVariable: variable,
-        updateValueFromDataVariable: (value: any) => {
-          this.updateFn.bind(this)(this.component, key, value);
-        },
+        resolver,
+        onUpdate: (value) => this.updateFn.bind(this)(this.component, key, value),
       });
     }
   }
 
   private evaluateValues(values: ObjectAny) {
     const { em, collectionsStateMap } = this;
-    const evaluatedValues: {
-      [key: string]: any;
-    } = { ...values };
+    const evaluatedValues = { ...values };
     const propsKeys = Object.keys(values);
+
     for (let index = 0; index < propsKeys.length; index++) {
       const key = propsKeys[index];
-      if (!isDynamicValueDefinition(values[key])) {
+      const resolverProps = values[key];
+
+      if (!isDataResolverProps(resolverProps)) {
         continue;
       }
-      const { value } = evaluateDynamicValueDefinition(values[key], {
-        em,
-        collectionsStateMap,
-      });
+
+      const { value } = getDataResolverInstanceValue(resolverProps, { em, collectionsStateMap });
       evaluatedValues[key] = value;
     }
 
@@ -127,11 +125,12 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
    * @argument keys
    */
   removeListeners(keys?: string[]) {
-    const propsKeys = keys ? keys : Object.keys(this.dynamicVariableListeners);
+    const propsKeys = keys ? keys : Object.keys(this.resolverListeners);
+
     propsKeys.forEach((key) => {
-      if (this.dynamicVariableListeners[key]) {
-        this.dynamicVariableListeners[key].destroy?.();
-        delete this.dynamicVariableListeners[key];
+      if (this.resolverListeners[key]) {
+        this.resolverListeners[key].destroy?.();
+        delete this.resolverListeners[key];
       }
     });
 
@@ -142,10 +141,12 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
     if (!values) return {};
     const serializableValues = { ...values };
     const propsKeys = Object.keys(serializableValues);
+
     for (let index = 0; index < propsKeys.length; index++) {
       const key = propsKeys[index];
-      if (this.dynamicVariableListeners[key]) {
-        serializableValues[key] = this.dynamicVariableListeners[key].dynamicVariable.toJSON();
+      const resolverListener = this.resolverListeners[key];
+      if (resolverListener) {
+        serializableValues[key] = resolverListener.resolver.toJSON();
       }
     }
 
@@ -154,26 +155,26 @@ export class DynamicValueWatcher extends Model<{ component: Component | undefine
 
   getAllSerializableValues() {
     const serializableValues: ObjectAny = {};
-    const propsKeys = Object.keys(this.dynamicVariableListeners);
+    const propsKeys = Object.keys(this.resolverListeners);
+
     for (let index = 0; index < propsKeys.length; index++) {
       const key = propsKeys[index];
-      serializableValues[key] = this.dynamicVariableListeners[key].dynamicVariable.toJSON();
+      serializableValues[key] = this.resolverListeners[key].resolver.toJSON();
     }
 
     return serializableValues;
   }
 
-  getDynamicValuesOfType(type: DynamicValueProps['type']) {
-    const keys = Object.keys(this.dynamicVariableListeners).filter((key: string) => {
+  getDynamicValuesOfType(type: DataResolverProps['type']) {
+    const keys = Object.keys(this.resolverListeners).filter((key: string) => {
       // @ts-ignore
-      return this.dynamicVariableListeners[key].dynamicVariable.get('type') === type;
+      return this.resolverListeners[key].resolver.get('type') === type;
     });
 
     return keys;
   }
 
-  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+  destroy() {
     this.removeListeners();
-    return super.destroy();
   }
 }

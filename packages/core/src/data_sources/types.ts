@@ -7,9 +7,9 @@ import DataRecords from './model/DataRecords';
 import DataVariable, { DataVariableProps } from './model/DataVariable';
 import { DataConditionProps, DataCondition } from './model/conditional_variables/DataCondition';
 
-export type DynamicValue = DataVariable | ComponentDataVariable | DataCondition | DataCollectionVariable;
+export type DataResolver = DataVariable | ComponentDataVariable | DataCondition | DataCollectionVariable;
 
-export type DynamicValueProps = DataVariableProps | DataConditionProps | DataCollectionVariableProps;
+export type DataResolverProps = DataVariableProps | DataConditionProps | DataCollectionVariableProps;
 
 export interface DataRecordProps extends ObjectAny {
   /**
@@ -25,7 +25,7 @@ export interface DataRecordProps extends ObjectAny {
   [key: string]: any;
 }
 
-export interface DataVariableListener {
+export interface DataSourceListener {
   obj: Model | Collection;
   event: string;
 }

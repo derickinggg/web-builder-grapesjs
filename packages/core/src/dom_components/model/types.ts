@@ -1,4 +1,4 @@
-import { DynamicWatchersOptions } from './DynamicValueWatcher';
+import { DynamicWatchersOptions } from './ComponentResolverWatcher';
 import Frame from '../../canvas/model/Frame';
 import { AddOptions, Nullable, OptionAsDocument } from '../../common';
 import EditorModel from '../../editor/model/Editor';

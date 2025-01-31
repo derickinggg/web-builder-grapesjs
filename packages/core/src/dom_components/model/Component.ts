@@ -1,4 +1,3 @@
-import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import {
   isUndefined,
   isFunction,
@@ -52,8 +51,8 @@ import {
   updateSymbolComps,
   updateSymbolProps,
 } from './SymbolUtils';
-import { ComponentDynamicValueWatcher } from './ComponentDynamicValueWatcher';
-import { DynamicWatchersOptions } from './DynamicValueWatcher';
+import { ComponentDataResolverWatchers } from './ComponentDataResolverWatchers';
+import { DynamicWatchersOptions } from './ComponentResolverWatcher';
 import { keyIsCollectionItem, keyCollectionsStateMap } from '../../data_sources/model/data_collection/constants';
 
 export interface IComponent extends ExtractMethods<Component> {}
@@ -259,11 +258,11 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @private
    * @ts-ignore */
   collection!: Components;
-  componentDVListener: ComponentDynamicValueWatcher;
+  componentDVListener: ComponentDataResolverWatchers;
   collectionStateListeners: string[] = [];
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
-    const componentDVListener = new ComponentDynamicValueWatcher(undefined, {
+    const componentDVListener = new ComponentDataResolverWatchers(undefined, {
       em: opt.em,
       collectionsStateMap: props[keyCollectionsStateMap],
     });
@@ -351,7 +350,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
   ): this {
     let attributes: Partial<ComponentProperties>;
     let options: ComponentSetOptions & {
-      componentDVListener?: ComponentDynamicValueWatcher;
+      componentDVListener?: ComponentDataResolverWatchers;
     } = { skipWatcherUpdates: false, fromDataSource: false };
     if (typeof keyOrAttributes === 'object') {
       attributes = keyOrAttributes;

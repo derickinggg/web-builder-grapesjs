@@ -1,41 +1,38 @@
-import { Model, ObjectAny } from '../../common';
-import { DataCollectionVariableType, keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
+import { ObjectAny } from '../../common';
+import {
+  DataCollectionVariableType,
+  keyCollectionsStateMap,
+  keyIsCollectionItem,
+} from '../../data_sources/model/data_collection/constants';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
-import EditorModel from '../../editor/model/Editor';
 import Component from './Component';
-import { keyCollectionsStateMap } from '../../data_sources/model/data_collection/constants';
-import { DynamicWatchersOptions } from './DynamicValueWatcher';
-import { DynamicValueWatcher } from './DynamicValueWatcher';
+import {
+  ComponentResolverWatcher,
+  ComponentResolverWatcherOptions,
+  DynamicWatchersOptions,
+} from './ComponentResolverWatcher';
 import { getSymbolsToUpdate } from './SymbolUtils';
 
-export class ComponentDynamicValueWatcher extends Model<Component> {
-  private propertyWatcher: DynamicValueWatcher;
-  private attributeWatcher: DynamicValueWatcher;
+const updateOptions = { fromDataSource: true, avoidStore: true };
+
+export class ComponentDataResolverWatchers {
+  private propertyWatcher: ComponentResolverWatcher;
+  private attributeWatcher: ComponentResolverWatcher;
 
   constructor(
     private component: Component | undefined,
-    options: {
-      em: EditorModel;
-      collectionsStateMap?: DataCollectionStateMap;
-    },
+    options: ComponentResolverWatcherOptions,
   ) {
-    super(component, options);
-    this.propertyWatcher = new DynamicValueWatcher(component, this.createPropertyUpdater(), options);
-    this.attributeWatcher = new DynamicValueWatcher(component, this.createAttributeUpdater(), options);
+    this.propertyWatcher = new ComponentResolverWatcher(component, this.onPropertyUpdate, options);
+    this.attributeWatcher = new ComponentResolverWatcher(component, this.onAttributeUpdate, options);
   }
 
-  private createPropertyUpdater() {
-    return (component: Component | undefined, key: string, value: any) => {
-      if (!component) return;
-      component.set(key, value, { fromDataSource: true, avoidStore: true });
-    };
+  private onPropertyUpdate(component: Component | undefined, key: string, value: any) {
+    component?.set(key, value, updateOptions);
   }
 
-  private createAttributeUpdater() {
-    return (component: Component | undefined, key: string, value: any) => {
-      if (!component) return;
-      component.addAttributes({ [key]: value }, { fromDataSource: true, avoidStore: true });
-    };
+  private onAttributeUpdate(component: Component | undefined, key: string, value: any) {
+    component?.addAttributes({ [key]: value }, updateOptions);
   }
 
   bindComponent(component: Component) {
@@ -113,6 +110,7 @@ export class ComponentDynamicValueWatcher extends Model<Component> {
   }
 
   destroy() {
-    return this.propertyWatcher.destroy() && this.attributeWatcher.destroy();
+    this.propertyWatcher.destroy();
+    this.attributeWatcher.destroy();
   }
 }

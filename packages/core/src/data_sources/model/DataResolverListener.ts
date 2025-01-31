@@ -1,60 +1,58 @@
-import { DataSourcesEvents, DataVariableListener } from '../types';
+import { DataSourcesEvents, DataSourceListener } from '../types';
 import { stringToPath } from '../../utils/mixins';
 import { Model } from '../../common';
 import EditorModel from '../../editor/model/Editor';
 import DataVariable, { DataVariableType } from './DataVariable';
-import { DynamicValue } from '../types';
+import { DataResolver } from '../types';
 import { DataCondition, DataConditionType } from './conditional_variables/DataCondition';
 import { DataCollectionVariableType } from './data_collection/constants';
 import DataCollectionVariable from './data_collection/DataCollectionVariable';
 
-export interface DynamicVariableListenerManagerOptions {
+export interface DataResolverListenerProps {
   em: EditorModel;
-  dataVariable: DynamicValue;
-  updateValueFromDataVariable: (value: any) => void;
+  resolver: DataResolver;
+  onUpdate: (value: any) => void;
 }
 
-export default class DynamicVariableListenerManager {
-  private dataListeners: DataVariableListener[] = [];
+export default class DataResolverListener {
+  private listeners: DataSourceListener[] = [];
   private em: EditorModel;
-  dynamicVariable: DynamicValue;
-  private updateValueFromDynamicVariable: (value: any) => void;
+  private onUpdate: (value: any) => void;
   private model = new Model();
+  resolver: DataResolver;
 
-  constructor(options: DynamicVariableListenerManagerOptions) {
-    this.em = options.em;
-    this.dynamicVariable = options.dataVariable;
-    this.updateValueFromDynamicVariable = options.updateValueFromDataVariable;
-
-    this.listenToDynamicVariable();
+  constructor(props: DataResolverListenerProps) {
+    this.em = props.em;
+    this.resolver = props.resolver;
+    this.onUpdate = props.onUpdate;
+    this.listenToResolver();
   }
 
   private onChange = () => {
-    const value = this.dynamicVariable.getDataValue();
-    this.updateValueFromDynamicVariable(value);
+    const value = this.resolver.getDataValue();
+    this.onUpdate(value);
   };
 
-  listenToDynamicVariable() {
-    const { dynamicVariable } = this;
+  listenToResolver() {
+    const { resolver, model } = this;
     this.removeListeners();
-    let dataListeners: DataVariableListener[] = [];
-    // @ts-ignore
-    const type = dynamicVariable.get('type');
+    let listeners: DataSourceListener[] = [];
+    const type = resolver.attributes.type;
 
     switch (type) {
       case DataCollectionVariableType:
-        dataListeners = this.listenToDataCollectionVariable(dynamicVariable as DataCollectionVariable);
+        listeners = this.listenToDataCollectionVariable(resolver as DataCollectionVariable);
         break;
       case DataVariableType:
-        dataListeners = this.listenToDataVariable(dynamicVariable as DataVariable);
+        listeners = this.listenToDataVariable(resolver as DataVariable);
         break;
       case DataConditionType:
-        dataListeners = this.listenToConditionalVariable(dynamicVariable as DataCondition);
+        listeners = this.listenToConditionalVariable(resolver as DataCondition);
         break;
     }
 
-    dataListeners.forEach((ls) => this.model.listenTo(ls.obj, ls.event, this.onChange));
-    this.dataListeners = dataListeners;
+    listeners.forEach((ls) => model.listenTo(ls.obj, ls.event, this.onChange));
+    this.listeners = listeners;
   }
 
   private listenToConditionalVariable(dataVariable: DataCondition) {
@@ -68,7 +66,7 @@ export default class DynamicVariableListenerManager {
 
   private listenToDataVariable(dataVariable: DataVariable) {
     const { em } = this;
-    const dataListeners: DataVariableListener[] = [];
+    const dataListeners: DataSourceListener[] = [];
     const { path } = dataVariable.attributes;
     const normPath = stringToPath(path || '').join('.');
     const [ds, dr] = em.DataSources.fromPath(path);
@@ -88,8 +86,8 @@ export default class DynamicVariableListenerManager {
   }
 
   private removeListeners() {
-    this.dataListeners.forEach((ls) => this.model.stopListening(ls.obj, ls.event, this.onChange));
-    this.dataListeners = [];
+    this.listeners.forEach((ls) => this.model.stopListening(ls.obj, ls.event, this.onChange));
+    this.listeners = [];
   }
 
   destroy() {

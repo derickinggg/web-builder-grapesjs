@@ -4,7 +4,7 @@ import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableType } from '../DataVariable';
 import { DataCollectionVariableType } from './constants';
 import { DataCollectionState, DataCollectionStateMap } from './types';
-import DynamicVariableListenerManager from '../DataVariableListenerManager';
+import DataResolverListener from '../DataResolverListener';
 
 interface DataCollectionVariablePropsDefined extends DataCollectionVariableProps {
   value?: any;
@@ -14,7 +14,7 @@ export default class DataCollectionVariable extends Model<DataCollectionVariable
   em: EditorModel;
   collectionsStateMap?: DataCollectionStateMap;
   dataVariable?: DataVariable;
-  dynamicValueListener?: DynamicVariableListenerManager;
+  resolverListener?: DataResolverListener;
 
   defaults(): Partial<DataCollectionVariablePropsDefined> {
     return {
@@ -67,11 +67,11 @@ export default class DataCollectionVariable extends Model<DataCollectionVariable
       dataVariable = new DataVariable(resolvedValue, { em: this.em });
       this.dataVariable = dataVariable;
 
-      this.dynamicValueListener?.destroy();
-      this.dynamicValueListener = new DynamicVariableListenerManager({
+      this.resolverListener?.destroy();
+      this.resolverListener = new DataResolverListener({
         em: this.em,
-        dataVariable,
-        updateValueFromDataVariable: () => {
+        resolver: dataVariable,
+        onUpdate: () => {
           this.set('value', this.dataVariable?.getDataValue());
         },
       });
@@ -87,7 +87,7 @@ export default class DataCollectionVariable extends Model<DataCollectionVariable
   }
 
   destroy() {
-    this.dynamicValueListener?.destroy();
+    this.resolverListener?.destroy();
     this.dataVariable?.destroy();
 
     return super.destroy();

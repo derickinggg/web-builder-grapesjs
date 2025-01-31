@@ -1,16 +1,16 @@
 import ComponentView from '../../dom_components/view/ComponentView';
 import ComponentDataVariable from '../model/ComponentDataVariable';
-import DynamicVariableListenerManager from '../model/DataVariableListenerManager';
+import DataResolverListener from '../model/DataResolverListener';
 
 export default class ComponentDataVariableView extends ComponentView<ComponentDataVariable> {
-  dynamicVariableListener?: DynamicVariableListenerManager;
+  dataResolverListener?: DataResolverListener;
 
   initialize(opt = {}) {
     super.initialize(opt);
-    this.dynamicVariableListener = new DynamicVariableListenerManager({
+    this.dataResolverListener = new DataResolverListener({
       em: this.em!,
-      dataVariable: this.model,
-      updateValueFromDataVariable: () => this.postRender(),
+      resolver: this.model,
+      onUpdate: () => this.postRender(),
     });
   }
 

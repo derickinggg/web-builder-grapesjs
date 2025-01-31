@@ -1,7 +1,7 @@
 import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableProps } from '../DataVariable';
-import DynamicVariableListenerManager from '../DataVariableListenerManager';
+import DataResolverListener from '../DataResolverListener';
 import { evaluateVariable, isDataVariable } from '../utils';
 import { Condition, ConditionProps } from './Condition';
 import { GenericOperation } from './operators/GenericOperator';
@@ -36,7 +36,7 @@ interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'
 export class DataCondition extends Model<DataConditionPropsDefined> {
   lastEvaluationResult: boolean;
   private em: EditorModel;
-  private variableListeners: DynamicVariableListenerManager[] = [];
+  private resolverListeners: DataResolverListener[] = [];
   private _onValueChange?: () => void;
 
   constructor(
@@ -84,7 +84,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   private listenToDataVariables() {
-    if (!this.em) return;
+    const { em } = this;
+    if (!em) return;
 
     // Clear previous listeners to avoid memory leaks
     this.cleanupListeners();
@@ -92,17 +93,16 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     const dataVariables = this.getDependentDataVariables();
 
     dataVariables.forEach((variable) => {
-      const variableInstance = new DataVariable(variable, { em: this.em });
-      const listener = new DynamicVariableListenerManager({
-        em: this.em!,
-        dataVariable: variableInstance,
-        updateValueFromDataVariable: (() => {
+      const listener = new DataResolverListener({
+        em,
+        resolver: new DataVariable(variable, { em: this.em }),
+        onUpdate: (() => {
           this.reevaluate();
           this._onValueChange?.();
         }).bind(this),
       });
 
-      this.variableListeners.push(listener);
+      this.resolverListeners.push(listener);
     });
   }
 
@@ -115,8 +115,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   private cleanupListeners() {
-    this.variableListeners.forEach((listener) => listener.destroy());
-    this.variableListeners = [];
+    this.resolverListeners.forEach((listener) => listener.destroy());
+    this.resolverListeners = [];
   }
 
   toJSON() {
