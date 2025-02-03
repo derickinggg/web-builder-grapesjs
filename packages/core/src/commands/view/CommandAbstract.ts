@@ -111,11 +111,9 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
   callRun(editor: Editor, options: any = {}) {
     const { id } = this;
     editor.trigger(`${CommandsEvents.runBeforeCommand}${id}`, { options });
-    editor.trigger(`${CommandsEvents._runCommand}${id}:before`, options);
 
     if (options.abort) {
       editor.trigger(`${CommandsEvents.abort}${id}`, { options });
-      editor.trigger(`${CommandsEvents._abort}${id}`, options);
       return;
     }
 
@@ -124,9 +122,6 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
     const data = { id, result, options };
     editor.trigger(`${CommandsEvents.runCommand}${id}`, data);
     editor.trigger(CommandsEvents.run, data);
-    // deprecated
-    editor.trigger(`${CommandsEvents._runCommand}${id}`, result, options);
-    editor.trigger(CommandsEvents._run, id, result, options);
     return result;
   }
 
@@ -140,15 +135,10 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
     const { id } = this;
     const sender = options.sender || editor;
     editor.trigger(`${CommandsEvents.stopBeforeCommand}${id}`, { options });
-    editor.trigger(`${CommandsEvents._stopCommand}${id}:before`, options);
     const result = this.stop(editor, sender, options);
     const data = { id, result, options };
     editor.trigger(`${CommandsEvents.stopCommand}${id}`, data);
     editor.trigger(CommandsEvents.stop, data);
-
-    // deprecated
-    editor.trigger(`${CommandsEvents._stopCommand}${id}`, result, options);
-    editor.trigger(CommandsEvents._stop, id, result, options);
     return result;
   }
 

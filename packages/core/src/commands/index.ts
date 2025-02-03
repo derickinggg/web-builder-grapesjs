@@ -383,7 +383,7 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
   runCommand(command?: CommandObject, options: CommandOptions = {}) {
     let result;
 
-    if (command && command.run) {
+    if (command?.run) {
       const { em, config } = this;
       const id = command.id as string;
       const editor = em.Editor;
@@ -411,7 +411,7 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
   stopCommand(command?: CommandObject, options: CommandOptions = {}) {
     let result;
 
-    if (command && command.run) {
+    if (command?.run) {
       const { em, config } = this;
       const id = command.id as string;
       const editor = em.Editor;
