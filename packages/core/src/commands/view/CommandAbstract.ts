@@ -35,6 +35,7 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
   plhClass: string;
   freezClass: string;
   canvas: CanvasModule;
+  noStop?: boolean;
 
   constructor(o: any) {
     super(0);
@@ -120,8 +121,14 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
     const sender = options.sender || editor;
     const result = this.run(editor, sender, options);
     const data = { id, result, options };
+
+    if (!this.noStop) {
+      editor.Commands.active[id] = result;
+    }
+
     editor.trigger(`${CommandsEvents.runCommand}${id}`, data);
     editor.trigger(CommandsEvents.run, data);
+
     return result;
   }
 
@@ -137,6 +144,7 @@ export default class CommandAbstract<O extends ObjectAny = any> extends Model {
     editor.trigger(`${CommandsEvents.stopBeforeCommand}${id}`, { options });
     const result = this.stop(editor, sender, options);
     const data = { id, result, options };
+    delete editor.Commands.active[id];
     editor.trigger(`${CommandsEvents.stopCommand}${id}`, data);
     editor.trigger(CommandsEvents.stop, data);
     return result;
