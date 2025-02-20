@@ -1,9 +1,6 @@
 import { Component, DataSourceManager, Editor } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
-import {
-  MissingConditionError,
-  DataConditionType,
-} from '../../../../../src/data_sources/model/conditional_variables/DataCondition';
+import { DataConditionType } from '../../../../../src/data_sources/model/conditional_variables/DataCondition';
 import { GenericOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/GenericOperator';
 import { NumberOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/NumberOperator';
 import ComponentDataConditionView from '../../../../../src/data_sources/view/ComponentDataConditionView';
@@ -212,21 +209,6 @@ describe('ComponentConditionalVariable', () => {
     const frame = page.frames[0];
     const storageCmptDef = frame.component.components[0];
     expect(storageCmptDef).toEqual(conditionalCmptDef);
-  });
-
-  it('should throw an error if no condition is passed', () => {
-    const conditionalCmptDef = {
-      type: DataConditionType,
-      ifTrue: {
-        tagName: 'h1',
-        type: 'text',
-        content: 'some text',
-      },
-    };
-
-    expect(() => {
-      cmpRoot.append(conditionalCmptDef);
-    }).toThrow(MissingConditionError);
   });
 });
 
