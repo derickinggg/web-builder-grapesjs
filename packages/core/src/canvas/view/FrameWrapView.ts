@@ -76,6 +76,7 @@ export default class FrameWrapView extends ModuleView<Frame> {
   }
 
   remove(opts?: any) {
+    this.sizeObserver?.disconnect();
     this.__clear(opts);
     ModuleView.prototype.remove.apply(this, opts);
     //@ts-ignore
@@ -150,7 +151,7 @@ export default class FrameWrapView extends ModuleView<Frame> {
 
   __handleSize() {
     const un = 'px';
-    const { model, el } = this;
+    const { model, el, em } = this;
     const { style } = el;
     const { width, height } = model.attributes;
     const currW = style.width || '';
@@ -161,6 +162,7 @@ export default class FrameWrapView extends ModuleView<Frame> {
     const newWidth = isNumber(newW) ? `${newW}${un}` : newW;
     const newHeight = isNumber(newH) ? `${newH}${un}` : newH;
     style.width = newWidth;
+    this.sizeObserver?.disconnect();
 
     if (model.hasAutoHeight()) {
       const iframe = this.frame.el;
@@ -175,12 +177,10 @@ export default class FrameWrapView extends ModuleView<Frame> {
           style.height = `${contentDocument.body.scrollHeight}px`;
         });
         observer.observe(contentDocument.body);
-        this.sizeObserver?.disconnect();
         this.sizeObserver = observer;
       }
     } else {
       style.height = newHeight;
-      this.sizeObserver?.disconnect();
       delete this.sizeObserver;
     }
 

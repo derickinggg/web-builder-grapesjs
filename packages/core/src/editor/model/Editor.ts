@@ -110,9 +110,9 @@ export default class EditorModel extends Model {
       device: '',
     };
   }
-
   Model = Model;
   Collection = Collection;
+  events = EditorEvents;
   __skip = false;
   defaultRunning = false;
   destroyed = false;

@@ -270,6 +270,7 @@ export default class CanvasView extends ModuleView<Canvas> {
 
   fitViewport(opts: FitViewportOptions = {}) {
     const { em, module, model } = this;
+    this.clearOff();
     const canvasRect = this.getCanvasOffset();
     const { el } = opts;
     const elFrame = el && getComponentView(el)?.frameView;
