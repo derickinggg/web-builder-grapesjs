@@ -151,7 +151,7 @@ export default class FrameWrapView extends ModuleView<Frame> {
 
   __handleSize() {
     const un = 'px';
-    const { model, el, em } = this;
+    const { model, el } = this;
     const { style } = el;
     const { width, height } = model.attributes;
     const currW = style.width || '';
@@ -166,15 +166,13 @@ export default class FrameWrapView extends ModuleView<Frame> {
 
     if (model.hasAutoHeight()) {
       const iframe = this.frame.el;
+      const { contentDocument } = iframe;
 
-      if (
-        iframe.contentDocument
-        // this doesn't work always
-        // && !this.sizeObserver
-      ) {
-        const { contentDocument } = iframe;
+      if (contentDocument) {
         const observer = new ResizeObserver(() => {
-          style.height = `${contentDocument.body.scrollHeight}px`;
+          const minHeight = parseFloat(model.get('minHeight')) || 0;
+          const heightResult = Math.max(contentDocument.body.scrollHeight, minHeight);
+          style.height = `${heightResult}px`;
         });
         observer.observe(contentDocument.body);
         this.sizeObserver = observer;
