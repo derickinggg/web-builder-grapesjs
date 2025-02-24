@@ -10,7 +10,7 @@ import ComponentTextView from '../../../../../src/dom_components/view/ComponentT
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../../common';
 
-describe('ComponentConditionalVariable', () => {
+describe('ComponentDataCondition', () => {
   let editor: Editor;
   let em: EditorModel;
   let dsm: DataSourceManager;
@@ -121,10 +121,10 @@ describe('ComponentConditionalVariable', () => {
     expect(childComponent.getInnerHTML()).toBe('Some value');
 
     /* Test changing datasources */
-    updatedsmLeftValue(dsm, 'Diffirent value');
+    changeDataSourceValue(dsm, 'Diffirent value');
     expect(getFirstChild(component).getInnerHTML()).toBe('False value');
     expect(getFirstChildView(component)?.el.innerHTML).toBe('False value');
-    updatedsmLeftValue(dsm, 'Name1');
+    changeDataSourceValue(dsm, 'Name1');
     expect(getFirstChild(component).getInnerHTML()).toBe('Some value');
     expect(getFirstChildView(component)?.el.innerHTML).toBe('Some value');
   });
@@ -212,7 +212,7 @@ describe('ComponentConditionalVariable', () => {
   });
 });
 
-function updatedsmLeftValue(dsm: DataSourceManager, newValue: string) {
+function changeDataSourceValue(dsm: DataSourceManager, newValue: string) {
   dsm.get('ds1').getRecord('left_id')?.set('left', newValue);
 }
 

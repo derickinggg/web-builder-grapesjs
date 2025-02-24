@@ -68,25 +68,29 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     });
   }
 
-  get condition() {
+  private get conditionEvaluator() {
     return this.get('condition')!;
   }
 
-  get ifTrue() {
+  getCondition(): ConditionProps {
+    return this.get('condition')?.get('condition')!;
+  }
+
+  getIfTrue() {
     return this.get('ifTrue')!;
   }
 
-  get ifFalse() {
+  getIfFalse() {
     return this.get('ifFalse')!;
   }
 
   isTrue(): boolean {
-    return this.condition.evaluate();
+    return this.conditionEvaluator.evaluate();
   }
 
   getDataValue(skipDynamicValueResolution: boolean = false): any {
-    const ifTrue = this.ifTrue;
-    const ifFalse = this.ifFalse;
+    const ifTrue = this.get('ifTrue');
+    const ifFalse = this.get('ifFalse');
 
     const isConditionTrue = this.isTrue();
     if (skipDynamicValueResolution) {
@@ -136,7 +140,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   getDependentDataVariables() {
-    const dataVariables: DataVariableProps[] = this.condition.getDependentDataVariables();
+    const dataVariables: DataVariableProps[] = this.conditionEvaluator.getDependentDataVariables();
     const ifTrue = this.get('ifTrue');
     const ifFalse = this.get('ifFalse');
     if (isDataVariable(ifTrue)) dataVariables.push(ifTrue);
@@ -156,7 +160,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
 
     return {
       type: DataConditionType,
-      condition: this.condition,
+      condition: this.conditionEvaluator,
       ifTrue,
       ifFalse,
     };
