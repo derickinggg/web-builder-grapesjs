@@ -7,8 +7,8 @@ export default class ComponentDataCondition extends Component {
   dataResolver: DataCondition;
 
   constructor(props: DataConditionProps, opt: ComponentOptions) {
-    const { condition, ifTrue, ifFalse } = props;
-    const dataConditionInstance = new DataCondition(condition, ifTrue, ifFalse, { em: opt.em });
+    const dataConditionInstance = new DataCondition(props, { em: opt.em });
+
     super(
       {
         ...props,
@@ -22,7 +22,6 @@ export default class ComponentDataCondition extends Component {
   }
 
   private handleConditionChange() {
-    this.dataResolver.reevaluate();
     this.components(this.dataResolver.getDataValue());
   }
 

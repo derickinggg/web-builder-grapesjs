@@ -1,7 +1,7 @@
 import { Component, DataSourceManager, Editor } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import { DataConditionType } from '../../../../../src/data_sources/model/conditional_variables/DataCondition';
-import { GenericOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/GenericOperator';
+import { AnyTypeOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/AnyTypeOperator';
 import { NumberOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/NumberOperator';
 import ComponentDataConditionView from '../../../../../src/data_sources/view/ComponentDataConditionView';
 import ComponentWrapper from '../../../../../src/dom_components/model/ComponentWrapper';
@@ -97,7 +97,7 @@ describe('ComponentConditionalVariable', () => {
           type: DataVariableType,
           path: 'ds1.left_id.left',
         },
-        operator: GenericOperation.equals,
+        operator: AnyTypeOperation.equals,
         right: {
           type: DataVariableType,
           path: 'ds1.right_id.right',
@@ -146,7 +146,7 @@ describe('ComponentConditionalVariable', () => {
           type: DataVariableType,
           path: 'ds1.left_id.left',
         },
-        operator: GenericOperation.equals,
+        operator: AnyTypeOperation.equals,
         right: {
           type: DataVariableType,
           path: 'ds1.right_id.right',
@@ -162,7 +162,7 @@ describe('ComponentConditionalVariable', () => {
                 type: DataVariableType,
                 path: 'ds1.left_id.left',
               },
-              operator: GenericOperation.equals,
+              operator: AnyTypeOperation.equals,
               right: {
                 type: DataVariableType,
                 path: 'ds1.right_id.right',
