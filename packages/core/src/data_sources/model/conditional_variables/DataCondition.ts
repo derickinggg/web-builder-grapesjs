@@ -3,23 +3,23 @@ import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableProps } from '../DataVariable';
 import DataResolverListener from '../DataResolverListener';
 import { evaluateVariable, isDataVariable } from '../utils';
-import { Condition, ConditionProps } from './Condition';
-import { GenericOperation } from './operators/GenericOperator';
-import { LogicalOperation } from './operators/LogicalOperator';
+import { DataConditionEvaluator, ConditionProps } from './DataConditionEvaluator';
+import { AnyTypeOperation } from './operators/AnyTypeOperator';
+import { BooleanOperation } from './operators/BooleanOperator';
 import { NumberOperation } from './operators/NumberOperator';
-import { StringOperation } from './operators/StringOperations';
+import { StringOperation } from './operators/StringOperator';
 import { isUndefined } from 'underscore';
 
 export const DataConditionType = 'data-condition';
 
 export interface ExpressionProps {
   left: any;
-  operator: GenericOperation | StringOperation | NumberOperation;
+  operator: AnyTypeOperation | StringOperation | NumberOperation;
   right: any;
 }
 
 export interface LogicGroupProps {
-  logicalOperator: LogicalOperation;
+  logicalOperator: BooleanOperation;
   statements: ConditionProps[];
 }
 
@@ -31,57 +31,86 @@ export interface DataConditionProps {
 }
 
 interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'> {
-  condition: Condition;
+  condition: DataConditionEvaluator;
 }
 
 export class DataCondition extends Model<DataConditionPropsDefined> {
-  lastEvaluationResult: boolean;
   private em: EditorModel;
   private resolverListeners: DataResolverListener[] = [];
   private _onValueChange?: () => void;
 
   constructor(
-    condition: ConditionProps,
-    public ifTrue: any,
-    public ifFalse: any,
+    props: {
+      condition: ConditionProps;
+      ifTrue: any;
+      ifFalse: any;
+    },
     opts: { em: EditorModel; onValueChange?: () => void },
   ) {
-    if (isUndefined(condition)) {
+    if (isUndefined(props.condition)) {
       opts.em.logError('No condition was provided to a conditional component.');
     }
 
-    const conditionInstance = new Condition(condition, { em: opts.em });
+    const conditionInstance = new DataConditionEvaluator({ condition: props.condition }, { em: opts.em });
+
     super({
       type: DataConditionType,
+      ...props,
       condition: conditionInstance,
-      ifTrue,
-      ifFalse,
     });
     this.em = opts.em;
-    this.lastEvaluationResult = this.evaluate();
     this.listenToDataVariables();
     this._onValueChange = opts.onValueChange;
+
+    this.on('change:condition change:ifTrue change:ifFalse', () => {
+      this.listenToDataVariables();
+      this._onValueChange?.();
+    });
   }
 
   get condition() {
     return this.get('condition')!;
   }
 
-  evaluate() {
+  get ifTrue() {
+    return this.get('ifTrue')!;
+  }
+
+  get ifFalse() {
+    return this.get('ifFalse')!;
+  }
+
+  isTrue(): boolean {
     return this.condition.evaluate();
   }
 
-  getDataValue(): any {
-    return this.lastEvaluationResult ? evaluateVariable(this.ifTrue, this.em) : evaluateVariable(this.ifFalse, this.em);
-  }
+  getDataValue(skipDynamicValueResolution: boolean = false): any {
+    const ifTrue = this.ifTrue;
+    const ifFalse = this.ifFalse;
 
-  reevaluate(): void {
-    this.lastEvaluationResult = this.evaluate();
+    const isConditionTrue = this.isTrue();
+    if (skipDynamicValueResolution) {
+      return isConditionTrue ? ifTrue : ifFalse;
+    }
+
+    return isConditionTrue ? evaluateVariable(ifTrue, this.em) : evaluateVariable(ifFalse, this.em);
   }
 
   set onValueChange(newFunction: () => void) {
     this._onValueChange = newFunction;
-    this.listenToDataVariables();
+  }
+
+  setCondition(newCondition: ConditionProps) {
+    const newConditionInstance = new DataConditionEvaluator({ condition: newCondition }, { em: this.em });
+    this.set('condition', newConditionInstance);
+  }
+
+  setIfTrue(newIfTrue: any) {
+    this.set('ifTrue', newIfTrue);
+  }
+
+  setIfFalse(newIfFalse: any) {
+    this.set('ifFalse', newIfFalse);
   }
 
   private listenToDataVariables() {
@@ -98,7 +127,6 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
         em,
         resolver: new DataVariable(variable, { em: this.em }),
         onUpdate: (() => {
-          this.reevaluate();
           this._onValueChange?.();
         }).bind(this),
       });
@@ -108,9 +136,11 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   getDependentDataVariables() {
-    const dataVariables: DataVariableProps[] = this.condition.getDataVariables();
-    if (isDataVariable(this.ifTrue)) dataVariables.push(this.ifTrue);
-    if (isDataVariable(this.ifFalse)) dataVariables.push(this.ifFalse);
+    const dataVariables: DataVariableProps[] = this.condition.getDependentDataVariables();
+    const ifTrue = this.get('ifTrue');
+    const ifFalse = this.get('ifFalse');
+    if (isDataVariable(ifTrue)) dataVariables.push(ifTrue);
+    if (isDataVariable(ifFalse)) dataVariables.push(ifFalse);
 
     return dataVariables;
   }
@@ -121,11 +151,14 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   toJSON() {
+    const ifTrue = this.get('ifTrue');
+    const ifFalse = this.get('ifFalse');
+
     return {
       type: DataConditionType,
       condition: this.condition,
-      ifTrue: this.ifTrue,
-      ifFalse: this.ifFalse,
+      ifTrue,
+      ifFalse,
     };
   }
 }
