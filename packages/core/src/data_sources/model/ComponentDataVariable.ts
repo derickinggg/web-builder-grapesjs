@@ -30,6 +30,14 @@ export default class ComponentDataVariable extends Component {
     return this.getDataValue();
   }
 
+  setPath(newPath: string) {
+    this.dataResolver.set('path', newPath);
+  }
+
+  setDefaultValue(newValue: string) {
+    this.dataResolver.set('defaultValue', newValue);
+  }
+
   static isComponent(el: HTMLElement) {
     return toLowerCase(el.tagName) === DataVariableType;
   }
