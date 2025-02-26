@@ -15,6 +15,7 @@ export default class ComponentDataCondition extends Component {
         ...props,
         type: DataConditionType,
         components: dataConditionInstance.getDataValue(),
+        droppable: false,
       },
       opt,
     );

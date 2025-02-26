@@ -13,6 +13,7 @@ export default class ComponentDataVariable extends Component {
       type: DataVariableType,
       path: '',
       defaultValue: '',
+      droppable: false,
     };
   }
 
