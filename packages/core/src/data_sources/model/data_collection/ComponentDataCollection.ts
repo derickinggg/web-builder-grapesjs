@@ -336,13 +336,20 @@ function setCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
     );
 
     if (isFirstItem) {
+      const __onStyleChange = cmp.__onStyleChange.bind(cmp);
+
       cmp.__onStyleChange = (newStyles: StyleProps, opts: UpdateStyleOptions = {}) => {
+        __onStyleChange(newStyles);
         const cmps = getSymbolsToUpdate(cmp);
 
         cmps.forEach((cmp) => {
           cmp.addStyle(newStyles, opts);
         });
       };
+
+      cmp.on(`change:${keyIsCollectionItem}`, () => {
+        cmp.__onStyleChange = __onStyleChange;
+      });
     }
   };
 }
