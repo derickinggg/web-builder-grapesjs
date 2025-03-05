@@ -1,7 +1,7 @@
 import EditorModel from '../../../../editor/model/Editor';
-import { Operation } from './types';
+import { DataConditionOperation } from './types';
 
-export abstract class Operator<OperationType extends Operation> {
+export abstract class Operator<OperationType extends DataConditionOperation> {
   protected em: EditorModel;
   protected operation: OperationType;
 

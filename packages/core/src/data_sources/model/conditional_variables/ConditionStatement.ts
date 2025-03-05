@@ -1,12 +1,12 @@
 import { Operator } from './operators/BaseOperator';
-import { Operation } from './operators/types';
+import { DataConditionOperation } from './operators/types';
 
 export class ConditionStatement {
   constructor(
     private leftValue: any,
-    private operator: Operator<Operation>,
+    private operator: Operator<DataConditionOperation>,
     private rightValue: any,
-  ) {}
+  ) { }
 
   evaluate(): boolean {
     return this.operator.evaluate(this.leftValue, this.rightValue);

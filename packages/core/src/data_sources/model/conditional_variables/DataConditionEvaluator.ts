@@ -9,7 +9,7 @@ import { BooleanOperator } from './operators/BooleanOperator';
 import { NumberOperator, NumberOperation } from './operators/NumberOperator';
 import { StringOperator, StringOperation } from './operators/StringOperator';
 import { Model } from '../../../common';
-import { Operation } from './operators/types';
+import { DataConditionOperation } from './operators/types';
 
 export type ConditionProps = ExpressionProps | LogicGroupProps | boolean;
 
@@ -54,7 +54,7 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
   /**
    * Factory method for creating operators based on the data type.
    */
-  private getOperator(left: any, operator: string): Operator<Operation> {
+  private getOperator(left: any, operator: string): Operator<DataConditionOperation> {
     const em = this.em;
 
     if (this.isOperatorInEnum(operator, AnyTypeOperation)) {
