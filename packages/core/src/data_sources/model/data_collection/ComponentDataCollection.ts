@@ -87,21 +87,26 @@ export default class ComponentDataCollection extends Component {
     this.set(keyCollectionDefinition, { ...this.collectionDef, componentDef });
   }
 
-  setStartIndex(startIndex: number) {
+  setStartIndex(startIndex: number): void {
     if (startIndex < 0) {
       this.em.logError('Start index should be greater than or equal to 0');
       return;
     }
-    this.set(keyCollectionDefinition, {
-      ...this.collectionDef,
-      collectionConfig: { ...this.collectionConfig, startIndex }
-    });
+
+    this.updateCollectionConfig({ startIndex });
   }
 
-  setEndIndex(endIndex: number) {
+  setEndIndex(endIndex: number): void {
+    this.updateCollectionConfig({ endIndex });
+  }
+
+  private updateCollectionConfig(updates: Partial<DataCollectionConfig>): void {
     this.set(keyCollectionDefinition, {
       ...this.collectionDef,
-      collectionConfig: { ...this.collectionConfig, endIndex }
+      collectionConfig: {
+        ...this.collectionConfig,
+        ...updates,
+      },
     });
   }
 
