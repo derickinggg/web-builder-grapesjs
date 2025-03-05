@@ -92,12 +92,11 @@ describe('Collection component getters and setters', () => {
       const componentDef = cmp.getComponentDef();
       expect(componentDef.type).toBe('default');
       expect(componentDef.components).toHaveLength(1);
-      expect(componentDef.attributes?.['dataUser']).toEqual({
+      expect(componentDef?.components?.[0].attributes?.['dataUser']).toEqual({
         type: DataCollectionVariableType,
         variableType: DataCollectionStateVariableType.currentItem,
         collectionId: 'my_collection',
         path: 'user',
-
       });
     });
 
