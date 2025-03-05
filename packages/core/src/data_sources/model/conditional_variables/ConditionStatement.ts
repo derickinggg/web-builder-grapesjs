@@ -6,7 +6,7 @@ export class ConditionStatement {
     private leftValue: any,
     private operator: Operator<DataConditionOperation>,
     private rightValue: any,
-  ) { }
+  ) {}
 
   evaluate(): boolean {
     return this.operator.evaluate(this.leftValue, this.rightValue);
