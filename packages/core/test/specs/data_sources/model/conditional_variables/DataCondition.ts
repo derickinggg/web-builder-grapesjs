@@ -47,6 +47,24 @@ describe('DataCondition', () => {
 
       expect(dataCondition.getDataValue()).toBe('No');
     });
+
+    test('should return raw ifTrue value when skipDynamicValueResolution is true and condition is true', () => {
+      const condition = true;
+      const ifTrue = { type: DataVariableType, path: 'USER_STATUS_SOURCE.USER_1.status' };
+      const ifFalse = 'No';
+
+      const dataCondition = new DataCondition({ condition, ifTrue, ifFalse }, { em });
+      expect(dataCondition.getDataValue(true)).toEqual(ifTrue);
+    });
+
+    test('should return raw ifFalse value when skipDynamicValueResolution is true and condition is false', () => {
+      const condition = false;
+      const ifTrue = 'Yes';
+      const ifFalse = { type: DataVariableType, path: 'USER_STATUS_SOURCE.USER_1.status' };
+
+      const dataCondition = new DataCondition({ condition, ifTrue, ifFalse }, { em });
+      expect(dataCondition.getDataValue(true)).toEqual(ifFalse);
+    });
   });
 
   describe('Operator Tests', () => {
