@@ -326,15 +326,18 @@ describe('Collection component getters and setters', () => {
     test('HTML output should reflect changes in dataSource', () => {
       dsm.add({
         id: 'new_data_source_id',
-        records: [{ id: 'user4', user: 'user4', firstName: 'Name4', age: '20' }],
+        records: [
+          { id: 'user4', user: 'user4', firstName: 'Name4', age: '20' },
+          { id: 'user5', user: 'user5', firstName: 'Name5', age: '21' }
+        ],
       });
       cmp.setDataSource({
         type: DataVariableType,
         path: 'new_data_source_id',
-
       });
+
       const html = cmp.toHTML();
-      expect(html).toContain('dataUser="user4"');
+      expect(html).toContain('dataUser="user5"');
     });
 
     test('HTML output should be empty when endIndex is zero', () => {
