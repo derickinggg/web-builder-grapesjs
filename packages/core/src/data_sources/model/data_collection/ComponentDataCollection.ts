@@ -1,4 +1,4 @@
-import { isArray } from 'underscore';
+import { bindAll, isArray } from 'underscore';
 import { ObjectAny } from '../../../common';
 import Component from '../../../dom_components/model/Component';
 import { ComponentDefinition, ComponentOptions } from '../../../dom_components/model/types';
@@ -8,22 +8,30 @@ import DataResolverListener from '../DataResolverListener';
 import DataSource from '../DataSource';
 import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
 import { isDataVariable } from '../utils';
-import { DataCollectionType, keyCollectionDefinition, keyCollectionsStateMap, keyIsCollectionItem } from './constants';
+import {
+  DataCollectionType,
+  keyCollectionDefinition,
+  keyCollectionsStateMap,
+  keyIsCollectionItem
+} from './constants';
 import {
   ComponentDataCollectionProps,
   DataCollectionConfig,
   DataCollectionDataSource,
   DataCollectionProps,
   DataCollectionState,
-  DataCollectionStateMap,
+  DataCollectionStateMap
 } from './types';
 import { getSymbolsToUpdate } from '../../../dom_components/model/SymbolUtils';
 import { StyleProps, UpdateStyleOptions } from '../../../domain_abstract/model/StyleableModel';
+import { updateFromWatcher } from '../../../dom_components/model/ComponentDataResolverWatchers';
 
 export default class ComponentDataCollection extends Component {
+  dataSourceWatcher?: DataResolverListener;
+
   constructor(props: ComponentDataCollectionProps, opt: ComponentOptions) {
     const collectionDef = props[keyCollectionDefinition];
-    // If we are cloning, leave setting the collection items to the main symbol collection
+
     if (opt.forCloning) {
       return super(props as any, opt) as unknown as ComponentDataCollection;
     }
@@ -37,16 +45,22 @@ export default class ComponentDataCollection extends Component {
       return cmp;
     }
 
+    this.rebuildChildrenFromCollection();
+    bindAll(this, 'rebuildChildrenFromCollection');
+    this.listenTo(this, `change:${keyCollectionDefinition}`, this.rebuildChildrenFromCollection);
+    this.listenToDataSource();
+
     return cmp;
   }
 
-  getItemsCount(): number {
+  getItemsCount() {
     const items = this.getDataSourceItems();
-    const startIndex = Math.max(0, this.collectionConfig.startIndex || 0);
-    const configEndIndex = this.getConfigStartIndex() || Number.MAX_VALUE;
+    const startIndex = Math.max(0, this.getConfigStartIndex() || 0);
+    const configEndIndex = this.getConfigEndIndex() || Number.MAX_VALUE;
     const endIndex = Math.min(items.length - 1, configEndIndex);
 
-    return endIndex - startIndex + 1;
+    const count = endIndex - startIndex + 1;
+    return Math.max(0, count);
   }
 
   getConfigStartIndex() {
@@ -58,27 +72,19 @@ export default class ComponentDataCollection extends Component {
   }
 
   getComponentDef(): ComponentDefinition {
-    const componentDef = this.getFirstChildJSON();
-    return componentDef;
+    return this.getFirstChildJSON();
   }
 
   getDataSource(): DataCollectionDataSource {
-    const collectionDef = this.collectionDef;
-
-    return collectionDef?.collectionConfig?.dataSource;
+    return this.collectionDef?.collectionConfig?.dataSource;
   }
 
   getCollectionId(): string {
-    const collectionDef = this.collectionDef;
-
-    return collectionDef?.collectionConfig?.collectionId;
+    return this.collectionDef?.collectionConfig?.collectionId;
   }
 
   setComponentDef(componentDef: ComponentDefinition) {
-    const collectionDef = { ...this.collectionDef };
-    collectionDef.componentDef = componentDef;
-
-    this.set(keyCollectionDefinition, collectionDef);
+    this.set(keyCollectionDefinition, { ...this.collectionDef, componentDef });
   }
 
   setStartIndex(startIndex: number) {
@@ -86,40 +92,29 @@ export default class ComponentDataCollection extends Component {
       this.em.logError('Start index should be greater than or equal to 0');
       return;
     }
-
-    const newCollectionConfig = { ...this.collectionConfig };
-    newCollectionConfig.startIndex = startIndex;
-
-    const collectionDef = { ...this.collectionDef, collectionConfig: newCollectionConfig };
-    this.set(keyCollectionDefinition, collectionDef);
+    this.set(keyCollectionDefinition, {
+      ...this.collectionDef,
+      collectionConfig: { ...this.collectionConfig, startIndex }
+    });
   }
 
   setEndIndex(endIndex: number) {
-    const collectionConfig = { ...this.collectionConfig };
-    collectionConfig.endIndex = endIndex;
-
-    const collectionDef = { ...this.collectionDef, collectionConfig };
-    this.set(keyCollectionDefinition, collectionDef);
+    this.set(keyCollectionDefinition, {
+      ...this.collectionDef,
+      collectionConfig: { ...this.collectionConfig, endIndex }
+    });
   }
 
   setDataSource(dataSource: DataCollectionDataSource) {
-    const collectionConfig = { ...this.collectionConfig };
-    collectionConfig.dataSource = dataSource;
-
-    const collectionDef = { ...this.collectionDef, collectionConfig };
-    this.set(keyCollectionDefinition, collectionDef);
+    this.set(keyCollectionDefinition, {
+      ...this.collectionDef,
+      collectionConfig: { ...this.collectionConfig, dataSource }
+    });
   }
 
   private getDataSourceItems() {
-    const collectionDef = this.collectionDef;
-    const collectionConfig = collectionDef?.collectionConfig;
-
-    if (!collectionConfig) {
-      return [];
-    }
-
-    const items = getDataSourceItems(collectionConfig.dataSource, this.em);
-    return items;
+    return this.collectionDef?.collectionConfig ?
+      getDataSourceItems(this.collectionConfig.dataSource, this.em) : [];
   }
 
   private getCollectionStateMap() {
@@ -143,13 +138,28 @@ export default class ComponentDataCollection extends Component {
     const firstChildJSON = firstChild ? serialize(firstChild) : this.collectionDef.componentDef;
     delete firstChildJSON?.draggable;
     delete firstChildJSON?.removable;
-
     return firstChildJSON;
+  }
+
+  private listenToDataSource() {
+    const { em } = this;
+    const path = this.collectionDataSource?.path;
+    if (!path) return;
+    this.dataSourceWatcher = new DataResolverListener({
+      em,
+      resolver: new DataVariable({ type: DataVariableType, path }, { em }),
+      onUpdate: this.rebuildChildrenFromCollection
+    });
+  }
+
+  private rebuildChildrenFromCollection() {
+    this.components().reset(this.getCollectionItems(), updateFromWatcher as any);
   }
 
   getCollectionItems() {
     const { componentDef, collectionConfig } = this.collectionDef;
     const result = validateCollectionConfig(collectionConfig, componentDef, this.em);
+
     if (!result) {
       return [];
     }
@@ -182,7 +192,6 @@ export default class ComponentDataCollection extends Component {
         this.em.logError(
           `The collection ID "${collectionId}" already exists in the parent collection state. Overriding it is not allowed.`,
         );
-
         return [];
       }
 
@@ -208,7 +217,6 @@ export default class ComponentDataCollection extends Component {
       const instance = symbolMain!.clone({ symbol: true });
       !isFirstItem && instance.set('locked', true);
       setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(instance);
-
       components.push(instance);
     }
 
@@ -224,7 +232,6 @@ export default class ComponentDataCollection extends Component {
     json[keyCollectionDefinition].componentDef = this.getFirstChildJSON();
     delete json.components;
     delete json.droppable;
-
     return json;
   }
 }
@@ -240,7 +247,6 @@ function setCollectionStateMapAndPropagate(collectionsStateMap: DataCollectionSt
     const listenerKey = `_hasAddListener${collectionId ? `_${collectionId}` : ''}`;
     const cmps = cmp.components();
 
-    // Add the 'add' listener if not already in the listeners array
     if (!cmp.collectionStateListeners.includes(listenerKey)) {
       cmp.listenTo(cmps, 'add', addListener);
       cmp.collectionStateListeners.push(listenerKey);
@@ -360,7 +366,6 @@ function getDataSourceItems(dataSource: DataCollectionDataSource, em: EditorMode
         const id = dataSource.path;
         items = listDataSourceVariables(id, em);
       } else {
-        // Path points to a record in the data source
         items = em.DataSources.getValue(dataSource.path, []);
       }
       break;
