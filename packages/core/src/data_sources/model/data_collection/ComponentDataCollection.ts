@@ -8,19 +8,14 @@ import DataResolverListener from '../DataResolverListener';
 import DataSource from '../DataSource';
 import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
 import { isDataVariable } from '../utils';
-import {
-  DataCollectionType,
-  keyCollectionDefinition,
-  keyCollectionsStateMap,
-  keyIsCollectionItem
-} from './constants';
+import { DataCollectionType, keyCollectionDefinition, keyCollectionsStateMap, keyIsCollectionItem } from './constants';
 import {
   ComponentDataCollectionProps,
   DataCollectionConfig,
   DataCollectionDataSource,
   DataCollectionProps,
   DataCollectionState,
-  DataCollectionStateMap
+  DataCollectionStateMap,
 } from './types';
 import { getSymbolsToUpdate } from '../../../dom_components/model/SymbolUtils';
 import { StyleProps, UpdateStyleOptions } from '../../../domain_abstract/model/StyleableModel';
@@ -113,13 +108,12 @@ export default class ComponentDataCollection extends Component {
   setDataSource(dataSource: DataCollectionDataSource) {
     this.set(keyCollectionDefinition, {
       ...this.collectionDef,
-      collectionConfig: { ...this.collectionConfig, dataSource }
+      collectionConfig: { ...this.collectionConfig, dataSource },
     });
   }
 
   private getDataSourceItems() {
-    return this.collectionDef?.collectionConfig ?
-      getDataSourceItems(this.collectionConfig.dataSource, this.em) : [];
+    return this.collectionDef?.collectionConfig ? getDataSourceItems(this.collectionConfig.dataSource, this.em) : [];
   }
 
   private getCollectionStateMap() {
@@ -153,7 +147,7 @@ export default class ComponentDataCollection extends Component {
     this.dataSourceWatcher = new DataResolverListener({
       em,
       resolver: new DataVariable({ type: DataVariableType, path }, { em }),
-      onUpdate: this.rebuildChildrenFromCollection
+      onUpdate: this.rebuildChildrenFromCollection,
     });
   }
 
