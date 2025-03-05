@@ -224,16 +224,20 @@ describe('Collection component getters and setters', () => {
     test('setDataSource should update the data source and reflect in children', () => {
       dsm.add({
         id: 'new_data_source_id',
-        records: [{ id: 'user4', user: 'user4', firstName: 'Name4', age: '20' }],
+        records: [
+          { id: 'user4', user: 'user4', firstName: 'Name4', age: '20' },
+          { id: 'user5', user: 'user5', firstName: 'Name5', age: '21' }
+        ],
       });
+
       cmp.setDataSource({
         type: DataVariableType,
         path: 'new_data_source_id',
-
       });
+
       const children = cmp.components();
       expect(children).toHaveLength(1);
-      expect(children.at(0).components().at(0).getAttributes()['dataUser']).toBe('user4');
+      expect(children.at(0).components().at(0).getAttributes()['dataUser']).toBe('user5');
     });
 
     test('setStartIndex with zero should include the first record', () => {
