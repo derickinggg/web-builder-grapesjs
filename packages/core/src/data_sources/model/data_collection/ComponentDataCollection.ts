@@ -55,8 +55,8 @@ export default class ComponentDataCollection extends Component {
 
   getItemsCount() {
     const items = this.getDataSourceItems();
-    const startIndex = Math.max(0, this.getConfigStartIndex() || 0);
-    const configEndIndex = this.getConfigEndIndex() || Number.MAX_VALUE;
+    const startIndex = Math.max(0, this.getConfigStartIndex() ?? 0);
+    const configEndIndex = this.getConfigEndIndex() ?? Number.MAX_VALUE;
     const endIndex = Math.min(items.length - 1, configEndIndex);
 
     const count = endIndex - startIndex + 1;
