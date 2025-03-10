@@ -18,7 +18,7 @@ export class BooleanOperator extends Operator<BooleanOperation> {
       case BooleanOperation.xor:
         return statements.filter(Boolean).length === 1;
       default:
-        this.em.logError(`Unsupported logical operation: ${this.operation}`);
+        this.em.logError(`Unsupported boolean operation: ${this.operation}`);
         return false;
     }
   }
