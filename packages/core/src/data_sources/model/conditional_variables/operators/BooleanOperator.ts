@@ -8,7 +8,7 @@ export enum BooleanOperation {
 
 export class BooleanOperator extends Operator<BooleanOperation> {
   evaluate(statements: boolean[]): boolean {
-    if (!statements.length) throw new Error('Expected one or more statments, got none');
+    if (!statements?.length) return false;
 
     switch (this.operation) {
       case BooleanOperation.and:
