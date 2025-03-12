@@ -1,6 +1,9 @@
 import { keys, bindAll, each, isUndefined, debounce } from 'underscore';
-import Dragger from '../../utils/Dragger';
-import { CommandObject } from './CommandAbstract';
+import Dragger, { DraggerOptions } from '../../utils/Dragger';
+import type { CommandObject } from './CommandAbstract';
+import type Editor from '../../editor';
+import type Component from '../../dom_components/model/Component';
+import type EditorModel from '../../editor/model/Editor';
 
 type Rect = { left: number; width: number; top: number; height: number };
 type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
@@ -12,6 +15,22 @@ type Guide = {
   origin: HTMLElement;
   originRect: OrigRect;
   guide: HTMLElement;
+};
+
+// TODO: check if all types are correct
+type Opts = {
+  center?: number;
+  debug?: boolean;
+  dragger?: DraggerOptions;
+  editor?: Editor;
+  em?: EditorModel;
+  event?: Event | DragEvent;
+  guidesInfo?: number;
+  mode?: 'absolute' | 'translate';
+  target?: Component;
+  onStart?: (data: any) => Editor;
+  onDrag?: (data: any) => Editor;
+  onEnd?: (ev: Event, opt: any, data: any) => void;
 };
 
 const evName = 'dmode';
@@ -29,17 +48,18 @@ export default {
       'renderGuide',
       'getGuidesTarget',
     );
-    const { target, event, mode, dragger = {} } = opts;
-    const el = target.getEl();
+    const { target, event, mode, dragger = {} } = opts as Opts;
+
+    const el = target?.getEl();
     const config = {
-      doc: el.ownerDocument,
+      doc: el?.ownerDocument,
       onStart: this.onStart,
       onEnd: this.onEnd,
       onDrag: this.onDrag,
       getPosition: this.getPosition,
       setPosition: this.setPosition,
-      guidesStatic: () => this.guidesStatic,
-      guidesTarget: () => this.guidesTarget,
+      guidesStatic: () => this.guidesStatic ?? [],
+      guidesTarget: () => this.guidesTarget ?? [],
       ...dragger,
     };
     this.setupGuides();
@@ -69,7 +89,7 @@ export default {
 
   getEventOpts() {
     return {
-      mode: this.opts.mode,
+      mode: this.opts?.mode,
       target: this.target,
       guidesTarget: this.guidesTarget,
       guidesStatic: this.guidesStatic,
@@ -118,7 +138,7 @@ export default {
         'canvas:update frame:scroll',
         debounce(() => {
           this.updateGuides();
-          opts.debug && this.guides?.forEach((item: any) => this.renderGuide(item));
+          opts?.debug && this.guides?.forEach((item: any) => this.renderGuide(item));
         }, 200),
       );
     }
@@ -229,7 +249,7 @@ export default {
       ...item,
       origin: el,
       originRect,
-      guide: opts.debug && this.renderGuide(item),
+      guide: opts?.debug && this.renderGuide(item),
     }));
     guides.forEach((item) => this.guides?.push(item));
 
@@ -318,12 +338,11 @@ export default {
 
   onStart(event: Event) {
     const { target, editor, isTran, opts } = this;
-    const { center, onStart } = opts;
     const { Canvas } = editor;
     const style = target.getStyle();
     const position = 'absolute';
     const relPos = [position, 'relative'];
-    onStart && onStart(this._getDragData());
+    opts?.onStart?.(this._getDragData());
     if (isTran) return;
 
     if (style.position !== position) {
@@ -339,7 +358,7 @@ export default {
       } while (parent && !parentRel);
 
       // Center the target to the pointer position (used in Droppable for Blocks)
-      if (center) {
+      if (opts?.center) {
         const { x, y } = Canvas.getMouseRelativeCanvas(event);
         left = x;
         top = y;
@@ -361,17 +380,16 @@ export default {
 
   onDrag(...args: any) {
     const { guidesTarget, opts } = this;
-    const { onDrag } = opts;
+
     this.updateGuides(guidesTarget);
-    opts.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
-    opts.guidesInfo && this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
-    onDrag && onDrag(this._getDragData());
+    opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
+    opts?.guidesInfo && this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
+    opts?.onDrag?.(this._getDragData());
   },
 
   onEnd(ev: Event, dragger: any, opt = {}) {
     const { editor, opts, id } = this;
-    const { onEnd } = opts;
-    onEnd && onEnd(ev, opt, { event: ev, ...opt, ...this._getDragData() });
+    opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
     this.em.trigger(`${evName}:end`, this.getEventOpts());
@@ -466,6 +484,7 @@ export default {
   {
     guidesStatic?: Guide[];
     guides?: Guide[];
+    opts?: Opts;
     [k: string]: any;
   }
 >;
