@@ -17,10 +17,21 @@ export default class ComponentDataVariable extends Component {
     };
   }
 
-  constructor(props: DataVariableProps, opt: ComponentOptions) {
-    super(props, opt);
-    const { type, path, defaultValue } = props;
+  constructor({ type, path, defaultValue }: DataVariableProps, opt: ComponentOptions) {
+    super({ type, path, defaultValue }, opt);
+
     this.dataResolver = new DataVariable({ type, path, defaultValue }, opt);
+
+    this.setupChangeListeners();
+  }
+
+  private setupChangeListeners() {
+    const handleChange = (property: keyof DataVariableProps) => (component: Component, newValue: string) => {
+      this.dataResolver.set(property, newValue);
+    };
+
+    this.listenTo(this, 'change:path', handleChange('path'));
+    this.listenTo(this, 'change:defaultValue', handleChange('defaultValue'));
   }
 
   getPath() {
@@ -40,11 +51,11 @@ export default class ComponentDataVariable extends Component {
   }
 
   setPath(newPath: string) {
-    this.dataResolver.set('path', newPath);
+    this.set('path', newPath);
   }
 
   setDefaultValue(newValue: string) {
-    this.dataResolver.set('defaultValue', newValue);
+    this.set('defaultValue', newValue);
   }
 
   static isComponent(el: HTMLElement) {
