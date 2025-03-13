@@ -31,7 +31,7 @@ export function evaluateVariable(variable: any, em: EditorModel) {
 export function getDataResolverInstance(
   resolverProps: DataResolverProps,
   options: { em: EditorModel; collectionsStateMap?: DataCollectionStateMap },
-): DataResolver {
+) {
   const { type } = resolverProps;
   let resolver: DataResolver;
 
@@ -48,7 +48,8 @@ export function getDataResolverInstance(
       break;
     }
     default:
-      throw new Error(`Unsupported dynamic type: ${type}`);
+      options.em?.logError(`Unsupported dynamic type: ${type}`);
+      return;
   }
 
   return resolver;
@@ -63,5 +64,5 @@ export function getDataResolverInstanceValue(
 ) {
   const resolver = getDataResolverInstance(resolverProps, options);
 
-  return resolver.getDataValue();
+  return resolver?.getDataValue();
 }
