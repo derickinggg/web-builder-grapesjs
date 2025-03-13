@@ -26,8 +26,8 @@ export interface LogicGroupProps {
 export interface DataConditionProps {
   type: typeof DataConditionType;
   condition: ConditionProps;
-  ifTrue: any;
-  ifFalse: any;
+  ifTrue?: any;
+  ifFalse?: any;
 }
 
 interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'> {
@@ -42,8 +42,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   constructor(
     props: {
       condition: ConditionProps;
-      ifTrue: any;
-      ifFalse: any;
+      ifTrue?: any;
+      ifFalse?: any;
     },
     opts: { em: EditorModel; onValueChange?: () => void },
   ) {
@@ -62,7 +62,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     this.listenToDataVariables();
     this._onValueChange = opts.onValueChange;
 
-    this.on('change:condition change:ifTrue change:ifFalse', () => {
+    this.listenTo(this, 'change:condition change:ifTrue change:ifFalse', () => {
       this.listenToDataVariables();
       this._onValueChange?.();
     });
@@ -89,8 +89,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   getDataValue(skipDynamicValueResolution: boolean = false): any {
-    const ifTrue = this.get('ifTrue');
-    const ifFalse = this.get('ifFalse');
+    const ifTrue = this.getIfTrue();
+    const ifFalse = this.getIfFalse();
 
     const isConditionTrue = this.isTrue();
     if (skipDynamicValueResolution) {
@@ -141,8 +141,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
 
   getDependentDataVariables() {
     const dataVariables: DataVariableProps[] = this.conditionEvaluator.getDependentDataVariables();
-    const ifTrue = this.get('ifTrue');
-    const ifFalse = this.get('ifFalse');
+    const ifTrue = this.getIfTrue();
+    const ifFalse = this.getIfFalse();
     if (isDataVariable(ifTrue)) dataVariables.push(ifTrue);
     if (isDataVariable(ifFalse)) dataVariables.push(ifFalse);
 
@@ -155,12 +155,12 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   toJSON() {
-    const ifTrue = this.get('ifTrue');
-    const ifFalse = this.get('ifFalse');
+    const ifTrue = this.getIfTrue();
+    const ifFalse = this.getIfFalse();
 
     return {
       type: DataConditionType,
-      condition: this.conditionEvaluator,
+      condition: this.conditionEvaluator.toJSON(),
       ifTrue,
       ifFalse,
     };
