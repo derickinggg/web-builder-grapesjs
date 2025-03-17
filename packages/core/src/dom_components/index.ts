@@ -126,13 +126,15 @@ import ComponentDataVariable from '../data_sources/model/ComponentDataVariable';
 import ComponentDataVariableView from '../data_sources/view/ComponentDataVariableView';
 import { DataVariableType } from '../data_sources/model/DataVariable';
 import { DataConditionType } from '../data_sources/model/conditional_variables/DataCondition';
-import ComponentDataCondition from '../data_sources/model/conditional_variables/ComponentDataCondition';
 import ComponentDataConditionView from '../data_sources/view/ComponentDataConditionView';
 import ComponentDataCollection from '../data_sources/model/data_collection/ComponentDataCollection';
 import { DataCollectionType, DataCollectionVariableType } from '../data_sources/model/data_collection/constants';
 import ComponentDataCollectionVariable from '../data_sources/model/data_collection/ComponentDataCollectionVariable';
 import ComponentDataCollectionVariableView from '../data_sources/view/ComponentDataCollectionVariableView';
 import ComponentDataCollectionView from '../data_sources/view/ComponentDataCollectionView';
+import ComponentDataCondition from '../data_sources/model/conditional_variables/ComponentDataCondition';
+import { DataConditionIfFalseType, DataConditionIfTrueType, DataConditionOutputType } from '../data_sources/constants';
+import ConditionalOutputBase from '../data_sources/model/conditional_variables/ConditionalOutputBase';
 
 export type ComponentEvent =
   | 'component:create'
@@ -198,6 +200,21 @@ export interface CanMoveResult {
 
 export default class ComponentManager extends ItemManagerModule<DomComponentsConfig, any> {
   componentTypes: ComponentStackItem[] = [
+    {
+      id: DataConditionOutputType,
+      model: ConditionalOutputBase,
+      view: ComponentView,
+    },
+    {
+      id: DataConditionIfTrueType,
+      model: ConditionalOutputBase,
+      view: ComponentView,
+    },
+    {
+      id: DataConditionIfFalseType,
+      model: ConditionalOutputBase,
+      view: ComponentView,
+    },
     {
       id: DataCollectionVariableType,
       model: ComponentDataCollectionVariable,
