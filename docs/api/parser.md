@@ -18,10 +18,7 @@ Once the editor is instantiated you can use its API. Before using these methods 
 const { Parser } = editor;
 ```
 
-## Available Events
-
-*   `parse:html` - On HTML parse, an object containing the input and the output of the parser is passed as an argument
-*   `parse:css` - On CSS parse, an object containing the input and the output of the parser is passed as an argument
+{REPLACE\_EVENTS}
 
 ## Methods
 
