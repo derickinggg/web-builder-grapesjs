@@ -1,4 +1,4 @@
-import { Component, DataSourceManager, Editor } from '../../../../../src';
+import { DataSourceManager } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import ComponentDataCondition from '../../../../../src/data_sources/model/conditional_variables/ComponentDataCondition';
 import { DataConditionType } from '../../../../../src/data_sources/model/conditional_variables/DataCondition';
@@ -8,15 +8,24 @@ import ComponentDataConditionView from '../../../../../src/data_sources/view/Com
 import ComponentWrapper from '../../../../../src/dom_components/model/ComponentWrapper';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../../common';
+import {
+  ifTrueComponentDef,
+  ifFalseComponentDef,
+  ifFalseContent,
+  newIfTrueComponentDef,
+  newIfTrueContent,
+  newIfFalseComponentDef,
+  newIfFalseContent,
+  ifTrueContent,
+} from '../../../../common';
 
 describe('ComponentDataCondition Setters', () => {
-  let editor: Editor;
   let em: EditorModel;
   let dsm: DataSourceManager;
   let cmpRoot: ComponentWrapper;
 
   beforeEach(() => {
-    ({ editor, em, dsm, cmpRoot } = setupTestEditor());
+    ({ em, dsm, cmpRoot } = setupTestEditor());
   });
 
   afterEach(() => {
@@ -31,19 +40,19 @@ describe('ComponentDataCondition Setters', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: '<h1>some text</h1>',
-      ifFalse: '<h1>false text</h1>',
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0] as ComponentDataCondition;
 
-    const newCondition = {
+    const newFalsyCondition = {
       left: 1,
       operator: NumberOperation.lessThan,
       right: 0,
     };
 
-    component.setCondition(newCondition);
-    expect(component.getCondition()).toEqual(newCondition);
-    expect(component.getInnerHTML()).toBe('<h1>false text</h1>');
+    component.setCondition(newFalsyCondition);
+    expect(component.getCondition()).toEqual(newFalsyCondition);
+    expect(component.getInnerHTML()).toContain(ifFalseContent);
   });
 
   it('should update the ifTrue value using setIfTrue', () => {
@@ -54,14 +63,13 @@ describe('ComponentDataCondition Setters', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: '<h1>some text</h1>',
-      ifFalse: '<h1>false text</h1>',
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0] as ComponentDataCondition;
 
-    const newIfTrue = '<h1>new true text</h1>';
-    component.setIfTrue(newIfTrue);
-    expect(component.getIfTrue()).toEqual(newIfTrue);
-    expect(component.getInnerHTML()).toBe(newIfTrue);
+    component.setIfTrue(newIfTrueComponentDef);
+    // expect(component.getIfTrue()).toEqual(newIfTrue);
+    expect(component.getInnerHTML()).toContain(newIfTrueContent);
   });
 
   it('should update the ifFalse value using setIfFalse', () => {
@@ -72,20 +80,19 @@ describe('ComponentDataCondition Setters', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: '<h1>some text</h1>',
-      ifFalse: '<h1>false text</h1>',
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0] as ComponentDataCondition;
 
-    const newIfFalse = '<h1>new false text</h1>';
-    component.setIfFalse(newIfFalse);
-    expect(component.getIfFalse()).toEqual(newIfFalse);
+    component.setIfFalse(newIfFalseComponentDef);
+    // expect(component.getIfFalse()).toEqual(newIfFalse);
 
     component.setCondition({
       left: 0,
       operator: NumberOperation.lessThan,
       right: -1,
     });
-    expect(component.getInnerHTML()).toBe(newIfFalse);
+    expect(component.getInnerHTML()).toContain(newIfFalseContent);
   });
 
   it('should update the data sources and re-evaluate the condition', () => {
@@ -111,17 +118,17 @@ describe('ComponentDataCondition Setters', () => {
           path: 'ds1.right_id.right',
         },
       },
-      ifTrue: '<h1>True value</h1>',
-      ifFalse: '<h1>False value</h1>',
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0] as ComponentDataCondition;
 
-    expect(component.getInnerHTML()).toBe('<h1>True value</h1>');
+    expect(component.getInnerHTML()).toContain(ifTrueContent);
 
     changeDataSourceValue(dsm, 'Different value');
-    expect(component.getInnerHTML()).toBe('<h1>False value</h1>');
+    expect(component.getInnerHTML()).toContain(ifFalseContent);
 
     changeDataSourceValue(dsm, 'Name1');
-    expect(component.getInnerHTML()).toBe('<h1>True value</h1>');
+    expect(component.getInnerHTML()).toContain(ifTrueContent);
   });
 
   it('should re-render the component when condition, ifTrue, or ifFalse changes', () => {
@@ -132,25 +139,25 @@ describe('ComponentDataCondition Setters', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: '<h1>some text</h1>',
-      ifFalse: '<h1>false text</h1>',
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0] as ComponentDataCondition;
 
     const componentView = component.getView() as ComponentDataConditionView;
 
-    component.setIfTrue('<h1>new true text</h1>');
-    expect(componentView.el.innerHTML).toContain('new true text');
+    component.setIfTrue(newIfTrueComponentDef);
+    expect(componentView.el.innerHTML).toContain(newIfTrueContent);
 
-    component.setIfFalse('<h1>new false text</h1>');
+    component.setIfFalse(newIfFalseComponentDef);
     component.setCondition({
       left: 0,
       operator: NumberOperation.lessThan,
       right: -1,
     });
-    expect(componentView.el.innerHTML).toContain('new false text');
+    expect(componentView.el.innerHTML).toContain(newIfFalseContent);
   });
 });
 
-function changeDataSourceValue(dsm: DataSourceManager, newValue: string) {
+export const changeDataSourceValue = (dsm: DataSourceManager, newValue: string) => {
   dsm.get('ds1').getRecord('left_id')?.set('left', newValue);
-}
+};

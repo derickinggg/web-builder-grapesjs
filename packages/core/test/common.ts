@@ -1,3 +1,4 @@
+import { DataSourceManager } from '../src';
 import CanvasEvents from '../src/canvas/types';
 import Editor from '../src/editor';
 import { EditorConfig } from '../src/editor/config/config';
@@ -97,3 +98,22 @@ export function filterObjectForSnapshot(obj: any, parentKey: string = ''): any {
 
   return result;
 }
+
+const baseComponent = {
+  type: 'text',
+  tagName: 'h1',
+};
+
+const createComponentDef = (content: string) => ({
+  ...baseComponent,
+  content,
+});
+
+export const ifTrueContent = 'true text';
+export const newIfTrueContent = 'new true text';
+export const ifFalseContent = 'false text';
+export const newIfFalseContent = 'new false text';
+export const ifTrueComponentDef = createComponentDef(ifTrueContent);
+export const newIfTrueComponentDef = createComponentDef(newIfTrueContent);
+export const ifFalseComponentDef = createComponentDef(ifFalseContent);
+export const newIfFalseComponentDef = createComponentDef(newIfFalseContent);

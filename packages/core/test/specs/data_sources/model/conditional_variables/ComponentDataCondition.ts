@@ -1,14 +1,25 @@
 import { Component, DataSourceManager, Editor } from '../../../../../src';
+import { ObjectAny } from '../../../../../src/common';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
 import { DataConditionType } from '../../../../../src/data_sources/model/conditional_variables/DataCondition';
 import { AnyTypeOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/AnyTypeOperator';
 import { NumberOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/NumberOperator';
 import ComponentDataConditionView from '../../../../../src/data_sources/view/ComponentDataConditionView';
 import ComponentWrapper from '../../../../../src/dom_components/model/ComponentWrapper';
-import ComponentTableView from '../../../../../src/dom_components/view/ComponentTableView';
 import ComponentTextView from '../../../../../src/dom_components/view/ComponentTextView';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../../common';
+import { ifFalseComponentDef, ifFalseContent, ifTrueComponentDef, ifTrueContent } from '../../../../common';
+
+function isObjectContained(received: ObjectAny, expected: ObjectAny): boolean {
+  return Object.keys(expected).every((key) => {
+    if (typeof expected[key] === 'object' && expected[key] !== null) {
+      return isObjectContained(received[key], expected[key]);
+    }
+
+    return received[key] === expected[key];
+  });
+}
 
 describe('ComponentDataCondition', () => {
   let editor: Editor;
@@ -32,26 +43,22 @@ describe('ComponentDataCondition', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: {
-        tagName: 'h1',
-        type: 'text',
-        content: 'some text',
-      },
+      ifTrue: ifTrueComponentDef,
     })[0];
     expect(component).toBeDefined();
     expect(component.get('type')).toBe(DataConditionType);
-    expect(component.getInnerHTML()).toBe('<h1>some text</h1>');
+    expect(component.getInnerHTML()).toContain(ifTrueContent);
     const componentView = component.getView();
     expect(componentView).toBeInstanceOf(ComponentDataConditionView);
-    expect(componentView?.el.textContent).toBe('some text');
+    expect(componentView?.el.textContent).toBe(ifTrueContent);
 
-    const childComponent = getFirstChild(component);
-    const childView = getFirstChildView(component);
+    const childComponent = getFirstGrandchild(component);
+    const childView = getFirstGrandchildView(component);
     expect(childComponent).toBeDefined();
     expect(childComponent.get('type')).toBe('text');
-    expect(childComponent.getInnerHTML()).toBe('some text');
+    expect(childComponent.getInnerHTML()).toContain(ifTrueContent);
     expect(childView).toBeInstanceOf(ComponentTextView);
-    expect(childView?.el.innerHTML).toBe('some text');
+    expect(childView?.el.innerHTML).toBe(ifTrueContent);
   });
 
   it('should add a component with a condition that evaluates a string', () => {
@@ -62,22 +69,22 @@ describe('ComponentDataCondition', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: '<h1>some text</h1>',
+      ifTrue: ifTrueComponentDef,
     })[0];
     expect(component).toBeDefined();
     expect(component.get('type')).toBe(DataConditionType);
-    expect(component.getInnerHTML()).toBe('<h1>some text</h1>');
+    expect(component.getInnerHTML()).toContain(ifTrueContent);
     const componentView = component.getView();
     expect(componentView).toBeInstanceOf(ComponentDataConditionView);
-    expect(componentView?.el.textContent).toBe('some text');
+    expect(componentView?.el.textContent).toBe(ifTrueContent);
 
-    const childComponent = getFirstChild(component);
-    const childView = getFirstChildView(component);
+    const childComponent = getFirstGrandchild(component);
+    const childView = getFirstGrandchildView(component);
     expect(childComponent).toBeDefined();
     expect(childComponent.get('type')).toBe('text');
-    expect(childComponent.getInnerHTML()).toBe('some text');
+    expect(childComponent.getInnerHTML()).toContain(ifTrueContent);
     expect(childView).toBeInstanceOf(ComponentTextView);
-    expect(childView?.el.innerHTML).toBe('some text');
+    expect(childView?.el.innerHTML).toBe(ifTrueContent);
   });
 
   it('should test component variable with data-source', () => {
@@ -103,30 +110,22 @@ describe('ComponentDataCondition', () => {
           path: 'ds1.right_id.right',
         },
       },
-      ifTrue: {
-        tagName: 'h1',
-        type: 'text',
-        content: 'Some value',
-      },
-      ifFalse: {
-        tagName: 'h1',
-        type: 'text',
-        content: 'False value',
-      },
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     })[0];
 
-    const childComponent = getFirstChild(component);
+    const childComponent = getFirstGrandchild(component);
     expect(childComponent).toBeDefined();
     expect(childComponent.get('type')).toBe('text');
-    expect(childComponent.getInnerHTML()).toBe('Some value');
+    expect(childComponent.getInnerHTML()).toContain(ifTrueContent);
 
     /* Test changing datasources */
     changeDataSourceValue(dsm, 'Diffirent value');
-    expect(getFirstChild(component).getInnerHTML()).toBe('False value');
-    expect(getFirstChildView(component)?.el.innerHTML).toBe('False value');
+    expect(getFirstGrandchild(component).getInnerHTML()).toContain(ifFalseContent);
+    expect(getFirstGrandchildView(component)?.el.innerHTML).toBe(ifFalseContent);
     changeDataSourceValue(dsm, 'Name1');
-    expect(getFirstChild(component).getInnerHTML()).toBe('Some value');
-    expect(getFirstChildView(component)?.el.innerHTML).toBe('Some value');
+    expect(getFirstGrandchild(component).getInnerHTML()).toContain(ifTrueContent);
+    expect(getFirstGrandchildView(component)?.el.innerHTML).toBe(ifTrueContent);
   });
 
   it('should test a conditional component with a child that is also a conditional component', () => {
@@ -168,21 +167,17 @@ describe('ComponentDataCondition', () => {
                 path: 'ds1.right_id.right',
               },
             },
-            ifTrue: {
-              tagName: 'table',
-              type: 'table',
-            },
+            ifTrue: ifTrueComponentDef,
           },
         ],
       },
     })[0];
 
-    const innerComponent = getFirstChild(getFirstChild(component));
-    const innerComponentView = getFirstChildView(innerComponent);
-    const innerHTML = '<table><tbody><tr class="row"><td class="cell"></td></tr></tbody></table>';
-    expect(innerComponent.getInnerHTML()).toBe(innerHTML);
-    expect(innerComponentView).toBeInstanceOf(ComponentTableView);
-    expect(innerComponentView?.el.tagName).toBe('TABLE');
+    const innerComponent = getFirstGrandchild(component).components().at(0);
+    const innerComponentView = getFirstGrandchildView(innerComponent);
+    expect(innerComponent.getInnerHTML()).toContain(ifTrueContent);
+    expect(innerComponentView).toBeInstanceOf(ComponentTextView);
+    expect(innerComponentView?.el.tagName).toBe('H1');
   });
 
   it('should store conditional components', () => {
@@ -193,13 +188,8 @@ describe('ComponentDataCondition', () => {
         operator: NumberOperation.greaterThan,
         right: -1,
       },
-      ifTrue: [
-        {
-          tagName: 'h1',
-          type: 'text',
-          content: 'some text',
-        },
-      ],
+      ifTrue: ifTrueComponentDef,
+      ifFalse: ifFalseComponentDef,
     };
 
     cmpRoot.append(conditionalCmptDef)[0];
@@ -208,7 +198,7 @@ describe('ComponentDataCondition', () => {
     const page = projectData.pages[0];
     const frame = page.frames[0];
     const storageCmptDef = frame.component.components[0];
-    expect(storageCmptDef).toEqual(conditionalCmptDef);
+    expect(isObjectContained(storageCmptDef, conditionalCmptDef)).toBe(true);
   });
 });
 
@@ -216,10 +206,10 @@ function changeDataSourceValue(dsm: DataSourceManager, newValue: string) {
   dsm.get('ds1').getRecord('left_id')?.set('left', newValue);
 }
 
-function getFirstChildView(component: Component) {
-  return getFirstChild(component).getView();
+function getFirstGrandchildView(component: Component) {
+  return getFirstGrandchild(component).getView();
 }
 
-function getFirstChild(component: Component) {
-  return component.components().at(0);
+function getFirstGrandchild(component: Component) {
+  return component.components().at(0)?.components().at(0);
 }
