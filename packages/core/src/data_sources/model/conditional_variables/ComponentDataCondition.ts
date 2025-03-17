@@ -50,15 +50,22 @@ export default class ComponentDataCondition extends Component {
       ifFalse: ifFalse,
     } as any;
     super(updatedProps, opt);
-    bindAll(this, 'syncChildState', 'initIfTrueComponents', 'initIfFalseComponents', 'initOutputComponents');
+    bindAll(
+      this,
+      'syncChildState',
+      'initIfTrueComponents',
+      'initIfFalseComponents',
+      'initOutputComponents',
+      'initComponentsByType',
+    );
 
     this.dataResolver = new DataCondition(updatedProps, { em: opt.em });
-    this.dataResolver.onValueChange = this.initOutputComponents;
 
     this.initIfTrueComponents();
     this.initIfFalseComponents();
     this.initOutputComponents();
     this.listenTo(this.components(), 'add', this.syncChildState);
+    this.dataResolver.onValueChange = this.initOutputComponents;
 
     this.listenToPropsChange();
   }
@@ -134,11 +141,14 @@ export default class ComponentDataCondition extends Component {
     return this;
   }
 
-  private ensureSymbol(componentType: DataConditionDisplayType) {
-    if (componentType === DataConditionOutputType) return;
+  private ensureSymbol(type: DataConditionDisplayType) {
+    const typeToCheck =
+      type === DataConditionOutputType ? (this.isTrue() ? DataConditionIfTrueType : DataConditionIfFalseType) : type;
+    const value = this.get(typeToCheck) ?? {};
+    const symbol = ensureComponentInstance(value, this.opt);
+    this.set(typeToCheck, symbol);
 
-    const symbol = this.get(componentType);
-    this.set(componentType, ensureComponentInstance(symbol, this.opt));
+    return symbol;
   }
 
   private shouldUpdateOutputComponents(componentType: DataConditionDisplayType): boolean {
@@ -169,16 +179,16 @@ export default class ComponentDataCondition extends Component {
 
   private syncChildState(cmp: Component) {
     const type = cmp.get('type')!;
-
     if (!isDataConditionDisplayType(type)) return;
 
     const instance = this.getSymbolInstanceByType(type);
-
     cmp.components(instance);
   }
 
   private getSymbolInstanceByType(type: DataConditionDisplayType): Component {
-    return this.getSymbolByType(type).clone({ symbol: true });
+    this.ensureSymbol(type);
+
+    return this.getSymbolByType(type).clone?.({ symbol: true });
   }
 
   private getSymbolByType(type: DataConditionDisplayType): Component {
