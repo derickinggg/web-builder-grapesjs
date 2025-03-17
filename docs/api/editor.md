@@ -11,7 +11,66 @@ const editor = grapesjs.init({
 });
 ```
 
-{REPLACE\_EVENTS}
+## Available Events
+* `update` Event triggered on any change of the project (eg. component added/removed, style changes, etc.)
+
+```javascript
+editor.on('update', () => { ... });
+```
+
+* `undo` Undo executed.
+
+```javascript
+editor.on('undo', () => { ... });
+```
+
+* `redo` Redo executed.
+
+```javascript
+editor.on('redo', () => { ... });
+```
+
+* `load` Editor is loaded. At this stage, the project is loaded in the editor and elements in the canvas are rendered.
+
+```javascript
+editor.on('load', () => { ... });
+```
+
+* `project:load` Project JSON loaded in the editor. The event is triggered on the initial load and on the `editor.loadProjectData` method.
+
+```javascript
+editor.on('project:load', ({ project, initial }) => { ... });
+```
+
+* `project:get` Event triggered on request of the project data. This can be used to extend the project with custom data.
+
+```javascript
+editor.on('project:get', ({ project }) => { project.myCustomKey = 'value' });
+```
+
+* `log` Log message triggered.
+
+```javascript
+editor.on('log', (msg, opts) => { ... });
+```
+
+* `telemetry:init` Initial telemetry data are sent.
+
+```javascript
+editor.on('telemetry:init', () => { ... });
+```
+
+* `destroy` Editor started destroy (on `editor.destroy()`).
+
+```javascript
+editor.on('destroy', () => { ... });
+```
+
+* `destroyed` Editor destroyed.
+
+```javascript
+editor.on('destroyed', () => { ... });
+```
 
 ### Components
 
