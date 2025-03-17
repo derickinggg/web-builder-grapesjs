@@ -2,20 +2,21 @@ import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableProps } from '../DataVariable';
 import DataResolverListener from '../DataResolverListener';
-import { evaluateVariable, isDataVariable } from '../utils';
+import { resolveDynamicValue, isDataVariable } from '../../utils';
 import { DataConditionEvaluator, ConditionProps } from './DataConditionEvaluator';
 import { AnyTypeOperation } from './operators/AnyTypeOperator';
 import { BooleanOperation } from './operators/BooleanOperator';
 import { NumberOperation } from './operators/NumberOperator';
 import { StringOperation } from './operators/StringOperator';
 import { isUndefined } from 'underscore';
+import { ComponentSetOptions } from '../../../dom_components/model/Component';
 
 export const DataConditionType = 'data-condition';
 
 export interface ExpressionProps {
-  left: any;
-  operator: AnyTypeOperation | StringOperation | NumberOperation;
-  right: any;
+  left?: any;
+  operator?: AnyTypeOperation | StringOperation | NumberOperation;
+  right?: any;
 }
 
 export interface LogicGroupProps {
@@ -39,9 +40,24 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   private resolverListeners: DataResolverListener[] = [];
   private _onValueChange?: () => void;
 
+  // @ts-ignore
+  get defaults() {
+    return {
+      type: DataConditionType,
+      condition: {
+        left: '',
+        operator: StringOperation.equalsIgnoreCase,
+        right: '',
+      },
+      ifTrue: {},
+      ifFalse: {},
+    };
+  }
+
   constructor(
     props: {
       condition: ConditionProps;
+      type?: typeof DataConditionType;
       ifTrue?: any;
       ifFalse?: any;
     },
@@ -51,14 +67,11 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
       opts.em.logError('No condition was provided to a conditional component.');
     }
 
-    const conditionInstance = new DataConditionEvaluator({ condition: props.condition }, { em: opts.em });
-
-    super({
-      type: DataConditionType,
-      ...props,
-      condition: conditionInstance,
-    });
+    // @ts-ignore
+    super(props, opts);
     this.em = opts.em;
+
+    this.initConditionEvaluator();
     this.listenToDataVariables();
     this._onValueChange = opts.onValueChange;
 
@@ -68,20 +81,30 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     });
   }
 
-  private get conditionEvaluator() {
-    return this.get('condition')!;
-  }
-
   getCondition(): ConditionProps {
-    return this.get('condition')?.get('condition')!;
+    return this.conditionEvaluator.get('condition')!;
   }
 
   getIfTrue() {
-    return this.get('ifTrue')!;
+    return this.get('ifTrue');
   }
 
   getIfFalse() {
-    return this.get('ifFalse')!;
+    return this.get('ifFalse');
+  }
+
+  setCondition(condition: ConditionProps, opts?: ComponentSetOptions) {
+    const conditionInstance = new DataConditionEvaluator({ condition }, { em: this.em });
+
+    this.set('condition', conditionInstance, opts);
+  }
+
+  setIfTrue(newIfTrue: any) {
+    this.set('ifTrue', newIfTrue);
+  }
+
+  setIfFalse(newIfFalse: any) {
+    this.set('ifFalse', newIfFalse);
   }
 
   isTrue(): boolean {
@@ -97,24 +120,37 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
       return isConditionTrue ? ifTrue : ifFalse;
     }
 
-    return isConditionTrue ? evaluateVariable(ifTrue, this.em) : evaluateVariable(ifFalse, this.em);
+    return isConditionTrue ? resolveDynamicValue(ifTrue, this.em) : resolveDynamicValue(ifFalse, this.em);
   }
 
   set onValueChange(newFunction: () => void) {
     this._onValueChange = newFunction;
   }
 
-  setCondition(newCondition: ConditionProps) {
-    const newConditionInstance = new DataConditionEvaluator({ condition: newCondition }, { em: this.em });
-    this.set('condition', newConditionInstance);
+  private initConditionEvaluator() {
+    const event = 'change:condition';
+    const toListen = [this, event, this.initConditionEvaluator];
+
+    this.stopListening(...toListen);
+
+    this.ensureConditionEvaluatorInstance();
+
+    // @ts-ignore
+    this.listenTo(...toListen);
+    return this;
   }
 
-  setIfTrue(newIfTrue: any) {
-    this.set('ifTrue', newIfTrue);
+  private ensureConditionEvaluatorInstance() {
+    const condition = this.get('condition') ?? {};
+    if (condition instanceof DataConditionEvaluator) return condition;
+
+    const instance = new DataConditionEvaluator({ condition }, { em: this.em });
+    this.set('condition', instance, { silent: true });
+    return instance;
   }
 
-  setIfFalse(newIfFalse: any) {
-    this.set('ifFalse', newIfFalse);
+  private get conditionEvaluator() {
+    return this.ensureConditionEvaluatorInstance();
   }
 
   private listenToDataVariables() {
