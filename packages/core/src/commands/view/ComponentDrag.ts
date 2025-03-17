@@ -377,6 +377,9 @@ export default {
     opts?.onStart?.(this._getDragData());
     if (isTran) return;
 
+    let x = 0;
+    let y = 0;
+
     if (style.position !== position) {
       let { left, top, width, height } = Canvas.offset(target.getEl());
       let parent = target.parent();
@@ -400,31 +403,47 @@ export default {
         top = top - offsetP.top;
       }
 
+      x = left;
+      y = top;
+
       this.setPosition({
-        x: left,
-        y: top,
+        x,
+        y,
         width: `${width}px`,
         height: `${height}px`,
         position,
       });
     }
+
+    this.editor.trigger('dmode:drag:start', {
+      coords: { x, y },
+      component: target,
+      componentView: target.view,
+      styles: style,
+      handlerEl: event.target,
+    });
   },
 
-  onDrag(...args: any) {
+  onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
     const { guidesTarget, opts } = this;
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
     opts?.guidesInfo && this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
     opts?.onDrag?.(this._getDragData());
+
+    const { x, y } = mouseEvent;
+    this.editor.trigger('dmode:drag:move', { coords: { x, y } });
   },
 
-  onEnd(ev: Event, dragger: any, opt = {}) {
+  onEnd(ev: Event, _dragger: Dragger, opt = {}) {
     const { editor, opts, id } = this;
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
     this.em.trigger(`${evName}:end`, this.getEventOpts());
+
+    this.editor.trigger('dmode:drag:end', undefined);
   },
 
   hideGuidesInfo() {
