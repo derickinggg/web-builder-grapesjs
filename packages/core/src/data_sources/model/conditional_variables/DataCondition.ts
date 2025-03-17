@@ -41,7 +41,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   private _onValueChange?: () => void;
 
   // @ts-ignore
-  get defaults() {
+  defaults() {
     return {
       type: DataConditionType,
       condition: {
