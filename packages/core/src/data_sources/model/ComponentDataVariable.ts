@@ -1,7 +1,13 @@
+import { ObjectAny } from '../../common';
 import Component from '../../dom_components/model/Component';
-import { ComponentOptions } from '../../dom_components/model/types';
+import { ComponentDefinition, ComponentOptions, ComponentProperties } from '../../dom_components/model/types';
 import { toLowerCase } from '../../utils/mixins';
 import DataVariable, { DataVariableProps, DataVariableType } from './DataVariable';
+
+export interface ComponentDataVariableProps extends ComponentProperties {
+  type: typeof DataVariableType;
+  dataResolver: DataVariableProps;
+}
 
 export default class ComponentDataVariable extends Component {
   dataResolver: DataVariable;
@@ -10,28 +16,20 @@ export default class ComponentDataVariable extends Component {
     return {
       // @ts-ignore
       ...super.defaults,
-      type: DataVariableType,
-      path: '',
-      defaultValue: '',
       droppable: false,
+      type: DataVariableType,
+      dataResolver: {
+        path: '',
+        defaultValue: '',
+      },
     };
   }
 
-  constructor({ type, path, defaultValue }: DataVariableProps, opt: ComponentOptions) {
-    super({ type, path, defaultValue }, opt);
+  constructor(props: ComponentDataVariableProps, opt: ComponentOptions) {
+    super(props, opt);
 
-    this.dataResolver = new DataVariable({ type, path, defaultValue }, opt);
-
-    this.setupChangeListeners();
-  }
-
-  private setupChangeListeners() {
-    const handleChange = (property: keyof DataVariableProps) => (component: Component, newValue: string) => {
-      this.dataResolver.set(property, newValue);
-    };
-
-    this.listenTo(this, 'change:path', handleChange('path'));
-    this.listenTo(this, 'change:defaultValue', handleChange('defaultValue'));
+    this.dataResolver = new DataVariable(props.dataResolver, opt);
+    this.listenToPropsChange();
   }
 
   getPath() {
@@ -51,11 +49,28 @@ export default class ComponentDataVariable extends Component {
   }
 
   setPath(newPath: string) {
-    this.set('path', newPath);
+    this.dataResolver.set('path', newPath);
   }
 
   setDefaultValue(newValue: string) {
-    this.set('defaultValue', newValue);
+    this.dataResolver.set('defaultValue', newValue);
+  }
+
+  private listenToPropsChange() {
+    this.on('change:dataResolver', () => {
+      this.dataResolver.set(this.get('dataResolver'));
+    });
+  }
+
+  toJSON(opts?: ObjectAny): ComponentDefinition {
+    const json = super.toJSON(opts);
+    const dataResolver = this.dataResolver.toJSON();
+    delete dataResolver.type;
+
+    return {
+      ...json,
+      dataResolver,
+    };
   }
 
   static isComponent(el: HTMLElement) {

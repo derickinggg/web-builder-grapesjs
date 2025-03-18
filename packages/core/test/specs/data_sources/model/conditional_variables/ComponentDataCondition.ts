@@ -13,13 +13,7 @@ import ComponentDataConditionView from '../../../../../src/data_sources/view/Com
 import ComponentWrapper from '../../../../../src/dom_components/model/ComponentWrapper';
 import ComponentTextView from '../../../../../src/dom_components/view/ComponentTextView';
 import EditorModel from '../../../../../src/editor/model/Editor';
-import {
-  newIfFalseComponentDef,
-  newIfFalseContent,
-  newIfTrueComponentDef,
-  newIfTrueContent,
-  setupTestEditor,
-} from '../../../../common';
+import { newIfTrueComponentDef, newIfTrueContent, setupTestEditor } from '../../../../common';
 import { ifFalseComponentDef, ifFalseContent, ifTrueComponentDef, ifTrueContent } from '../../../../common';
 
 function isObjectContained(received: ObjectAny, expected: ObjectAny): boolean {
