@@ -33,14 +33,11 @@ export interface DataConditionProps {
   ifFalse?: any;
 }
 
-interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'> {
-  condition: DataConditionEvaluator;
-}
-
-export class DataCondition extends Model<DataConditionPropsDefined> {
+export class DataCondition extends Model<DataConditionProps> {
   private em: EditorModel;
   private resolverListeners: DataResolverListener[] = [];
   private _previousEvaluationResult: boolean | null = null;
+  private _conditionEvaluator: DataConditionEvaluator;
 
   // @ts-ignore
   defaults() {
@@ -56,15 +53,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     };
   }
 
-  constructor(
-    props: {
-      condition: ConditionProps;
-      type?: typeof DataConditionType;
-      ifTrue?: any;
-      ifFalse?: any;
-    },
-    opts: { em: EditorModel; onValueChange?: () => void },
-  ) {
+  constructor(props: DataConditionProps, opts: { em: EditorModel; onValueChange?: () => void }) {
     if (isUndefined(props.condition)) {
       opts.em.logError('No condition was provided to a conditional component.');
     }
@@ -73,16 +62,15 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     super(props, opts);
     this.em = opts.em;
 
-    this.initConditionEvaluator();
+    const { condition = {} } = props;
+    const instance = new DataConditionEvaluator({ condition }, { em: this.em });
+    this._conditionEvaluator = instance;
     this.listenToDataVariables();
-
-    this.listenTo(this, 'change:condition change:ifTrue change:ifFalse', () => {
-      this.listenToDataVariables();
-    });
+    this.listenToPropsChange();
   }
 
   getCondition(): ConditionProps {
-    return this.conditionEvaluator.get('condition')!;
+    return this._conditionEvaluator.get('condition')!;
   }
 
   getIfTrue() {
@@ -93,10 +81,8 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     return this.get('ifFalse');
   }
 
-  setCondition(condition: ConditionProps, opts?: ComponentSetOptions) {
-    const conditionInstance = new DataConditionEvaluator({ condition }, { em: this.em });
-
-    this.set('condition', conditionInstance, opts);
+  setCondition(condition: ConditionProps) {
+    this._conditionEvaluator.set('condition', condition);
   }
 
   setIfTrue(newIfTrue: any) {
@@ -108,7 +94,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   isTrue(): boolean {
-    return this.conditionEvaluator.evaluate();
+    return this._conditionEvaluator.evaluate();
   }
 
   getDataValue(skipDynamicValueResolution: boolean = false): any {
@@ -123,30 +109,15 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     return isConditionTrue ? resolveDynamicValue(ifTrue, this.em) : resolveDynamicValue(ifFalse, this.em);
   }
 
-  private initConditionEvaluator() {
-    const event = 'change:condition';
-    const toListen = [this, event, this.initConditionEvaluator];
-
-    this.stopListening(...toListen);
-
-    this.ensureConditionEvaluatorInstance();
-
-    // @ts-ignore
-    this.listenTo(...toListen);
-    return this;
+  private listenToPropsChange() {
+    this.on('change:condition', this.handleConditionChange.bind(this));
+    this.on('change:condition change:ifTrue change:ifFalse', () => {
+      this.listenToDataVariables();
+    });
   }
 
-  private ensureConditionEvaluatorInstance() {
-    const condition = this.get('condition') ?? {};
-    if (condition instanceof DataConditionEvaluator) return condition;
-
-    const instance = new DataConditionEvaluator({ condition }, { em: this.em });
-    this.set('condition', instance, { silent: true });
-    return instance;
-  }
-
-  private get conditionEvaluator() {
-    return this.ensureConditionEvaluatorInstance();
+  private handleConditionChange() {
+    this._conditionEvaluator.set('condition', this.get('condition'));
   }
 
   private listenToDataVariables() {
@@ -158,7 +129,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   private setupConditionDataVariableListeners() {
-    this.conditionEvaluator.getDependentDataVariables().forEach((variable) => {
+    this._conditionEvaluator.getDependentDataVariables().forEach((variable) => {
       this.addListener(variable, () => {
         this.emitConditionEvaluationChange();
       });
@@ -222,7 +193,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
 
     return {
       type: DataConditionType,
-      condition: this.conditionEvaluator.toJSON(),
+      condition: this._conditionEvaluator.toJSON(),
       ifTrue,
       ifFalse,
     };
