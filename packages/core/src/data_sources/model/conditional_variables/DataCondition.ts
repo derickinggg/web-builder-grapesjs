@@ -10,7 +10,7 @@ import { NumberOperation } from './operators/NumberOperator';
 import { StringOperation } from './operators/StringOperator';
 import { isUndefined } from 'underscore';
 
-export const DataConditionType = 'data-condition';
+export const DataConditionType = 'data-condition' as const;
 export const DataConditionEvaluationChangedEvent = 'data-condition-evaluation-changed';
 export const DataConditionOutputChangedEvent = 'data-condition-output-changed';
 
@@ -38,7 +38,6 @@ export class DataCondition extends Model<DataConditionProps> {
   private _previousEvaluationResult: boolean | null = null;
   private _conditionEvaluator: DataConditionEvaluator;
 
-  // @ts-ignore
   defaults() {
     return {
       type: DataConditionType,
