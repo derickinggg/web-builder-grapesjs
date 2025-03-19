@@ -4,6 +4,7 @@ import type { CommandObject } from './CommandAbstract';
 import type Editor from '../../editor';
 import type Component from '../../dom_components/model/Component';
 import type EditorModel from '../../editor/model/Editor';
+import { CanvasSpotBuiltInTypes } from '../../canvas/model/CanvasSpot';
 
 type Rect = { left: number; width: number; top: number; height: number };
 type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
@@ -415,25 +416,34 @@ export default {
       });
     }
 
-    this.editor.trigger('dmode:drag:start', {
+    this.editor.trigger(`${evName}:drag:start`, {
       coords: { x, y },
       component: target,
       componentView: target.view,
       styles: style,
       handlerEl: event.target,
     });
+
+    this.em.Canvas.addSpot({
+      type: CanvasSpotBuiltInTypes.Drag,
+      component: target,
+      componentView: target.view,
+    });
   },
 
   onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
     const { guidesTarget, opts } = this;
+    let guideNearElements = [];
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
-    opts?.guidesInfo && this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
+    if (opts?.guidesInfo) {
+      guideNearElements = this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
+    }
     opts?.onDrag?.(this._getDragData());
 
     const { x, y } = mouseEvent;
-    this.editor.trigger('dmode:drag:move', { coords: { x, y } });
+    this.editor.trigger(`${evName}:drag:move`, { coords: { x, y }, guideNearElement: guideNearElements[0] });
   },
 
   onEnd(ev: Event, _dragger: Dragger, opt = {}) {
@@ -443,7 +453,11 @@ export default {
     this.hideGuidesInfo();
     this.em.trigger(`${evName}:end`, this.getEventOpts());
 
-    this.editor.trigger('dmode:drag:end', undefined);
+    this.editor.trigger(`${evName}:drag:end`, undefined);
+    this.em.Canvas.removeSpots({
+      type: CanvasSpotBuiltInTypes.Drag,
+      component: this.target,
+    });
   },
 
   hideGuidesInfo() {
@@ -459,7 +473,7 @@ export default {
   renderGuideInfo(guides: Guide[] = []) {
     const { guidesStatic } = this;
     this.hideGuidesInfo();
-    guides.forEach((item) => {
+    return guides.map((item) => {
       const { origin, x } = item;
       const rectOrigin = this.getElementPos(origin);
       const axis = isUndefined(x) ? 'y' : 'x';
@@ -471,6 +485,8 @@ export default {
       const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}`];
       const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}`];
       const guideInfoStyle = elGuideInfo.style;
+
+      let guideNearElement = null;
 
       // Find the nearest element
       const res = guidesStatic
@@ -505,8 +521,8 @@ export default {
         guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
         guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
         elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
-        this.em.trigger(`${evName}:active`, {
-          ...this.getEventOpts(),
+
+        guideNearElement = {
           guide: item,
           guidesStatic,
           matched: res,
@@ -516,8 +532,15 @@ export default {
           sizeRaw,
           elGuideInfo,
           elGuideInfoCnt,
+        };
+
+        this.em.trigger(`${evName}:active`, {
+          ...this.getEventOpts(),
+          ...guideNearElement,
         });
       }
+
+      return guideNearElement;
     });
   },
 

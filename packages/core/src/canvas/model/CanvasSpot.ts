@@ -12,6 +12,7 @@ export enum CanvasSpotBuiltInTypes {
   Spacing = 'spacing',
   Target = 'target',
   Resize = 'resize',
+  Drag = 'drag',
 }
 
 export type CanvasSpotBuiltInType = `${CanvasSpotBuiltInTypes}`;
