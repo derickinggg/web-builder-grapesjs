@@ -1,22 +1,23 @@
-import { bindAll } from 'underscore';
 import Component from '../../../dom_components/model/Component';
 import {
   ComponentDefinition as ComponentProperties,
   ComponentDefinitionDefined,
   ComponentOptions,
+  ComponentAdd,
+  ToHTMLOptions,
 } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
-import { DataConditionIfFalseType, DataConditionIfTrueType, DataConditionOutputType } from '../../constants';
-import { ensureComponentInstance, isDataConditionDisplayType } from '../../utils';
-import { DataCondition, DataConditionProps, DataConditionType } from './DataCondition';
+import { DataCondition, DataConditionOutputChangedEvent, DataConditionProps, DataConditionType } from './DataCondition';
 import { ConditionProps } from './DataConditionEvaluator';
 import { StringOperation } from './operators/StringOperator';
-import { DataConditionDisplayType } from '../../types';
+import { ObjectAny } from '../../../common';
+import { DataConditionIfTrueType, DataConditionIfFalseType } from './constants';
 
-export interface ComponentDataConditionProps extends DataConditionProps, ComponentProperties {
+export type DataConditionDisplayType = typeof DataConditionIfTrueType | typeof DataConditionIfFalseType;
+
+export interface ComponentDataConditionProps extends ComponentProperties {
   type: typeof DataConditionType;
-  ifTrue?: ComponentProperties;
-  ifFalse?: ComponentProperties;
+  dataResolver: DataConditionProps;
 }
 
 export default class ComponentDataCondition extends Component {
@@ -26,46 +27,32 @@ export default class ComponentDataCondition extends Component {
     return {
       // @ts-ignore
       ...super.defaults,
-      type: DataConditionType,
-      condition: {
-        left: '',
-        operator: StringOperation.equalsIgnoreCase,
-        right: '',
-      },
-      ifTrue: {},
-      ifFalse: {},
       droppable: false,
-      components: {
-        type: DataConditionOutputType,
+      type: DataConditionType,
+      dataResolver: {
+        condition: {
+          left: '',
+          operator: StringOperation.equalsIgnoreCase,
+          right: '',
+        },
       },
+      components: [
+        {
+          type: DataConditionIfTrueType,
+        },
+        {
+          type: DataConditionIfFalseType,
+        },
+      ],
     };
   }
 
   constructor(props: ComponentDataConditionProps, opt: ComponentOptions) {
-    const ifTrue = ensureComponentInstance(props.ifTrue, opt);
-    const ifFalse = ensureComponentInstance(props.ifFalse, opt);
-    const updatedProps = {
-      ...props,
-      ifTrue: ifTrue,
-      ifFalse: ifFalse,
-    } as any;
-    super(updatedProps, opt);
-    bindAll(
-      this,
-      'syncChildState',
-      'initIfTrueComponents',
-      'initIfFalseComponents',
-      'initOutputComponents',
-      'initComponentsByType',
-    );
+    // @ts-ignore
+    super(props, opt);
 
-    this.dataResolver = new DataCondition(updatedProps, { em: opt.em });
-
-    this.initIfTrueComponents();
-    this.initIfFalseComponents();
-    this.initOutputComponents();
-    this.listenTo(this.components(), 'add', this.syncChildState);
-    this.dataResolver.onValueChange = this.initOutputComponents;
+    const { condition } = props.dataResolver;
+    this.dataResolver = new DataCondition({ condition }, { em: opt.em });
 
     this.listenToPropsChange();
   }
@@ -78,130 +65,71 @@ export default class ComponentDataCondition extends Component {
     return this.dataResolver.getCondition();
   }
 
-  getIfTrue(): Component {
-    return this.get('ifTrue');
+  getIfTrueContent(): Component[] | undefined {
+    return this.getContentByType(DataConditionIfTrueType);
   }
 
-  getIfFalse(): Component {
-    return this.get('ifFalse');
+  getIfFalseContent(): Component[] | undefined {
+    return this.getContentByType(DataConditionIfFalseType);
+  }
+
+  getOutputContent(): Component[] | undefined {
+    return this.isTrue() ? this.getIfTrueContent() : this.getIfFalseContent();
   }
 
   setCondition(newCondition: ConditionProps) {
-    this.set('condition', newCondition);
+    this.dataResolver.setCondition(newCondition);
+    this.trigger(DataConditionOutputChangedEvent);
   }
 
-  setIfTrue(newIfTrue: ComponentProperties) {
-    this.set('ifTrue', ensureComponentInstance(newIfTrue, this.opt));
+  setIfTrueContent(content: ComponentAdd): Component[] | undefined {
+    return this.replaceContent(DataConditionIfTrueType, content);
   }
 
-  setIfFalse(newIfFalse: ComponentProperties) {
-    this.set('ifFalse', ensureComponentInstance(newIfFalse, this.opt));
+  setIfFalseContent(content: ComponentAdd): Component[] | undefined {
+    return this.replaceContent(DataConditionIfFalseType, content);
   }
 
-  private initIfTrueComponents() {
-    return this.initComponentsByType({
-      event: 'change:ifTrue',
-      componentType: DataConditionIfTrueType,
-    });
+  getInnerHTML(opts?: ToHTMLOptions): string {
+    const contentHTML = this.getOutputContent()?.map((cmp) => cmp.getInnerHTML(opts));
+    return contentHTML?.join('') ?? '';
   }
 
-  private initIfFalseComponents() {
-    return this.initComponentsByType({
-      event: 'change:ifFalse',
-      componentType: DataConditionIfFalseType,
-    });
+  private getContentByType(type: string): Component[] | undefined {
+    return this.components()
+      .find((cmp) => cmp.get('type') === type)
+      ?.components()
+      .toArray();
   }
 
-  private initOutputComponents() {
-    return this.initComponentsByType({
-      event: 'change:condition',
-      componentType: DataConditionOutputType,
-    });
-  }
+  private replaceContent(componentType: string, newContent: ComponentAdd): Component[] | undefined {
+    const components = this.components();
+    const existingComponent = components.find((cmp) => cmp.get('type') === componentType);
 
-  private initComponentsByType(config: { event: string; componentType: DataConditionDisplayType }) {
-    const { event, componentType } = config;
-
-    const toListen: [ComponentDataCondition, string, () => void] = [
-      this,
-      event,
-      () => this.initComponentsByType(config),
-    ];
-
-    this.stopListening(...toListen);
-    this.ensureSymbol(componentType);
-
-    const componentsToSync = this.getDescendantComponentsByType(componentType);
-    componentsToSync.forEach((cmp) => {
-      const instance = this.getSymbolInstanceByType(componentType);
-      cmp.components(instance);
-    });
-
-    this.listenTo(...toListen);
-    return this;
-  }
-
-  private ensureSymbol(type: DataConditionDisplayType) {
-    const typeToCheck =
-      type === DataConditionOutputType ? (this.isTrue() ? DataConditionIfTrueType : DataConditionIfFalseType) : type;
-    const value = this.get(typeToCheck) ?? {};
-    const symbol = ensureComponentInstance(value, this.opt);
-    this.set(typeToCheck, symbol);
-
-    return symbol;
-  }
-
-  private shouldUpdateOutputComponents(componentType: DataConditionDisplayType): boolean {
-    const isOutputComponent = componentType === DataConditionOutputType;
-    const isTrueConditionMet = this.isTrue() && componentType === DataConditionIfTrueType;
-    const isFalseConditionMet = !this.isTrue() && componentType === DataConditionIfFalseType;
-
-    return !isOutputComponent && (isTrueConditionMet || isFalseConditionMet);
-  }
-
-  private getDescendantComponentsByType(type: DataConditionDisplayType) {
-    const shouldUpdateOutputComponents = this.shouldUpdateOutputComponents(type);
-
-    return this.components().filter((cmp) => {
-      return cmp.get('type') === type || (cmp.get('type') === DataConditionOutputType && shouldUpdateOutputComponents);
-    });
+    if (existingComponent) {
+      const newComponents = existingComponent.components(newContent);
+      this.trigger(DataConditionOutputChangedEvent);
+      return newComponents;
+    }
   }
 
   private listenToPropsChange() {
-    const properties: (keyof DataConditionProps)[] = ['condition', 'ifTrue', 'ifFalse'];
-
-    properties.forEach((property) => {
-      this.listenTo(this, `change:${property}`, (_, newValue: any) => {
-        this.dataResolver.set(property, newValue);
-      });
+    this.on('change:dataResolver', () => {
+      this.dataResolver.set(this.get('dataResolver'));
     });
   }
 
-  private syncChildState(cmp: Component) {
-    const type = cmp.get('type')!;
-    if (!isDataConditionDisplayType(type)) return;
+  toJSON(opts?: ObjectAny): ComponentProperties {
+    const json = super.toJSON(opts);
+    const dataResolver = this.dataResolver.toJSON();
+    delete dataResolver.type;
+    delete dataResolver.ifTrue;
+    delete dataResolver.ifFalse;
 
-    const instance = this.getSymbolInstanceByType(type);
-    cmp.components(instance);
-  }
-
-  private getSymbolInstanceByType(type: DataConditionDisplayType): Component {
-    this.ensureSymbol(type);
-
-    return this.getSymbolByType(type).clone?.({ symbol: true });
-  }
-
-  private getSymbolByType(type: DataConditionDisplayType): Component {
-    switch (type) {
-      case DataConditionOutputType:
-        return this.isTrue() ? this.getIfTrue() : this.getIfFalse();
-      case DataConditionIfTrueType:
-        return this.getIfTrue();
-      case DataConditionIfFalseType:
-        return this.getIfFalse();
-      default:
-        return this.getIfTrue();
-    }
+    return {
+      ...json,
+      dataResolver,
+    };
   }
 
   static isComponent(el: HTMLElement) {

@@ -1,5 +1,6 @@
 import EditorModel from '../editor/model/Editor';
-import { DataConditionDisplayType, DataResolver, DataResolverProps } from './types';
+import { DataResolver, DataResolverProps } from './types';
+import { DataConditionDisplayType } from './model/conditional_variables/ComponentDataCondition';
 import { DataCollectionStateMap } from './model/data_collection/types';
 import DataCollectionVariable from './model/data_collection/DataCollectionVariable';
 import { DataCollectionVariableType } from './model/data_collection/constants';
@@ -8,7 +9,7 @@ import DataVariable, { DataVariableProps, DataVariableType } from './model/DataV
 import Component from '../dom_components/model/Component';
 import { ComponentDefinition, ComponentOptions } from '../dom_components/model/types';
 import { serialize } from '../utils/mixins';
-import { DataConditionIfFalseType, DataConditionIfTrueType, DataConditionOutputType } from './constants';
+import { DataConditionIfFalseType, DataConditionIfTrueType } from './model/conditional_variables/constants';
 
 export function isDataResolverProps(value: any): value is DataResolverProps {
   return (
@@ -86,5 +87,5 @@ export const ensureComponentInstance = (
 };
 
 export const isDataConditionDisplayType = (type: string | undefined): type is DataConditionDisplayType => {
-  return !!type && [DataConditionIfTrueType, DataConditionIfFalseType, DataConditionOutputType].includes(type);
+  return !!type && [DataConditionIfTrueType, DataConditionIfFalseType].includes(type);
 };

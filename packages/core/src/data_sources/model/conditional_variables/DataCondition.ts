@@ -12,6 +12,8 @@ import { isUndefined } from 'underscore';
 import { ComponentSetOptions } from '../../../dom_components/model/Component';
 
 export const DataConditionType = 'data-condition';
+export const DataConditionEvaluationChangedEvent = 'data-condition-evaluation-changed';
+export const DataConditionOutputChangedEvent = 'data-condition-output-changed';
 
 export interface ExpressionProps {
   left?: any;
@@ -25,7 +27,7 @@ export interface LogicGroupProps {
 }
 
 export interface DataConditionProps {
-  type: typeof DataConditionType;
+  type?: typeof DataConditionType;
   condition: ConditionProps;
   ifTrue?: any;
   ifFalse?: any;
@@ -38,7 +40,7 @@ interface DataConditionPropsDefined extends Omit<DataConditionProps, 'condition'
 export class DataCondition extends Model<DataConditionPropsDefined> {
   private em: EditorModel;
   private resolverListeners: DataResolverListener[] = [];
-  private _onValueChange?: () => void;
+  private _previousEvaluationResult: boolean | null = null;
 
   // @ts-ignore
   defaults() {
@@ -73,11 +75,9 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
 
     this.initConditionEvaluator();
     this.listenToDataVariables();
-    this._onValueChange = opts.onValueChange;
 
     this.listenTo(this, 'change:condition change:ifTrue change:ifFalse', () => {
       this.listenToDataVariables();
-      this._onValueChange?.();
     });
   }
 
@@ -123,10 +123,6 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     return isConditionTrue ? resolveDynamicValue(ifTrue, this.em) : resolveDynamicValue(ifFalse, this.em);
   }
 
-  set onValueChange(newFunction: () => void) {
-    this._onValueChange = newFunction;
-  }
-
   private initConditionEvaluator() {
     const event = 'change:condition';
     const toListen = [this, event, this.initConditionEvaluator];
@@ -154,35 +150,65 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
   }
 
   private listenToDataVariables() {
-    const { em } = this;
-    if (!em) return;
-
     // Clear previous listeners to avoid memory leaks
     this.cleanupListeners();
 
-    const dataVariables = this.getDependentDataVariables();
+    this.setupConditionDataVariableListeners();
+    this.setupOutputDataVariableListeners();
+  }
 
-    dataVariables.forEach((variable) => {
-      const listener = new DataResolverListener({
-        em,
-        resolver: new DataVariable(variable, { em: this.em }),
-        onUpdate: (() => {
-          this._onValueChange?.();
-        }).bind(this),
+  private setupConditionDataVariableListeners() {
+    this.conditionEvaluator.getDependentDataVariables().forEach((variable) => {
+      this.addListener(variable, () => {
+        this.emitConditionEvaluationChange();
       });
-
-      this.resolverListeners.push(listener);
     });
   }
 
-  getDependentDataVariables() {
-    const dataVariables: DataVariableProps[] = this.conditionEvaluator.getDependentDataVariables();
-    const ifTrue = this.getIfTrue();
-    const ifFalse = this.getIfFalse();
-    if (isDataVariable(ifTrue)) dataVariables.push(ifTrue);
-    if (isDataVariable(ifFalse)) dataVariables.push(ifFalse);
+  private setupOutputDataVariableListeners() {
+    const isConditionTrue = this.isTrue();
 
-    return dataVariables;
+    this.setupOutputVariableListener(this.getIfTrue(), isConditionTrue);
+    this.setupOutputVariableListener(this.getIfFalse(), !isConditionTrue);
+  }
+
+  /**
+   * Sets up a listener for an output variable (ifTrue or ifFalse).
+   * @param outputVariable - The output variable to listen to.
+   * @param isConditionTrue - Whether the condition is currently true.
+   */
+  private setupOutputVariableListener(outputVariable: any, isConditionTrue: boolean) {
+    if (isDataVariable(outputVariable)) {
+      this.addListener(outputVariable, () => {
+        if (isConditionTrue) {
+          this.trigger(DataConditionOutputChangedEvent, outputVariable);
+        }
+      });
+    }
+  }
+
+  private addListener(variable: DataVariableProps, onUpdate: () => void) {
+    const listener = new DataResolverListener({
+      em: this.em,
+      resolver: new DataVariable(variable, { em: this.em }),
+      onUpdate,
+    });
+
+    this.resolverListeners.push(listener);
+  }
+
+  private emitConditionEvaluationChange() {
+    const currentEvaluationResult = this.isTrue();
+    if (this._previousEvaluationResult !== currentEvaluationResult) {
+      this._previousEvaluationResult = currentEvaluationResult;
+      this.trigger(DataConditionEvaluationChangedEvent, currentEvaluationResult);
+      this.emitOutputValueChange();
+    }
+  }
+
+  private emitOutputValueChange() {
+    const currentOutputValue = this.getDataValue();
+    this.trigger(DataConditionOutputChangedEvent, currentOutputValue);
   }
 
   private cleanupListeners() {
@@ -190,7 +216,7 @@ export class DataCondition extends Model<DataConditionPropsDefined> {
     this.resolverListeners = [];
   }
 
-  toJSON() {
+  toJSON(): DataConditionProps {
     const ifTrue = this.getIfTrue();
     const ifFalse = this.getIfFalse();
 

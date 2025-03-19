@@ -5,7 +5,6 @@ import DataRecord from './model/DataRecord';
 import DataRecords from './model/DataRecords';
 import DataVariable, { DataVariableProps } from './model/DataVariable';
 import { DataConditionProps, DataCondition } from './model/conditional_variables/DataCondition';
-import { DataConditionIfTrueType, DataConditionIfFalseType, DataConditionOutputType } from './constants';
 
 export type DataResolver = DataVariable | DataCondition | DataCollectionVariable;
 
@@ -118,8 +117,3 @@ export type DeepPartialDot<T> = {
       ? T[P]
       : never;
 };
-
-export type DataConditionDisplayType =
-  | typeof DataConditionIfTrueType
-  | typeof DataConditionIfFalseType
-  | typeof DataConditionOutputType;

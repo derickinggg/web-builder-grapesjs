@@ -133,7 +133,10 @@ import ComponentDataCollectionVariable from '../data_sources/model/data_collecti
 import ComponentDataCollectionVariableView from '../data_sources/view/ComponentDataCollectionVariableView';
 import ComponentDataCollectionView from '../data_sources/view/ComponentDataCollectionView';
 import ComponentDataCondition from '../data_sources/model/conditional_variables/ComponentDataCondition';
-import { DataConditionIfFalseType, DataConditionIfTrueType, DataConditionOutputType } from '../data_sources/constants';
+import {
+  DataConditionIfFalseType,
+  DataConditionIfTrueType,
+} from '../data_sources/model/conditional_variables/constants';
 import ConditionalOutputBase from '../data_sources/model/conditional_variables/ConditionalOutputBase';
 
 export type ComponentEvent =
@@ -200,11 +203,6 @@ export interface CanMoveResult {
 
 export default class ComponentManager extends ItemManagerModule<DomComponentsConfig, any> {
   componentTypes: ComponentStackItem[] = [
-    {
-      id: DataConditionOutputType,
-      model: ConditionalOutputBase,
-      view: ComponentView,
-    },
     {
       id: DataConditionIfTrueType,
       model: ConditionalOutputBase,

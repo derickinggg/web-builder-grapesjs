@@ -1,5 +1,11 @@
 import { DataSourceManager } from '../src';
 import CanvasEvents from '../src/canvas/types';
+import { ObjectAny } from '../src/common';
+import {
+  DataConditionIfFalseType,
+  DataConditionIfTrueType,
+} from '../src/data_sources/model/conditional_variables/constants';
+import { NumberOperation } from '../src/data_sources/model/conditional_variables/operators/NumberOperator';
 import Editor from '../src/editor';
 import { EditorConfig } from '../src/editor/config/config';
 import EditorModel from '../src/editor/model/Editor';
@@ -104,16 +110,57 @@ const baseComponent = {
   tagName: 'h1',
 };
 
-const createComponentDef = (content: string) => ({
+const createContent = (content: string) => ({
   ...baseComponent,
   content,
 });
 
-export const ifTrueContent = 'true text';
-export const newIfTrueContent = 'new true text';
-export const ifFalseContent = 'false text';
-export const newIfFalseContent = 'new false text';
-export const ifTrueComponentDef = createComponentDef(ifTrueContent);
-export const newIfTrueComponentDef = createComponentDef(newIfTrueContent);
-export const ifFalseComponentDef = createComponentDef(ifFalseContent);
-export const newIfFalseComponentDef = createComponentDef(newIfFalseContent);
+/**
+ * Creates a component definition for a conditional component (ifTrue or ifFalse).
+ * @param type - The component type (e.g., DataConditionIfTrueType).
+ * @param content - The text content.
+ * @returns The component definition.
+ */
+const createConditionalComponentDef = (type: string, content: string) => ({
+  type,
+  components: [createContent(content)],
+});
+
+export const ifTrueText = 'true text';
+export const newIfTrueText = 'new true text';
+export const ifFalseText = 'false text';
+export const newIfFalseText = 'new false text';
+
+export const ifTrueContent = createContent(ifTrueText);
+export const newIfTrueContent = createContent(newIfTrueText);
+export const ifFalseContent = createContent(ifFalseText);
+export const newIfFalseContent = createContent(newIfFalseText);
+
+export const ifTrueComponentDef = createConditionalComponentDef(DataConditionIfTrueType, ifTrueText);
+export const newIfTrueComponentDef = createConditionalComponentDef(DataConditionIfTrueType, newIfTrueText);
+export const ifFalseComponentDef = createConditionalComponentDef(DataConditionIfFalseType, ifFalseText);
+export const newIfFalseComponentDef = createConditionalComponentDef(DataConditionIfFalseType, newIfFalseText);
+
+export function isObjectContained(received: ObjectAny, expected: ObjectAny): boolean {
+  return Object.keys(expected).every((key) => {
+    if (typeof expected[key] === 'object' && expected[key] !== null) {
+      return isObjectContained(received[key], expected[key]);
+    }
+
+    return received?.[key] === expected?.[key];
+  });
+}
+
+export const DummyTextNodeText = 'Default Text';
+export const DummyTextNode = { type: 'text', content: DummyTextNodeText };
+export const TRUE_CONDITION = {
+  left: 1,
+  operator: NumberOperation.greaterThan,
+  right: 0,
+};
+
+export const FALSE_CONDITION = {
+  left: 0,
+  operator: NumberOperation.lessThan,
+  right: -1,
+};
