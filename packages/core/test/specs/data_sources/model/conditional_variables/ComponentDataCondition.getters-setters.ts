@@ -11,13 +11,13 @@ import {
   setupTestEditor,
   ifTrueComponentDef,
   ifFalseComponentDef,
-  newIfFalseContent,
   newIfTrueText,
   ifTrueText,
   FALSE_CONDITION,
   TRUE_CONDITION,
   newIfFalseText,
-  newIfTrueContent,
+  newIfTrueComponentDef,
+  newIfFalseComponentDef,
 } from '../../../../common';
 
 describe('ComponentDataCondition Setters', () => {
@@ -43,6 +43,7 @@ describe('ComponentDataCondition Setters', () => {
     component.setCondition(FALSE_CONDITION);
     expect(component.getCondition()).toEqual(FALSE_CONDITION);
     expect(component.getInnerHTML()).toContain(ifFalseText);
+    expect(component.getEl()?.innerHTML).toContain(ifFalseText);
   });
 
   it('should update the ifTrue value using setIfTrueComponent', () => {
@@ -52,9 +53,10 @@ describe('ComponentDataCondition Setters', () => {
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfTrueContent(newIfTrueContent);
-    expect(component.getIfTrueContent()![0].toJSON()).toEqual(newIfTrueContent);
+    component.setIfTrueContent(newIfTrueComponentDef);
+    expect(JSON.parse(JSON.stringify(component.getIfTrueContent()))).toEqual(newIfTrueComponentDef);
     expect(component.getInnerHTML()).toContain(newIfTrueText);
+    expect(component.getEl()?.innerHTML).toContain(newIfTrueText);
   });
 
   it('should update the ifFalse value using setIfFalseComponent', () => {
@@ -64,11 +66,12 @@ describe('ComponentDataCondition Setters', () => {
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfFalseContent(newIfFalseContent);
-    expect(component.getIfFalseContent()![0].toJSON()).toEqual(newIfFalseContent);
+    component.setIfFalseContent(newIfFalseComponentDef);
+    expect(JSON.parse(JSON.stringify(component.getIfFalseContent()))).toEqual(newIfFalseComponentDef);
 
     component.setCondition(FALSE_CONDITION);
     expect(component.getInnerHTML()).toContain(newIfFalseText);
+    expect(component.getEl()?.innerHTML).toContain(newIfFalseText);
   });
 
   it('should update the data sources and re-evaluate the condition', () => {
@@ -103,9 +106,11 @@ describe('ComponentDataCondition Setters', () => {
 
     changeDataSourceValue(dsm, 'Different value');
     expect(component.getInnerHTML()).toContain(ifFalseText);
+    expect(component.getEl()?.innerHTML).toContain(ifFalseText);
 
     changeDataSourceValue(dsm, 'Name1');
     expect(component.getInnerHTML()).toContain(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifTrueText);
   });
 
   it('should re-render the component when condition, ifTrue, or ifFalse changes', () => {
@@ -117,12 +122,14 @@ describe('ComponentDataCondition Setters', () => {
 
     const componentView = component.getView() as ComponentDataConditionView;
 
-    component.setIfTrueContent(newIfTrueContent);
+    component.setIfTrueContent(newIfTrueComponentDef);
 
-    expect(componentView?.el.textContent).toContain(newIfTrueText);
+    expect(component.getInnerHTML()).toContain(newIfTrueText);
+    expect(componentView.el.innerHTML).toContain(newIfTrueText);
 
-    component.setIfFalseContent(newIfFalseContent);
+    component.setIfFalseContent(newIfFalseComponentDef);
     component.setCondition(FALSE_CONDITION);
+    expect(component.getInnerHTML()).toContain(newIfFalseText);
     expect(componentView.el.innerHTML).toContain(newIfFalseText);
   });
 });

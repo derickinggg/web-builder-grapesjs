@@ -13,9 +13,12 @@ export default class ComponentDataConditionView extends ComponentView<ComponentD
   initialize(opt = {}) {
     super.initialize(opt);
 
-    bindAll(this, 'postRender');
-    this.listenTo(this.model, DataConditionOutputChangedEvent, this.postRender);
-    this.listenTo(this.model.dataResolver, DataConditionEvaluationChangedEvent, this.postRender);
+    this.listenTo(this.model.components(), 'reset', this.postRender.bind(this));
+    this.dataResolverListener = new DataResolverListener({
+      em: this.em,
+      resolver: this.model.dataResolver,
+      onUpdate: this.postRender.bind(this),
+    });
   }
 
   getOutputContent() {
@@ -30,18 +33,29 @@ export default class ComponentDataConditionView extends ComponentView<ComponentD
     return this.model.getIfFalseContent();
   }
 
-  postRender() {
-    this.el.innerHTML = '';
-    this.getOutputContent()?.forEach((cmp) => {
-      const outputEl = cmp?.getEl();
-      outputEl && this.el.append(outputEl);
-    });
+  renderDataResolver() {
+    const componentTrue = this.model.getIfTrueContent();
+    const componentFalse = this.model.getIfFalseContent();
 
+    const elTrue = componentTrue?.getEl();
+    const elFalse = componentFalse?.getEl();
+
+    const isTrue = this.model.isTrue();
+    if (elTrue) {
+      elTrue.style.display = isTrue ? '' : 'none';
+    }
+    if (elFalse) {
+      elFalse.style.display = isTrue ? 'none' : '';
+    }
+  }
+
+  postRender() {
+    this.renderDataResolver();
     super.postRender();
   }
 
   remove() {
-    this.stopListening(this.model, DataConditionEvaluationChangedEvent, this.postRender);
+    this.stopListening(this.model.components(), 'reset', this.postRender.bind(this));
     this.dataResolverListener.destroy();
     return super.remove();
   }

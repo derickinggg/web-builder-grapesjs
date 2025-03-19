@@ -3,8 +3,8 @@ import {
   ComponentDefinition as ComponentProperties,
   ComponentDefinitionDefined,
   ComponentOptions,
-  ComponentAdd,
   ToHTMLOptions,
+  ComponentAddType,
 } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import { DataCondition, DataConditionOutputChangedEvent, DataConditionProps, DataConditionType } from './DataCondition';
@@ -65,49 +65,41 @@ export default class ComponentDataCondition extends Component {
     return this.dataResolver.getCondition();
   }
 
-  getIfTrueContent(): Component[] | undefined {
-    return this.getContentByType(DataConditionIfTrueType);
+  getIfTrueContent(): Component | undefined {
+    return this.components().at(0);
   }
 
-  getIfFalseContent(): Component[] | undefined {
-    return this.getContentByType(DataConditionIfFalseType);
+  getIfFalseContent(): Component | undefined {
+    return this.components().at(1);
   }
 
-  getOutputContent(): Component[] | undefined {
+  getOutputContent(): Component | undefined {
     return this.isTrue() ? this.getIfTrueContent() : this.getIfFalseContent();
   }
 
   setCondition(newCondition: ConditionProps) {
     this.dataResolver.setCondition(newCondition);
-    this.trigger(DataConditionOutputChangedEvent);
   }
 
-  setIfTrueContent(content: ComponentAdd): Component[] | undefined {
-    return this.replaceContent(DataConditionIfTrueType, content);
+  setIfTrueContent(content: ComponentAddType): Component | undefined {
+    return this.replaceChildAtIndex(0, content);
   }
 
-  setIfFalseContent(content: ComponentAdd): Component[] | undefined {
-    return this.replaceContent(DataConditionIfFalseType, content);
+  setIfFalseContent(content: ComponentAddType): Component | undefined {
+    return this.replaceChildAtIndex(1, content);
   }
 
   getInnerHTML(opts?: ToHTMLOptions): string {
-    const contentHTML = this.getOutputContent()?.map((cmp) => cmp.getInnerHTML(opts));
-    return contentHTML?.join('') ?? '';
+    return this.getOutputContent()?.getInnerHTML(opts) ?? '';
   }
 
-  private getContentByType(type: string): Component[] | undefined {
-    return this.components()
-      .find((cmp) => cmp.get('type') === type)
-      ?.components()
-      .toArray();
-  }
-
-  private replaceContent(componentType: string, newContent: ComponentAdd): Component[] | undefined {
+  private replaceChildAtIndex(index: number, newContent: ComponentAddType): Component | undefined {
     const components = this.components();
-    const existingComponent = components.find((cmp) => cmp.get('type') === componentType);
+    const existingComponent = components.at(index);
 
     if (existingComponent) {
-      const newComponents = existingComponent.components(newContent);
+      this.components().remove(existingComponent);
+      const newComponents = this.append(newContent, { at: index })[0];
       this.trigger(DataConditionOutputChangedEvent);
       return newComponents;
     }

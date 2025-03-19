@@ -6,21 +6,14 @@ import { AnyTypeOperation } from '../../../../../src/data_sources/model/conditio
 import { NumberOperation } from '../../../../../src/data_sources/model/conditional_variables/operators/NumberOperator';
 import ComponentDataConditionView from '../../../../../src/data_sources/view/ComponentDataConditionView';
 import ComponentWrapper from '../../../../../src/dom_components/model/ComponentWrapper';
-import ComponentTextView from '../../../../../src/dom_components/view/ComponentTextView';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import {
-  DummyTextNode,
-  DummyTextNodeText,
   FALSE_CONDITION,
   ifFalseComponentDef,
   ifFalseText,
   ifTrueComponentDef,
   ifTrueText,
   isObjectContained,
-  newIfFalseComponentDef,
-  newIfFalseText,
-  newIfTrueComponentDef,
-  newIfTrueText,
   setupTestEditor,
   TRUE_CONDITION,
 } from '../../../../common';
@@ -40,7 +33,7 @@ describe('ComponentDataCondition', () => {
     em.destroy();
   });
 
-  it('should add a component with a condition that evaluates a component definition', () => {
+  it('should add a component with a condition', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
@@ -48,41 +41,26 @@ describe('ComponentDataCondition', () => {
     })[0] as ComponentDataCondition;
     expect(component).toBeDefined();
     expect(component.get('type')).toBe(DataConditionType);
-    expect(component.getInnerHTML()).toContain(ifTrueText);
-
     const componentView = component.getView();
     expect(componentView).toBeInstanceOf(ComponentDataConditionView);
-    expect(componentView?.el.textContent).toBe(ifTrueText);
 
-    const childComponent = component.getOutputContent()![0];
-    const childView = childComponent.getView();
-    expect(childComponent).toBeDefined();
-    expect(childComponent.get('type')).toBe('text');
-    expect(childComponent.getInnerHTML()).toContain(ifTrueText);
-    expect(childView).toBeInstanceOf(ComponentTextView);
-    expect(childView?.el.innerHTML).toBe(ifTrueText);
+    expect(component.getInnerHTML()).toContain(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifTrueText);
+    const ifTrueContent = component.getIfTrueContent()!;
+    expect(ifTrueContent.getInnerHTML()).toContain(ifTrueText);
+    expect(ifTrueContent.getEl()?.textContent).toBe(ifTrueText);
+    expect(ifTrueContent.getEl()?.style.display).toBe('');
   });
 
-  it('should add a component with a condition that evaluates a string', () => {
+  it('ComponentDataCondition getIfTrueContent and getIfFalseContent', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
-      components: [ifTrueComponentDef],
+      components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
-    expect(component).toBeDefined();
-    expect(component.get('type')).toBe(DataConditionType);
-    expect(component.getInnerHTML()).toContain(ifTrueText);
-    const componentView = component.getView();
-    expect(componentView).toBeInstanceOf(ComponentDataConditionView);
-    expect(componentView?.el.textContent).toBe(ifTrueText);
 
-    const childComponent = component.getOutputContent()![0];
-    const childView = childComponent.getView();
-    expect(childComponent).toBeDefined();
-    expect(childComponent.get('type')).toBe('text');
-    expect(childComponent.getInnerHTML()).toContain(ifTrueText);
-    expect(childView).toBeInstanceOf(ComponentTextView);
-    expect(childView?.el.innerHTML).toBe(ifTrueText);
+    expect(JSON.parse(JSON.stringify(component.getIfTrueContent()!))).toEqual(ifTrueComponentDef);
+    expect(JSON.parse(JSON.stringify(component.getIfFalseContent()!))).toEqual(ifFalseComponentDef);
   });
 
   it('should test component variable with data-source', () => {
@@ -112,24 +90,34 @@ describe('ComponentDataCondition', () => {
       },
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
+    expect(component.getInnerHTML()).toContain(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifTrueText);
+    const ifTrueContent = component.getIfTrueContent()!;
+    expect(ifTrueContent.getInnerHTML()).toContain(ifTrueText);
+    expect(ifTrueContent.getEl()?.textContent).toBe(ifTrueText);
+    expect(ifTrueContent.getEl()?.style.display).toBe('');
 
-    let outputComponent = component.getOutputContent()![0];
-    expect(outputComponent).toBeDefined();
-    expect(outputComponent.get('type')).toBe('text');
-    expect(outputComponent.getInnerHTML()).toContain(ifTrueText);
+    expect(component.getInnerHTML()).not.toContain(ifFalseText);
+    expect(component.getEl()?.innerHTML).toContain(ifFalseText);
+    const ifFalseContent = component.getIfFalseContent()!;
+    expect(ifFalseContent.getInnerHTML()).toContain(ifFalseText);
+    expect(ifFalseContent.getEl()?.textContent).toBe(ifFalseText);
+    expect(ifFalseContent.getEl()?.style.display).toBe('none');
 
     /* Test changing datasources */
     const WrongValue = 'Diffirent value';
     changeDataSourceValue(dsm, WrongValue);
-    outputComponent = component.getOutputContent()![0];
-    expect(outputComponent.getInnerHTML()).toContain(ifFalseText);
-    expect(outputComponent.getView()?.el.innerHTML).toBe(ifFalseText);
+    expect(component.getEl()?.innerHTML).toContain(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifFalseText);
+    expect(ifTrueContent.getEl()?.style.display).toBe('none');
+    expect(ifFalseContent.getEl()?.style.display).toBe('');
 
     const CorrectValue = 'Name1';
     changeDataSourceValue(dsm, CorrectValue);
-    outputComponent = component.getOutputContent()![0];
-    expect(outputComponent.getInnerHTML()).toContain(ifTrueText);
-    expect(outputComponent.getView()?.el.innerHTML).toBe(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifTrueText);
+    expect(component.getEl()?.innerHTML).toContain(ifFalseText);
+    expect(ifTrueContent.getEl()?.style.display).toBe('');
+    expect(ifFalseContent.getEl()?.style.display).toBe('none');
   });
 
   it('should test a conditional component with a child that is also a conditional component', () => {
@@ -178,15 +166,13 @@ describe('ComponentDataCondition', () => {
             components: ifTrueComponentDef,
           },
         },
+        ifFalseComponentDef,
       ],
     })[0] as ComponentDataCondition;
-
-    const childComponent = component.getOutputContent()![0] as ComponentDataCondition;
-    const innerComponent = childComponent.getOutputContent()![0];
-    const innerComponentView = innerComponent.getView();
-    expect(innerComponent.getInnerHTML()).toContain(ifTrueText);
-    expect(innerComponentView).toBeInstanceOf(ComponentTextView);
-    expect(innerComponentView?.el.tagName).toBe('H1');
+    const ifTrueContent = component.getIfTrueContent()!;
+    expect(ifTrueContent.getInnerHTML()).toContain(ifTrueText);
+    expect(ifTrueContent.getEl()?.textContent).toBe(ifTrueText);
+    expect(ifTrueContent.getEl()?.style.display).toBe('');
   });
 
   it('should store conditional components', () => {
@@ -205,60 +191,25 @@ describe('ComponentDataCondition', () => {
     expect(isObjectContained(storageCmptDef, conditionalCmptDef)).toBe(true);
   });
 
-  it('should dynamically display ifTrue, ifFalse, and output components in the correct order', () => {
+  it('should dynamically display ifTrue, ifFalse components in the correct order', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
-      components: [ifTrueComponentDef, DummyTextNode, ifFalseComponentDef],
+      components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
-    const view = component.view!;
+    const el = component.getEl()!;
+    const ifTrueEl = el.childNodes[0] as any;
+    const ifFalseEl = el.childNodes[1] as any;
+    expect(ifTrueEl.textContent).toContain(ifTrueText);
+    expect(ifTrueEl.style.display).toBe('');
+    expect(ifFalseEl.textContent).toContain(ifFalseText);
+    expect(ifFalseEl.style.display).toBe('none');
 
-    const components = component.components();
-    view.postRender = displayAllChildren(components, view);
-    view.postRender();
-
-    const childrenNodes = view?.el.childNodes!;
-    expect(childrenNodes[0].textContent).toContain(ifTrueText);
-    expect(childrenNodes[1].textContent).toContain(DummyTextNodeText);
-    expect(childrenNodes[2].textContent).toContain(ifFalseText);
-  });
-
-  it('should dynamically display ifFalse and output components when condition is false', () => {
-    const component = cmpRoot.append({
-      type: DataConditionType,
-      dataResolver: { condition: FALSE_CONDITION },
-      components: [ifTrueComponentDef, DummyTextNode, ifFalseComponentDef],
-    })[0] as ComponentDataCondition;
-    const view = component.view!;
-
-    const components = component.components();
-    view.postRender = displayAllChildren(components, view);
-    view.postRender();
-
-    const childrenNodes = view?.el.childNodes!;
-    expect(childrenNodes[0].textContent).toContain(ifTrueText);
-    expect(childrenNodes[1].textContent).toContain(DummyTextNodeText);
-    expect(childrenNodes[2].textContent).toContain(ifFalseText);
-  });
-
-  it('should handle updating display components with nested conditional components', () => {
-    const component = cmpRoot.append({
-      type: DataConditionType,
-      dataResolver: { condition: TRUE_CONDITION },
-      components: [
-        {
-          type: DataConditionIfTrueType,
-          components: {
-            type: DataConditionType,
-            dataResolver: { condition: TRUE_CONDITION },
-            components: [ifTrueComponentDef],
-          },
-        },
-        ifFalseComponentDef,
-      ],
-    })[0] as ComponentDataCondition;
-
-    expect(component.view?.el.innerHTML).toContain(ifTrueText);
+    component.setCondition(FALSE_CONDITION);
+    expect(ifTrueEl.style.display).toBe('none');
+    expect(ifTrueEl.textContent).toContain(ifTrueText);
+    expect(ifFalseEl.style.display).toBe('');
+    expect(ifFalseEl.textContent).toContain(ifFalseText);
   });
 
   it('should dynamically update display components when data source changes', () => {
@@ -283,87 +234,37 @@ describe('ComponentDataCondition', () => {
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    let view = component.view!;
-    expect(view.el.innerHTML).toContain(ifTrueText);
+    const el = component.view!.el!;
+    const falseValue = -1;
+    changeDataSourceValue(dsm, falseValue);
+    expect(el.innerHTML).toContain(ifTrueText);
+    expect(el.innerHTML).toContain(ifFalseText);
 
-    changeDataSourceValue(dsm, -1);
-    expect(view.el.innerHTML).toContain(ifFalseText);
+    const ifTrueEl = el.childNodes[0] as any;
+    const ifFalseEl = el.childNodes[1] as any;
+    expect(ifTrueEl!.style.display).toBe('none');
+    expect(ifTrueEl.textContent).toContain(ifTrueText);
+    expect(ifFalseEl.style.display).toBe('');
+    expect(ifFalseEl.textContent).toContain(ifFalseText);
   });
 
-  it('should display all components passed via cmp.components([...])', () => {
+  it('should update content of ifTrue, ifFalse components when condition changes', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
-
-    component.components([newIfTrueComponentDef, DummyTextNode, newIfFalseComponentDef]);
-
     const el = component.view!.el;
 
-    expect(el.innerHTML).toContain(newIfTrueText);
-  });
-
-  it('should update content of ifTrue, ifFalse, and output components when condition changes', () => {
-    const component = cmpRoot.append({
-      type: DataConditionType,
-      dataResolver: { condition: TRUE_CONDITION },
-      components: [ifTrueComponentDef, ifFalseComponentDef],
-    })[0] as ComponentDataCondition;
-
-    component.components([newIfTrueComponentDef, newIfFalseComponentDef]);
-
-    let el = component.view!.el;
-    expect(el.innerHTML).toContain(newIfTrueText);
-
-    component.set('condition', FALSE_CONDITION);
-    expect(el.innerHTML).toContain(newIfFalseText);
-  });
-
-  it('should dynamically update components when data source changes', () => {
-    const dataSource = {
-      id: 'ds1',
-      records: [{ id: 'left_id', left: 1 }],
-    };
-    dsm.add(dataSource);
-
-    const component = cmpRoot.append({
-      type: DataConditionType,
-      dataResolver: {
-        condition: {
-          left: {
-            type: DataVariableType,
-            path: 'ds1.left_id.left',
-          },
-          operator: NumberOperation.greaterThan,
-          right: 0,
-        },
-      },
-      components: [ifTrueComponentDef, ifFalseComponentDef],
-    })[0] as ComponentDataCondition;
-
-    component.components([newIfTrueComponentDef, newIfFalseComponentDef]);
-
-    let el = component.view!.el;
-    expect(el.innerHTML).toContain(newIfTrueText);
-
-    changeDataSourceValue(dsm, -1);
-    expect(el.innerHTML).toContain(newIfFalseText);
+    component.setCondition(FALSE_CONDITION);
+    const ifTrueEl = el.childNodes[0] as any;
+    const ifFalseEl = el.childNodes[1] as any;
+    expect(ifTrueEl!.style.display).toBe('none');
+    expect(ifTrueEl.textContent).toContain(ifTrueText);
+    expect(ifFalseEl.style.display).toBe('');
+    expect(ifFalseEl.textContent).toContain(ifFalseText);
   });
 });
-
-function displayAllChildren(components: Components, view: ComponentView<Component>): () => void {
-  return () => {
-    const arr = components.map((cmp) => {
-      const frag = document.createDocumentFragment();
-      view.childrenView?.addToCollection(cmp, frag);
-
-      return frag;
-    });
-
-    view.el.replaceChildren(...arr);
-  };
-}
 
 function changeDataSourceValue(dsm: DataSourceManager, newValue: string | number) {
   dsm.get('ds1').getRecord('left_id')?.set('left', newValue);

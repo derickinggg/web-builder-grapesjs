@@ -131,11 +131,6 @@ export const newIfTrueText = 'new true text';
 export const ifFalseText = 'false text';
 export const newIfFalseText = 'new false text';
 
-export const ifTrueContent = createContent(ifTrueText);
-export const newIfTrueContent = createContent(newIfTrueText);
-export const ifFalseContent = createContent(ifFalseText);
-export const newIfFalseContent = createContent(newIfFalseText);
-
 export const ifTrueComponentDef = createConditionalComponentDef(DataConditionIfTrueType, ifTrueText);
 export const newIfTrueComponentDef = createConditionalComponentDef(DataConditionIfTrueType, newIfTrueText);
 export const ifFalseComponentDef = createConditionalComponentDef(DataConditionIfFalseType, ifFalseText);
@@ -151,8 +146,6 @@ export function isObjectContained(received: ObjectAny, expected: ObjectAny): boo
   });
 }
 
-export const DummyTextNodeText = 'Default Text';
-export const DummyTextNode = { type: 'text', content: DummyTextNodeText };
 export const TRUE_CONDITION = {
   left: 1,
   operator: NumberOperation.greaterThan,

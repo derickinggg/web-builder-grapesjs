@@ -9,7 +9,6 @@ import { BooleanOperation } from './operators/BooleanOperator';
 import { NumberOperation } from './operators/NumberOperator';
 import { StringOperation } from './operators/StringOperator';
 import { isUndefined } from 'underscore';
-import { ComponentSetOptions } from '../../../dom_components/model/Component';
 
 export const DataConditionType = 'data-condition';
 export const DataConditionEvaluationChangedEvent = 'data-condition-evaluation-changed';
@@ -83,6 +82,7 @@ export class DataCondition extends Model<DataConditionProps> {
 
   setCondition(condition: ConditionProps) {
     this._conditionEvaluator.set('condition', condition);
+    this.trigger(DataConditionOutputChangedEvent, this.getDataValue());
   }
 
   setIfTrue(newIfTrue: any) {
@@ -117,7 +117,7 @@ export class DataCondition extends Model<DataConditionProps> {
   }
 
   private handleConditionChange() {
-    this._conditionEvaluator.set('condition', this.get('condition'));
+    this.setCondition(this.get('condition')!);
   }
 
   private listenToDataVariables() {
