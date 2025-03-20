@@ -1,8 +1,10 @@
+import type Component from '../../dom_components/model/Component';
+import type EditorModel from '../../editor/model/Editor';
 import type { CommandObject, CommandOptions } from '../view/CommandAbstract';
 
 interface CommandConfigDefaultOptions {
-  run: (options: CommandOptions) => CommandOptions;
-  stop: (options: CommandOptions) => CommandOptions;
+  run?: (options: CommandOptions) => CommandOptions;
+  stop?: (options: CommandOptions) => CommandOptions;
 }
 
 export interface CommandsConfig {
@@ -35,11 +37,15 @@ export interface CommandsConfig {
    *  'core:component-drag': {
    *    run: (options: Record<string, unknown>) => ({
    *      ...options,
-   *      addStyle: () => {},
+   *      addStyle: ({ target }: { target: Component }) => {
+   *        target.addStyle({ opacity: 0.5 });
+   *      },
    *     }),
    *    stop: (options: Record<string, unknown>) => ({
    *      ...options,
-   *      addStyle: () => {},
+   *      addStyle: ({ target }: { target: Component }) => {
+   *        target.addStyle({ opacity: 1 });
+   *      },
    *    }),
    *  }
    * }
@@ -55,11 +61,15 @@ const config: () => CommandsConfig = () => ({
     'core:component-drag': {
       run: (options: CommandOptions) => ({
         ...options,
-        addStyle: () => {},
-      }),
-      stop: (options: CommandOptions) => ({
-        ...options,
-        addStyle: () => {},
+        addStyle: ({ target, em }: { target: Component; em: EditorModel }) => {
+          target.addStyle({ opacity: 0.5 });
+
+          // TODO: is this the best way to do this?
+          const lineElement = em.view?.el.querySelector('.gjs-guide-info__line') as HTMLElement | null;
+          if (lineElement) lineElement.style.backgroundColor = 'green';
+          const contentElement = em.view?.el.querySelector('.gjs-guide-info__content') as HTMLElement | null;
+          if (contentElement) contentElement.style.color = 'green';
+        },
       }),
     },
   },

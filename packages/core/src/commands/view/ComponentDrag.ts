@@ -32,7 +32,7 @@ type Opts = {
   onStart?: (data: any) => Editor;
   onDrag?: (data: any) => Editor;
   onEnd?: (ev: Event, opt: any, data: any) => void;
-  addStyle?: () => void;
+  addStyle?: ({ target, em }: { target: Component; em: EditorModel }) => void;
 };
 
 const evName = 'dmode';
@@ -74,6 +74,7 @@ export default {
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
     let drg = this.dragger;
+    this.opts?.addStyle?.({ target: this.target, em: this.em });
 
     if (!drg) {
       drg = new Dragger(config);
@@ -326,8 +327,7 @@ export default {
       styleUp = style;
     }
 
-    // TODO: check this
-    this.opts?.addStyle?.() ?? target.addStyle(styleUp, { avoidStore: !end });
+    target.addStyle(styleUp, { avoidStore: !end });
     em?.Styles.__emitCmpStyleUpdate(styleUp, { components: em.getSelected() });
   },
 
@@ -414,9 +414,9 @@ export default {
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
-    this.em.trigger(`${evName}:end`, this.getEventOpts());
 
-    this.editor.trigger(`${evName}:drag:end`, undefined);
+    this.em.trigger(`${evName}:end`, this.getEventOpts());
+    this.em.trigger(`${evName}:drag:end`, undefined);
     this.em.Canvas.removeSpots({
       type: CanvasSpotBuiltInTypes.Drag,
       component: this.target,
