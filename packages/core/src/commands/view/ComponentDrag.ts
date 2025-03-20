@@ -213,7 +213,7 @@ export default {
 
     if (!el.children.length) {
       numEl = document.createElement('div');
-      numEl.style = `position: absolute; color: red}; padding: 5px; top: 0; left: 0;`;
+      numEl.style = 'position: absolute; color: red; padding: 5px; top: 0; left: 0;';
       el.appendChild(numEl);
     }
 
@@ -349,9 +349,6 @@ export default {
     opts?.onStart?.(this._getDragData());
     if (isTran) return;
 
-    let x = 0;
-    let y = 0;
-
     if (style.position !== position) {
       let { left, top, width, height } = Canvas.offset(target.getEl());
       let parent = target.parent();
@@ -375,12 +372,9 @@ export default {
         top = top - offsetP.top;
       }
 
-      x = left;
-      y = top;
-
       this.setPosition({
-        x,
-        y,
+        x: left,
+        y: top,
         width: `${width}px`,
         height: `${height}px`,
         position,
@@ -388,7 +382,7 @@ export default {
     }
 
     this.editor.trigger(`${evName}:drag:start`, {
-      coords: { x, y },
+      coords: { x: 0, y: 0 }, // TODO: pass the real coords
       component: target,
       componentView: target.view,
       styles: style,
@@ -408,10 +402,8 @@ export default {
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
-    if (opts?.guidesInfo) {
-      guideNearElements = this.renderGuideInfo(guidesTarget.filter((item: any) => item.active));
-    }
-    opts?.onDrag?.(this._getDragData());
+    opts?.guidesInfo && (guideNearElements = this.renderGuideInfo(guidesTarget.filter((item: any) => item.active)));
+    opts?.onDrag && opts.onDrag(this._getDragData());
 
     const { x, y } = mouseEvent;
     this.editor.trigger(`${evName}:drag:move`, { coords: { x, y }, guideNearElement: guideNearElements[0] });
@@ -533,9 +525,3 @@ export default {
     [k: string]: any;
   }
 >;
-
-function styleObjectToString(style: HTMLElement['style']): string {
-  return Object.entries(style)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('; ');
-}
