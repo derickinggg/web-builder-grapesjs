@@ -1,4 +1,9 @@
-import { CommandObject } from '../view/CommandAbstract';
+import type { CommandObject, CommandOptions } from '../view/CommandAbstract';
+
+interface CommandConfigDefaultOptions {
+  run: (options: CommandOptions) => CommandOptions;
+  stop: (options: CommandOptions) => CommandOptions;
+}
 
 export interface CommandsConfig {
   /**
@@ -19,12 +24,45 @@ export interface CommandsConfig {
    * @default true
    */
   strict?: boolean;
+
+  /**
+   * Default options for commands
+   * These options will be merged with the options passed when the command is run.
+   * This allows you to define common behavior for commands in one place.
+   * @default {}
+   * @example
+   * defaultOptions: {
+   *  'core:component-drag': {
+   *    run: (options: Record<string, unknown>) => ({
+   *      ...options,
+   *      addStyle: () => {},
+   *     }),
+   *    stop: (options: Record<string, unknown>) => ({
+   *      ...options,
+   *      addStyle: () => {},
+   *    }),
+   *  }
+   * }
+   */
+  defaultOptions?: Record<string, CommandConfigDefaultOptions>;
 }
 
 const config: () => CommandsConfig = () => ({
   stylePrefix: 'com-',
   defaults: {},
   strict: true,
+  defaultOptions: {
+    'core:component-drag': {
+      run: (options: CommandOptions) => ({
+        ...options,
+        addStyle: () => {},
+      }),
+      stop: (options: CommandOptions) => ({
+        ...options,
+        addStyle: () => {},
+      }),
+    },
+  },
 });
 
 export default config;

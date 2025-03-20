@@ -32,16 +32,7 @@ type Opts = {
   onStart?: (data: any) => Editor;
   onDrag?: (data: any) => Editor;
   onEnd?: (ev: Event, opt: any, data: any) => void;
-  styles?: {
-    guides?: {
-      active?: { color?: string };
-      inactive?: { color?: string };
-    };
-    guidesContainer?: {
-      line?: HTMLElement['style'];
-      content?: HTMLElement['style'];
-    };
-  };
+  addStyle?: () => void;
 };
 
 const evName = 'dmode';
@@ -74,22 +65,7 @@ export default {
       ...dragger,
     };
     this.setupGuides();
-    this.opts = {
-      ...opts,
-      // debug: true
-      styles: {
-        guides: {
-          active: { color: 'green' },
-          inactive: { color: 'red' },
-        },
-        guidesContainer: {
-          line: { 'background-color': 'blue' },
-          content: { color: 'blue' },
-        },
-        ...opts.styles,
-      },
-    };
-    // this.opts = opts;
+    this.opts = opts;
     this.editor = editor;
     this.em = editor.getModel();
     this.target = target;
@@ -142,11 +118,9 @@ export default {
       const pfx = editor.getConfig().stylePrefix;
       const elInfoX = document.createElement('div');
       const elInfoY = document.createElement('div');
-      const guideInfoLineStyles = this.opts?.styles?.guidesContainer?.line;
-      const guideInfoContentStyles = this.opts?.styles?.guidesContainer?.content;
 
-      const guideContent = `<div class="${pfx}guide-info__line ${pfx}danger-bg" ${guideInfoLineStyles ? `style="${styleObjectToString(guideInfoLineStyles)}"` : ''}>
-        <div class="${pfx}guide-info__content ${pfx}danger-color" ${guideInfoContentStyles ? `style="${styleObjectToString(guideInfoContentStyles)}"` : ''}></div>
+      const guideContent = `<div class="${pfx}guide-info__line ${pfx}danger-bg">
+        <div class="${pfx}guide-info__content ${pfx}danger-color"></div>
       </div>`;
       guidesEl = document.createElement('div');
       guidesEl.className = `${pfx}guides`;
@@ -235,14 +209,11 @@ export default {
     const guideSize = item.active ? 2 : 1;
     let numEl = el.children[0];
 
-    const colorActive = this.opts?.styles?.guides?.active?.color ?? 'green';
-    const colorInactive = this.opts?.styles?.guides?.inactive?.color ?? 'red';
-
-    el.style = `position: absolute; background-color: ${item.active ? colorActive : colorInactive};`;
+    el.style = `position: absolute; background-color: ${item.active ? 'green' : 'red'};`;
 
     if (!el.children.length) {
       numEl = document.createElement('div');
-      numEl.style = `position: absolute; color: ${colorInactive}; padding: 5px; top: 0; left: 0;`;
+      numEl.style = `position: absolute; color: red}; padding: 5px; top: 0; left: 0;`;
       el.appendChild(numEl);
     }
 
@@ -345,7 +316,6 @@ export default {
       transform = this.setTranslate(transform, 'x', left);
       transform = this.setTranslate(transform, 'y', top);
       styleUp = { transform, __p };
-      target.addStyle(styleUp, { avoidStore: !end });
     } else {
       const adds: any = { position, width, height };
       const style: any = { left, top, __p };
@@ -354,9 +324,10 @@ export default {
         if (prop) style[add] = prop;
       });
       styleUp = style;
-      target.addStyle(styleUp, { avoidStore: !end });
     }
 
+    // TODO: check this
+    this.opts?.addStyle?.() ?? target.addStyle(styleUp, { avoidStore: !end });
     em?.Styles.__emitCmpStyleUpdate(styleUp, { components: em.getSelected() });
   },
 
