@@ -32,7 +32,7 @@ type Opts = {
   onStart?: (data: any) => Editor;
   onDrag?: (data: any) => Editor;
   onEnd?: (ev: Event, opt: any, data: any) => void;
-  addStyle?: ({ target, em }: { target: Component; em: EditorModel }) => void;
+  addStyle?: () => Record<string, unknown>;
 };
 
 const evName = 'dmode';
@@ -74,7 +74,6 @@ export default {
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
     let drg = this.dragger;
-    this.opts?.addStyle?.({ target: this.target, em: this.em });
 
     if (!drg) {
       drg = new Dragger(config);
@@ -383,10 +382,7 @@ export default {
 
     this.editor.trigger(`${evName}:drag:start`, {
       coords: { x: 0, y: 0 }, // TODO: pass the real coords
-      component: target,
-      componentView: target.view,
-      styles: style,
-      handlerEl: event.target,
+      targetEl: event.target,
     });
 
     this.em.Canvas.addSpot({
@@ -406,7 +402,25 @@ export default {
     opts?.onDrag && opts.onDrag(this._getDragData());
 
     const { x, y } = mouseEvent;
-    this.editor.trigger(`${evName}:drag:move`, { coords: { x, y }, guideNearElement: guideNearElements[0] });
+    const guideNearElement = guideNearElements[0] ?? {};
+    const { size, sizePercent, matched, elGuideInfo, elGuideInfoCnt } = guideNearElement;
+    const matchedEl = matched?.origin;
+    // TODO: revisit event props
+    this.editor.trigger(`${evName}:drag:move`, {
+      coords: { x, y },
+      matchedEl,
+      elGuideInfo,
+      elGuideInfoCnt,
+      size,
+      sizePercent,
+    });
+
+    // TODO: add the spot to the canvas to show the origin?
+    // if (matchedEl) {
+    //  this.em.Canvas.addSpot({
+    //    type: CanvasSpotBuiltInTypes.Drag,
+    //  });
+    // }
   },
 
   onEnd(ev: Event, _dragger: Dragger, opt = {}) {
@@ -479,11 +493,14 @@ export default {
         const pos2 = `${posFirst}px`;
         const size = isEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2;
         const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
+        const sizePercent = (sizeRaw / (isY ? res.originRect.height : res.originRect.width)) * 100; // TODO: fix calculation
         guideInfoStyle.display = '';
         guideInfoStyle[isY ? 'top' : 'left'] = pos2;
         guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
         guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-        elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+        // TODO: this is the way to display the percentage?
+        const showPercentages = this.opts?.addStyle?.()?.showPercentages;
+        elGuideInfoCnt.innerHTML = showPercentages ? `${Math.round(sizePercent)}%` : `${Math.round(sizeRaw)}px`;
 
         guideNearElement = {
           guide: item,
@@ -493,6 +510,7 @@ export default {
           posSecond,
           size,
           sizeRaw,
+          sizePercent,
           elGuideInfo,
           elGuideInfoCnt,
         };

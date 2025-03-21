@@ -61,14 +61,20 @@ const config: () => CommandsConfig = () => ({
     'core:component-drag': {
       run: (options: CommandOptions) => ({
         ...options,
-        addStyle: ({ target, em }: { target: Component; em: EditorModel }) => {
-          target.addStyle({ opacity: 0.5 });
-
-          // TODO: is this the best way to do this?
-          const lineElement = em.view?.el.querySelector('.gjs-guide-info__line') as HTMLElement | null;
-          if (lineElement) lineElement.style.backgroundColor = 'green';
-          const contentElement = em.view?.el.querySelector('.gjs-guide-info__content') as HTMLElement | null;
-          if (contentElement) contentElement.style.color = 'green';
+        addStyle: () => {
+          return {
+            showPercentages: true,
+          };
+          // target.addStyle({ opacity: 0.5 });
+          // // TODO: is this the best way to do this?
+          // const lineElement = em.view?.el.querySelector('.gjs-guide-info__line') as HTMLElement | null;
+          // if (lineElement) lineElement.style.backgroundColor = 'green';
+          // const contentElement = em.view?.el.querySelector('.gjs-guide-info__content') as HTMLElement | null;
+          // if (contentElement) contentElement.style.color = 'green';
+          // return {
+          //   guideInfoLine: { backgroundColor: 'green' },
+          //   guideInfoContent: { color: 'green' },
+          // };
         },
       }),
     },
