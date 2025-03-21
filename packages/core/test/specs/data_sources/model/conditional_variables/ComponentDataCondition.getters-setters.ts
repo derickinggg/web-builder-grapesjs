@@ -53,7 +53,7 @@ describe('ComponentDataCondition Setters', () => {
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfTrueContent(newIfTrueComponentDef);
+    component.setIfTrueComponents(newIfTrueComponentDef);
     expect(JSON.parse(JSON.stringify(component.getIfTrueContent()))).toEqual(newIfTrueComponentDef);
     expect(component.getInnerHTML()).toContain(newIfTrueText);
     expect(component.getEl()?.innerHTML).toContain(newIfTrueText);
@@ -66,7 +66,7 @@ describe('ComponentDataCondition Setters', () => {
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfFalseContent(newIfFalseComponentDef);
+    component.setIfFalseComponents(newIfFalseComponentDef);
     expect(JSON.parse(JSON.stringify(component.getIfFalseContent()))).toEqual(newIfFalseComponentDef);
 
     component.setCondition(FALSE_CONDITION);
@@ -122,12 +122,12 @@ describe('ComponentDataCondition Setters', () => {
 
     const componentView = component.getView() as ComponentDataConditionView;
 
-    component.setIfTrueContent(newIfTrueComponentDef);
+    component.setIfTrueComponents(newIfTrueComponentDef);
 
     expect(component.getInnerHTML()).toContain(newIfTrueText);
     expect(componentView.el.innerHTML).toContain(newIfTrueText);
 
-    component.setIfFalseContent(newIfFalseComponentDef);
+    component.setIfFalseComponents(newIfFalseComponentDef);
     component.setCondition(FALSE_CONDITION);
     expect(component.getInnerHTML()).toContain(newIfFalseText);
     expect(componentView.el.innerHTML).toContain(newIfFalseText);

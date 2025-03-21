@@ -81,28 +81,21 @@ export default class ComponentDataCondition extends Component {
     this.dataResolver.setCondition(newCondition);
   }
 
-  setIfTrueContent(content: ComponentAddType): Component | undefined {
-    return this.replaceChildAtIndex(0, content);
+  setIfTrueComponents(content: ComponentAddType) {
+    this.setComponentsAtIndex(0, content);
   }
 
-  setIfFalseContent(content: ComponentAddType): Component | undefined {
-    return this.replaceChildAtIndex(1, content);
+  setIfFalseComponents(content: ComponentAddType) {
+    this.setComponentsAtIndex(1, content);
   }
 
   getInnerHTML(opts?: ToHTMLOptions): string {
     return this.getOutputContent()?.getInnerHTML(opts) ?? '';
   }
 
-  private replaceChildAtIndex(index: number, newContent: ComponentAddType): Component | undefined {
-    const components = this.components();
-    const existingComponent = components.at(index);
-
-    if (existingComponent) {
-      this.components().remove(existingComponent);
-      const newComponents = this.append(newContent, { at: index })[0];
-      this.trigger(DataConditionOutputChangedEvent);
-      return newComponents;
-    }
+  private setComponentsAtIndex(index: number, newContent: ComponentAddType) {
+    const component = this.components().at(index);
+    component?.components(newContent);
   }
 
   private listenToPropsChange() {
