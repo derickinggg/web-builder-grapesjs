@@ -46,27 +46,27 @@ describe('ComponentDataCondition Setters', () => {
     expect(component.getEl()?.innerHTML).toContain(ifFalseText);
   });
 
-  it('should update the ifTrue value using setIfTrueComponent', () => {
+  it('should update the ifTrue value using setIfTrueComponents', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfTrueComponents(newIfTrueComponentDef);
+    component.setIfTrueComponents(newIfTrueComponentDef.components);
     expect(JSON.parse(JSON.stringify(component.getIfTrueContent()))).toEqual(newIfTrueComponentDef);
     expect(component.getInnerHTML()).toContain(newIfTrueText);
     expect(component.getEl()?.innerHTML).toContain(newIfTrueText);
   });
 
-  it('should update the ifFalse value using setIfFalseComponent', () => {
+  it('should update the ifFalse value using setIfFalseComponents', () => {
     const component = cmpRoot.append({
       type: DataConditionType,
       dataResolver: { condition: TRUE_CONDITION },
       components: [ifTrueComponentDef, ifFalseComponentDef],
     })[0] as ComponentDataCondition;
 
-    component.setIfFalseComponents(newIfFalseComponentDef);
+    component.setIfFalseComponents(newIfFalseComponentDef.components);
     expect(JSON.parse(JSON.stringify(component.getIfFalseContent()))).toEqual(newIfFalseComponentDef);
 
     component.setCondition(FALSE_CONDITION);
