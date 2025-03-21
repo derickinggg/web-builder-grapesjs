@@ -17,18 +17,6 @@ export default class ComponentDataConditionView extends ComponentView<ComponentD
     });
   }
 
-  getOutputContent() {
-    return this.model.getOutputContent();
-  }
-
-  getIfTrueContent() {
-    return this.model.getIfTrueContent();
-  }
-
-  getIfFalseContent() {
-    return this.model.getIfFalseContent();
-  }
-
   renderDataResolver() {
     const componentTrue = this.model.getIfTrueContent();
     const componentFalse = this.model.getIfFalseContent();
