@@ -1,10 +1,5 @@
-import { bindAll } from 'underscore';
 import ComponentView from '../../dom_components/view/ComponentView';
 import ComponentDataCondition from '../model/conditional_variables/ComponentDataCondition';
-import {
-  DataConditionEvaluationChangedEvent,
-  DataConditionOutputChangedEvent,
-} from '../model/conditional_variables/DataCondition';
 import DataResolverListener from '../model/DataResolverListener';
 
 export default class ComponentDataConditionView extends ComponentView<ComponentDataCondition> {
@@ -13,11 +8,12 @@ export default class ComponentDataConditionView extends ComponentView<ComponentD
   initialize(opt = {}) {
     super.initialize(opt);
 
-    this.listenTo(this.model.components(), 'reset', this.postRender.bind(this));
+    this.postRender = this.postRender.bind(this);
+    this.listenTo(this.model.components(), 'reset', this.postRender);
     this.dataResolverListener = new DataResolverListener({
       em: this.em,
       resolver: this.model.dataResolver,
-      onUpdate: this.postRender.bind(this),
+      onUpdate: this.postRender,
     });
   }
 
@@ -55,7 +51,7 @@ export default class ComponentDataConditionView extends ComponentView<ComponentD
   }
 
   remove() {
-    this.stopListening(this.model.components(), 'reset', this.postRender.bind(this));
+    this.stopListening(this.model.components(), 'reset', this.postRender);
     this.dataResolverListener.destroy();
     return super.remove();
   }
