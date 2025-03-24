@@ -61,9 +61,6 @@ const config: () => CommandsConfig = () => ({
     'core:component-drag': {
       run: (options: CommandOptions) => ({
         ...options,
-        customElements: {
-          guideIndicator: false,
-        },
         // addStyle: ({ componentView, matchedEl }) => {
         //   // TODO: test if you can conver to percentage
         //   // componentView.setStyle({ opacity: 0.5 });

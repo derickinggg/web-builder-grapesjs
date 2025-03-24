@@ -502,9 +502,7 @@ export default {
         guideInfoStyle[isY ? 'top' : 'left'] = pos2;
         guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
         guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-        // TODO: this is the way to display the percentage?
-        const showPercentages = this.opts?.addStyle?.()?.showPercentages;
-        elGuideInfoCnt.innerHTML = showPercentages ? `${Math.round(sizePercent)}%` : `${Math.round(sizeRaw)}px`;
+        elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
 
         guideNearElement = {
           guide: item,

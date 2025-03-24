@@ -388,7 +388,6 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
       const id = command.id as string;
       const editor = em.Editor;
 
-      // TODO: add test
       if (!this.isActive(id) || options.force || !config.strict) {
         const defaultOptionsRunFn = config.defaultOptions?.[id]?.run;
         isFunction(defaultOptionsRunFn) && (options = defaultOptionsRunFn(options));

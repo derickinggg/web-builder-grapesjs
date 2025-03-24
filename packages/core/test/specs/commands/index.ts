@@ -94,5 +94,52 @@ describe('Commands', () => {
       expect(obj.isActive(commName)).toBe(false);
       expect(Object.keys(obj.getActive()).length).toBe(0);
     });
+
+    test('Run command with and without default options', () => {
+      const defaultOptions = { test: 'default' };
+      const options = { test: 'custom' };
+      const command = { run: jest.fn(), stop: jest.fn() };
+      obj.add(commName, command);
+      em.config.commands = {
+        defaultOptions: {
+          [commName]: {
+            run: (opts) => ({ ...opts, ...defaultOptions }),
+          },
+        },
+      };
+
+      // Test run command with default options
+      obj.run(commName, options);
+      expect(command.run).toHaveBeenCalledWith(em, { ...options, ...defaultOptions });
+
+      // Test run command without default options
+      em.config.commands.defaultOptions![commName].run = undefined;
+      obj.run(commName, options);
+      expect(command.run).toHaveBeenCalledWith(em, options);
+    });
+
+    test('Stop command with and without default options', () => {
+      const defaultOptions = { test: 'default' };
+      const options = { test: 'custom' };
+      const command = { run: jest.fn(), stop: jest.fn() };
+      obj.add(commName, command);
+      em.config.commands = {
+        defaultOptions: {
+          [commName]: {
+            stop: (opts) => ({ ...opts, ...defaultOptions }),
+          },
+        },
+      };
+
+      // Test stop command with default options
+      obj.run(commName, options);
+      obj.stop(commName, options);
+      expect(command.stop).toHaveBeenCalledWith(em, { ...options, ...defaultOptions });
+
+      // Test stop command without default options
+      em.config.commands.defaultOptions![commName].stop = undefined;
+      obj.stop(commName, options);
+      expect(command.stop).toHaveBeenCalledWith(em, options);
+    });
   });
 });
