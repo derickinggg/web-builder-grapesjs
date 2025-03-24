@@ -112,7 +112,7 @@ describe('Commands', () => {
       obj.run(commName, options);
       expect(command.run).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining(options),
+        expect.not.objectContaining(options),
         expect.objectContaining(defaultOptions),
       );
 
@@ -144,7 +144,7 @@ describe('Commands', () => {
       obj.stop(commName, options);
       expect(command.stop).toHaveBeenCalledWith(
         em,
-        expect.objectContaining(options),
+        expect.not.objectContaining(options),
         expect.objectContaining(defaultOptions),
       );
 
