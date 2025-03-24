@@ -4,7 +4,6 @@ import type { CommandObject } from './CommandAbstract';
 import type Editor from '../../editor';
 import type Component from '../../dom_components/model/Component';
 import type EditorModel from '../../editor/model/Editor';
-import { CanvasSpotBuiltInTypes } from '../../canvas/model/CanvasSpot';
 
 type Rect = { left: number; width: number; top: number; height: number };
 type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
@@ -33,6 +32,17 @@ type Opts = {
   onDrag?: (data: any) => Editor;
   onEnd?: (ev: Event, opt: any, data: any) => void;
   addStyle?: () => Record<string, unknown>;
+};
+
+// TODO: should we export this type? and if so, we should create 1 type for every event?
+export type DragEventProps = {
+  coords?: { x: number; y: number };
+  matchedEl?: Component;
+  lastMatchedEl?: Component;
+  elGuideInfo?: HTMLElement;
+  elGuideInfoCnt?: HTMLElement;
+  size?: number;
+  sizePercent?: number;
 };
 
 const evName = 'dmode';
@@ -73,6 +83,7 @@ export default {
     this.guidesContainer = this.getGuidesContainer();
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
+    this.lastMatchedEl = null;
     let drg = this.dragger;
 
     if (!drg) {
@@ -380,20 +391,13 @@ export default {
       });
     }
 
-    this.editor.trigger(`${evName}:drag:start`, {
-      coords: { x: 0, y: 0 }, // TODO: pass the real coords
-      targetEl: event.target,
-    });
+    const dragStartProps: DragEventProps = { matchedEl: target };
 
-    this.em.Canvas.addSpot({
-      type: CanvasSpotBuiltInTypes.Drag,
-      component: target,
-      componentView: target.view,
-    });
+    this.editor.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
   onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
-    const { guidesTarget, opts } = this;
+    const { guidesTarget, lastMatchedEl, opts } = this;
     let guideNearElements = [];
 
     this.updateGuides(guidesTarget);
@@ -404,37 +408,37 @@ export default {
     const { x, y } = mouseEvent;
     const guideNearElement = guideNearElements[0] ?? {};
     const { size, sizePercent, matched, elGuideInfo, elGuideInfoCnt } = guideNearElement;
-    const matchedEl = matched?.origin;
-    // TODO: revisit event props
-    this.editor.trigger(`${evName}:drag:move`, {
+    let matchedEl = undefined;
+
+    if (matched?.origin) {
+      matchedEl = matched.origin;
+      if (matchedEl !== lastMatchedEl) this.lastMatchedEl = matchedEl;
+    }
+
+    const dragMoveProps: DragEventProps = {
       coords: { x, y },
       matchedEl,
+      lastMatchedEl,
       elGuideInfo,
       elGuideInfoCnt,
       size,
       sizePercent,
-    });
+    };
 
-    // TODO: add the spot to the canvas to show the origin?
-    // if (matchedEl) {
-    //  this.em.Canvas.addSpot({
-    //    type: CanvasSpotBuiltInTypes.Drag,
-    //  });
-    // }
+    this.editor.trigger(`${evName}:drag:move`, dragMoveProps);
   },
 
   onEnd(ev: Event, _dragger: Dragger, opt = {}) {
-    const { editor, opts, id } = this;
+    const { editor, opts, id, lastMatchedEl } = this;
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
 
     this.em.trigger(`${evName}:end`, this.getEventOpts());
-    this.em.trigger(`${evName}:drag:end`, undefined);
-    this.em.Canvas.removeSpots({
-      type: CanvasSpotBuiltInTypes.Drag,
-      component: this.target,
-    });
+
+    const dragEndProps: DragEventProps = { lastMatchedEl };
+
+    this.em.trigger(`${evName}:drag:end`, dragEndProps);
   },
 
   hideGuidesInfo() {
