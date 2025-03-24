@@ -4,6 +4,8 @@ import type { CommandObject } from './CommandAbstract';
 import type Editor from '../../editor';
 import type Component from '../../dom_components/model/Component';
 import type EditorModel from '../../editor/model/Editor';
+import { getComponentView } from '../../utils/mixins';
+import ComponentView from '../../dom_components/view/ComponentView';
 
 type Rect = { left: number; width: number; top: number; height: number };
 type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
@@ -37,8 +39,10 @@ type Opts = {
 // TODO: should we export this type? and if so, we should create 1 type for every event?
 export type DragEventProps = {
   coords?: { x: number; y: number };
-  matchedEl?: Component;
-  lastMatchedEl?: Component;
+  matchedComponent?: Component;
+  matchedComponentView?: ComponentView;
+  lastMatchedComponent?: Component;
+  // TODO: draft
   elGuideInfo?: HTMLElement;
   elGuideInfoCnt?: HTMLElement;
   size?: number;
@@ -83,7 +87,7 @@ export default {
     this.guidesContainer = this.getGuidesContainer();
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
-    this.lastMatchedEl = null;
+    this.lastMatchedComponent = null;
     let drg = this.dragger;
 
     if (!drg) {
@@ -391,13 +395,13 @@ export default {
       });
     }
 
-    const dragStartProps: DragEventProps = { matchedEl: target };
+    const dragStartProps: DragEventProps = { matchedComponent: target };
 
     this.editor.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
   onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
-    const { guidesTarget, lastMatchedEl, opts } = this;
+    const { guidesTarget, lastMatchedComponent, opts } = this;
     let guideNearElements = [];
 
     this.updateGuides(guidesTarget);
@@ -408,17 +412,20 @@ export default {
     const { x, y } = mouseEvent;
     const guideNearElement = guideNearElements[0] ?? {};
     const { size, sizePercent, matched, elGuideInfo, elGuideInfoCnt } = guideNearElement;
-    let matchedEl = undefined;
+    let matchedComponent = undefined;
+    let matchedComponentView = undefined;
 
     if (matched?.origin) {
-      matchedEl = matched.origin;
-      if (matchedEl !== lastMatchedEl) this.lastMatchedEl = matchedEl;
+      matchedComponent = matched.origin;
+      matchedComponentView = getComponentView(matchedComponent);
+      if (matchedComponent !== lastMatchedComponent) this.lastMatchedComponent = matchedComponent;
     }
 
     const dragMoveProps: DragEventProps = {
       coords: { x, y },
-      matchedEl,
-      lastMatchedEl,
+      matchedComponent,
+      matchedComponentView,
+      lastMatchedComponent,
       elGuideInfo,
       elGuideInfoCnt,
       size,
@@ -429,14 +436,14 @@ export default {
   },
 
   onEnd(ev: Event, _dragger: Dragger, opt = {}) {
-    const { editor, opts, id, lastMatchedEl } = this;
+    const { editor, opts, id, lastMatchedComponent } = this;
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
 
     this.em.trigger(`${evName}:end`, this.getEventOpts());
 
-    const dragEndProps: DragEventProps = { lastMatchedEl };
+    const dragEndProps: DragEventProps = { lastMatchedComponent };
 
     this.em.trigger(`${evName}:drag:end`, dragEndProps);
   },
