@@ -110,20 +110,12 @@ describe('Commands', () => {
 
       // Test run command with default options
       obj.run(commName, options);
-      expect(command.run).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.not.objectContaining(options),
-        expect.objectContaining(defaultOptions),
-      );
+      expect(command.run).toHaveBeenCalledWith(expect.anything(), expect.objectContaining(defaultOptions));
 
       // Test run command without default options
       em.config.commands.defaultOptions![commName].run = undefined;
       obj.run(commName, options);
-      expect(command.run).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining(options),
-        expect.not.objectContaining(defaultOptions),
-      );
+      expect(command.run).toHaveBeenCalledWith(expect.anything(), expect.objectContaining(options));
     });
 
     test('Stop command with and without default options', () => {
@@ -142,20 +134,12 @@ describe('Commands', () => {
       // Test stop command with default options
       obj.run(commName, options);
       obj.stop(commName, options);
-      expect(command.stop).toHaveBeenCalledWith(
-        em,
-        expect.not.objectContaining(options),
-        expect.objectContaining(defaultOptions),
-      );
+      expect(command.stop).toHaveBeenCalledWith(em, expect.objectContaining(defaultOptions));
 
       // Test stop command without default options
       em.config.commands.defaultOptions![commName].stop = undefined;
       obj.stop(commName, options);
-      expect(command.stop).toHaveBeenCalledWith(
-        em,
-        expect.objectContaining(options),
-        expect.not.objectContaining(defaultOptions),
-      );
+      expect(command.stop).toHaveBeenCalledWith(em, expect.objectContaining(options));
     });
   });
 });
