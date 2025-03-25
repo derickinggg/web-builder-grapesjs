@@ -41,13 +41,10 @@ export type DragEventProps = {
   coords?: { x: number; y: number };
   originComponent?: Component;
   originComponentView?: ComponentView;
+  originGuides?: any;
   matchedComponent?: Component;
   matchedComponentView?: ComponentView;
-  // TODO: draft
-  elGuideInfo?: HTMLElement;
-  elGuideInfoCnt?: HTMLElement;
-  size?: number;
-  sizePercent?: number;
+  matchedGuides?: any;
 };
 
 const evName = 'dmode';
@@ -355,7 +352,7 @@ export default {
   },
 
   onStart(event: Event) {
-    const { target, editor, isTran, opts } = this;
+    const { target, editor, isTran, opts, guidesTarget } = this;
     const { Canvas } = editor;
     const style = target.getStyle();
     const position = 'absolute';
@@ -395,43 +392,41 @@ export default {
       });
     }
 
-    const dragStartProps: DragEventProps = { originComponent: target, originComponentView: getComponentView(target) };
+    const originComponent = target;
+    const originComponentView = getComponentView(originComponent);
+    const guidesTargetActive = guidesTarget;
+    const originGuides = this.renderGuideInfo(guidesTargetActive);
 
-    // TODO: send the guides
+    const dragStartProps: DragEventProps = {
+      originComponent,
+      originComponentView,
+      originGuides,
+    };
+
     this.editor.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
   onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
     const { guidesTarget, opts } = this;
-    let guideNearElements = [];
+    let matchedGuides = [];
+    const guidesTargetActive = guidesTarget.filter((item: any) => item.active) ?? [];
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
-    opts?.guidesInfo && (guideNearElements = this.renderGuideInfo(guidesTarget.filter((item: any) => item.active)));
+    opts?.guidesInfo && (matchedGuides = this.renderGuideInfo(guidesTargetActive));
     opts?.onDrag && opts.onDrag(this._getDragData());
 
     const { x, y } = mouseEvent;
-    const guideNearElement = guideNearElements[0] ?? {};
-    const { size, sizePercent, matched, elGuideInfo, elGuideInfoCnt } = guideNearElement;
-    let matchedComponent = undefined;
-    let matchedComponentView = undefined;
-
-    if (matched?.origin) {
-      matchedComponent = matched.origin;
-      matchedComponentView = getComponentView(matchedComponent);
-    }
+    let matchedComponent = matchedGuides[0]?.matched.origin;
+    let matchedComponentView = getComponentView(matchedComponent);
 
     const dragMoveProps: DragEventProps = {
       coords: { x, y },
       matchedComponent,
       matchedComponentView,
-      elGuideInfo,
-      elGuideInfoCnt,
-      size,
-      sizePercent,
+      matchedGuides,
     };
 
-    // TODO: send the matched guides
     this.editor.trigger(`${evName}:drag:move`, dragMoveProps);
   },
 
@@ -459,7 +454,7 @@ export default {
   renderGuideInfo(guides: Guide[] = []) {
     const { guidesStatic } = this;
     this.hideGuidesInfo();
-    return guides.map((item) => {
+    const guidesData = guides.map((item) => {
       const { origin, x } = item;
       const rectOrigin = this.getElementPos(origin);
       const axis = isUndefined(x) ? 'y' : 'x';
@@ -530,6 +525,8 @@ export default {
 
       return guideNearElement;
     });
+
+    return guidesData.filter(Boolean);
   },
 
   toggleDrag(enable: boolean) {
