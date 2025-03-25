@@ -39,9 +39,10 @@ type Opts = {
 // TODO: should we export this type? and if so, we should create 1 type for every event?
 export type DragEventProps = {
   coords?: { x: number; y: number };
+  originComponent?: Component;
+  originComponentView?: ComponentView;
   matchedComponent?: Component;
   matchedComponentView?: ComponentView;
-  lastMatchedComponent?: Component;
   // TODO: draft
   elGuideInfo?: HTMLElement;
   elGuideInfoCnt?: HTMLElement;
@@ -87,7 +88,6 @@ export default {
     this.guidesContainer = this.getGuidesContainer();
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
-    this.lastMatchedComponent = null;
     let drg = this.dragger;
 
     if (!drg) {
@@ -395,13 +395,14 @@ export default {
       });
     }
 
-    const dragStartProps: DragEventProps = { matchedComponent: target };
+    const dragStartProps: DragEventProps = { originComponent: target, originComponentView: getComponentView(target) };
 
+    // TODO: send the guides
     this.editor.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
   onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
-    const { guidesTarget, lastMatchedComponent, opts } = this;
+    const { guidesTarget, opts } = this;
     let guideNearElements = [];
 
     this.updateGuides(guidesTarget);
@@ -418,34 +419,31 @@ export default {
     if (matched?.origin) {
       matchedComponent = matched.origin;
       matchedComponentView = getComponentView(matchedComponent);
-      if (matchedComponent !== lastMatchedComponent) this.lastMatchedComponent = matchedComponent;
     }
 
     const dragMoveProps: DragEventProps = {
       coords: { x, y },
       matchedComponent,
       matchedComponentView,
-      lastMatchedComponent,
       elGuideInfo,
       elGuideInfoCnt,
       size,
       sizePercent,
     };
 
+    // TODO: send the matched guides
     this.editor.trigger(`${evName}:drag:move`, dragMoveProps);
   },
 
   onEnd(ev: Event, _dragger: Dragger, opt = {}) {
-    const { editor, opts, id, lastMatchedComponent } = this;
+    const { editor, opts, id } = this;
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
     editor.stopCommand(id);
     this.hideGuidesInfo();
 
     this.em.trigger(`${evName}:end`, this.getEventOpts());
 
-    const dragEndProps: DragEventProps = { lastMatchedComponent };
-
-    this.em.trigger(`${evName}:drag:end`, dragEndProps);
+    this.em.trigger(`${evName}:drag:end`, undefined);
   },
 
   hideGuidesInfo() {
