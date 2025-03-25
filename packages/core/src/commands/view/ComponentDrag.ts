@@ -4,8 +4,8 @@ import type { CommandObject } from './CommandAbstract';
 import type Editor from '../../editor';
 import type Component from '../../dom_components/model/Component';
 import type EditorModel from '../../editor/model/Editor';
-import { getComponentView } from '../../utils/mixins';
-import ComponentView from '../../dom_components/view/ComponentView';
+import { getComponentModel, getComponentView } from '../../utils/mixins';
+import type ComponentView from '../../dom_components/view/ComponentView';
 
 type Rect = { left: number; width: number; top: number; height: number };
 type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
@@ -38,13 +38,12 @@ type Opts = {
 
 // TODO: should we export this type? and if so, we should create 1 type for every event?
 export type DragEventProps = {
-  coords?: { x: number; y: number };
   originComponent?: Component;
   originComponentView?: ComponentView;
   originGuides?: any;
   matchedComponent?: Component;
   matchedComponentView?: ComponentView;
-  matchedGuides?: any;
+  matchedGuides?: any; // TODO: type this
 };
 
 const evName = 'dmode';
@@ -130,7 +129,6 @@ export default {
       const pfx = editor.getConfig().stylePrefix;
       const elInfoX = document.createElement('div');
       const elInfoY = document.createElement('div');
-
       const guideContent = `<div class="${pfx}guide-info__line ${pfx}danger-bg">
         <div class="${pfx}guide-info__content ${pfx}danger-color"></div>
       </div>`;
@@ -220,7 +218,6 @@ export default {
     const un = 'px';
     const guideSize = item.active ? 2 : 1;
     let numEl = el.children[0];
-
     el.style = `position: absolute; background-color: ${item.active ? 'green' : 'red'};`;
 
     if (!el.children.length) {
@@ -394,8 +391,7 @@ export default {
 
     const originComponent = target;
     const originComponentView = getComponentView(originComponent);
-    const guidesTargetActive = guidesTarget;
-    const originGuides = this.renderGuideInfo(guidesTargetActive);
+    const originGuides = this.renderGuideInfo(guidesTarget);
 
     const dragStartProps: DragEventProps = {
       originComponent,
@@ -417,11 +413,11 @@ export default {
     opts?.onDrag && opts.onDrag(this._getDragData());
 
     const { x, y } = mouseEvent;
-    let matchedComponent = matchedGuides[0]?.matched.origin;
-    let matchedComponentView = getComponentView(matchedComponent);
+    const matchedComponentEl = matchedGuides[0]?.matched.origin;
+    let matchedComponent = getComponentModel(matchedComponentEl);
+    let matchedComponentView = getComponentView(matchedComponentEl);
 
     const dragMoveProps: DragEventProps = {
-      coords: { x, y },
       matchedComponent,
       matchedComponentView,
       matchedGuides,

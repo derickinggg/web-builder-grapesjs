@@ -57,17 +57,7 @@ const config: () => CommandsConfig = () => ({
   stylePrefix: 'com-',
   defaults: {},
   strict: true,
-  defaultOptions: {
-    'core:component-drag': {
-      run: (options: CommandOptions) => ({
-        ...options,
-        // addStyle: ({ componentView, matchedEl }) => {
-        //   // TODO: test if you can conver to percentage
-        //   // componentView.setStyle({ opacity: 0.5 });
-        // },
-      }),
-    },
-  },
+  defaultOptions: {},
 });
 
 export default config;
