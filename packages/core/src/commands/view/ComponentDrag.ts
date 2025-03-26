@@ -54,6 +54,8 @@ export default {
     }
 
     opts.event && drg.start(opts.event);
+    // TODO: check this
+    opts.addStyle?.({ component: this.target, styles: {}, partial: false });
     this.toggleDrag(true);
     this.em.trigger(`${evName}:start`, this.getEventOpts());
 
@@ -591,7 +593,7 @@ type ComponentDragOpts = {
   mode?: 'absolute' | 'translate';
   target?: Component;
   skipGuidesRender?: boolean;
-  addStyle?: () => Record<string, unknown>;
+  addStyle?: (data: { component?: Component; styles?: Record<string, unknown>; partial?: boolean }) => void;
   onDrag?: (data: any) => Editor; // TODO: fix any
   onEnd?: (ev: Event, opt: any, data: any) => void; // TODO: fix any
   onStart?: (data: any) => Editor; // TODO: fix any
