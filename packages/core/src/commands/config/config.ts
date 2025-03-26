@@ -1,5 +1,3 @@
-import type Component from '../../dom_components/model/Component';
-import type EditorModel from '../../editor/model/Editor';
 import type { CommandObject, CommandOptions } from '../view/CommandAbstract';
 
 interface CommandConfigDefaultOptions {
@@ -37,14 +35,16 @@ export interface CommandsConfig {
    *  'core:component-drag': {
    *    run: (options: Record<string, unknown>) => ({
    *      ...options,
-   *      addStyle: ({ target }: { target: Component }) => {
-   *        target.addStyle({ opacity: 0.5 });
+   *      skipGuidesRender: true,
+   *      addStyle({ component, styles, partial }) {
+   *        component.addStyle(styles, { partial });
    *      },
    *     }),
    *    stop: (options: Record<string, unknown>) => ({
    *      ...options,
-   *      addStyle: ({ target }: { target: Component }) => {
-   *        target.addStyle({ opacity: 1 });
+   * *     skipGuidesRender: true,
+   *      addStyle({ component, styles, partial }) {
+   *        component.addStyle(styles, { partial });
    *      },
    *    }),
    *  }
@@ -57,7 +57,18 @@ const config: () => CommandsConfig = () => ({
   stylePrefix: 'com-',
   defaults: {},
   strict: true,
-  defaultOptions: {},
+  defaultOptions: {
+    'core:component-drag': {
+      run: (options: CommandOptions) => ({
+        ...options,
+        // skipGuidesRender: true,
+        // debug: true,
+        // addStyle({ component, styles, partial }) {
+        //   component.addStyle(styles, { partial });
+        // },
+      }),
+    },
+  },
 });
 
 export default config;

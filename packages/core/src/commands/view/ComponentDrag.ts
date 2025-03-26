@@ -182,6 +182,7 @@ export default {
   },
 
   renderGuide(item) {
+    if (this.opts?.skipGuidesRender) return;
     const el = item.guide ?? document.createElement('div');
     const un = 'px';
     const guideSize = item.active ? 2 : 1;
@@ -399,7 +400,7 @@ export default {
 
   onDrag() {
     const { guidesTarget, opts } = this;
-    let matchedGuides: GuideMatched[] = [];
+    let matchedGuides: MatchedGuide[] = [];
     const guidesTargetActive = guidesTarget?.filter((item) => item.active) ?? [];
 
     this.updateGuides(guidesTarget);
@@ -442,6 +443,7 @@ export default {
   /**
    * Render guides with spacing information
    */
+  // TODO: consider splitting this method into getMatchedGuides and renderGuideInfo
   renderGuideInfo(guides = []) {
     const { guidesStatic } = this;
     this.hideGuidesInfo();
@@ -458,7 +460,7 @@ export default {
       const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey];
       const guideInfoStyle = elGuideInfo?.style;
 
-      let guideMatched: GuideMatched | null = null;
+      let guideMatched: MatchedGuide | null = null;
 
       // Find the nearest element
       const matched = guidesStatic
@@ -490,14 +492,17 @@ export default {
         const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
         const sizePercent = (sizeRaw / (isY ? matched.originRect.height : matched.originRect.width)) * 100; // TODO: fix calculation
 
-        if (guideInfoStyle) {
-          guideInfoStyle.display = '';
-          guideInfoStyle[isY ? 'top' : 'left'] = pos2;
-          guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
-          guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-        }
-        if (elGuideInfoCnt) {
-          elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+        // INFO: skip rendering the guide info if the option is set
+        if (!this?.opts?.skipGuidesRender) {
+          if (guideInfoStyle) {
+            guideInfoStyle.display = '';
+            guideInfoStyle[isY ? 'top' : 'left'] = pos2;
+            guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
+            guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
+          }
+          if (elGuideInfoCnt) {
+            elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+          }
         }
 
         guideMatched = {
@@ -522,7 +527,7 @@ export default {
       return guideMatched;
     });
 
-    return guidesData.filter(Boolean) as GuideMatched[];
+    return guidesData.filter(Boolean) as MatchedGuide[];
   },
 
   toggleDrag(enable) {
@@ -573,7 +578,7 @@ interface ComponentDragProps {
   onDrag: DraggerOptions['onDrag'];
   onEnd: DraggerOptions['onEnd'];
   hideGuidesInfo: () => void;
-  renderGuideInfo: (guides?: Guide[]) => GuideMatched[];
+  renderGuideInfo: (guides?: Guide[]) => MatchedGuide[];
   toggleDrag: (enable?: boolean) => void;
 }
 
@@ -585,6 +590,7 @@ type ComponentDragOpts = {
   guidesInfo?: number;
   mode?: 'absolute' | 'translate';
   target?: Component;
+  skipGuidesRender?: boolean;
   addStyle?: () => Record<string, unknown>;
   onDrag?: (data: any) => Editor; // TODO: fix any
   onEnd?: (ev: Event, opt: any, data: any) => void; // TODO: fix any
@@ -606,7 +612,7 @@ type Guide = {
   active?: boolean; // TODO: is this used?
 };
 
-type GuideMatched = {
+type MatchedGuide = {
   guide: Guide;
   guidesStatic: Guide[];
   matched: Guide;
@@ -628,8 +634,8 @@ type ElGuideInfoContentKey = 'elGuideInfoContentX' | 'elGuideInfoContentY';
 export type DragEventProps = {
   originComponent?: Component;
   originComponentView?: ComponentView;
-  originGuides?: GuideMatched[];
+  originGuides?: MatchedGuide[];
   matchedComponent?: Component;
   matchedComponentView?: ComponentView;
-  matchedGuides?: GuideMatched[];
+  matchedGuides?: MatchedGuide[];
 };
