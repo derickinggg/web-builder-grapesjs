@@ -7,49 +7,10 @@ import type EditorModel from '../../editor/model/Editor';
 import { getComponentModel, getComponentView } from '../../utils/mixins';
 import type ComponentView from '../../dom_components/view/ComponentView';
 
-type Rect = { left: number; width: number; top: number; height: number };
-type OrigRect = { left: number; width: number; top: number; height: number; rect: Rect };
-
-type Guide = {
-  type: string;
-  y: number;
-  x: number;
-  origin: HTMLElement;
-  originRect: OrigRect;
-  guide: HTMLElement;
-};
-
-// TODO: check if all types are correct
-type Opts = {
-  center?: number;
-  debug?: boolean;
-  dragger?: DraggerOptions;
-  editor?: Editor;
-  em?: EditorModel;
-  event?: Event | DragEvent;
-  guidesInfo?: number;
-  mode?: 'absolute' | 'translate';
-  target?: Component;
-  onStart?: (data: any) => Editor;
-  onDrag?: (data: any) => Editor;
-  onEnd?: (ev: Event, opt: any, data: any) => void;
-  addStyle?: () => Record<string, unknown>;
-};
-
-// TODO: should we export this type? and if so, we should create 1 type for every event?
-export type DragEventProps = {
-  originComponent?: Component;
-  originComponentView?: ComponentView;
-  originGuides?: any;
-  matchedComponent?: Component;
-  matchedComponentView?: ComponentView;
-  matchedGuides?: any; // TODO: type this
-};
-
 const evName = 'dmode';
 
 export default {
-  run(editor, sender, opts = {}) {
+  run(editor, _sender, opts = {}) {
     bindAll(
       this,
       'setPosition',
@@ -61,11 +22,9 @@ export default {
       'renderGuide',
       'getGuidesTarget',
     );
-    const { target, event, mode, dragger = {} } = opts as Opts;
 
-    const el = target?.getEl();
     const config = {
-      doc: el?.ownerDocument,
+      doc: opts.target?.getEl()?.ownerDocument,
       onStart: this.onStart,
       onEnd: this.onEnd,
       onDrag: this.onDrag,
@@ -73,17 +32,18 @@ export default {
       setPosition: this.setPosition,
       guidesStatic: () => this.guidesStatic ?? [],
       guidesTarget: () => this.guidesTarget ?? [],
-      ...dragger,
+      ...(opts.dragger ?? {}),
     };
     this.setupGuides();
     this.opts = opts;
     this.editor = editor;
     this.em = editor.getModel();
-    this.target = target;
-    this.isTran = mode == 'translate';
+    this.target = opts.target;
+    this.isTran = opts.mode == 'translate';
     this.guidesContainer = this.getGuidesContainer();
     this.guidesTarget = this.getGuidesTarget();
     this.guidesStatic = this.getGuidesStatic();
+
     let drg = this.dragger;
 
     if (!drg) {
@@ -93,8 +53,8 @@ export default {
       drg.setOptions(config);
     }
 
-    event && drg.start(event);
-    this.toggleDrag(1);
+    opts.event && drg.start(opts.event);
+    this.toggleDrag(true);
     this.em.trigger(`${evName}:start`, this.getEventOpts());
 
     return drg;
@@ -114,9 +74,9 @@ export default {
   },
 
   setupGuides() {
-    (this.guides || []).forEach((item: any) => {
+    (this.guides ?? []).forEach((item) => {
       const { guide } = item;
-      guide && guide.parentNode.removeChild(guide);
+      guide?.parentNode?.removeChild(guide);
     });
     this.guides = [];
   },
@@ -126,7 +86,7 @@ export default {
 
     if (!guidesEl) {
       const { editor, em, opts } = this;
-      const pfx = editor.getConfig().stylePrefix;
+      const pfx = editor!.getConfig().stylePrefix ?? '';
       const elInfoX = document.createElement('div');
       const elInfoY = document.createElement('div');
       const guideContent = `<div class="${pfx}guide-info__line ${pfx}danger-bg">
@@ -140,18 +100,18 @@ export default {
       elInfoY.innerHTML = guideContent;
       guidesEl.appendChild(elInfoX);
       guidesEl.appendChild(elInfoY);
-      editor.Canvas.getGlobalToolsEl().appendChild(guidesEl);
+      editor!.Canvas.getGlobalToolsEl()?.appendChild(guidesEl);
       this.guidesEl = guidesEl;
       this.elGuideInfoX = elInfoX;
       this.elGuideInfoY = elInfoY;
-      this.elGuideInfoContentX = elInfoX.querySelector(`.${pfx}guide-info__content`);
-      this.elGuideInfoContentY = elInfoY.querySelector(`.${pfx}guide-info__content`);
+      this.elGuideInfoContentX = elInfoX.querySelector(`.${pfx}guide-info__content`) ?? undefined;
+      this.elGuideInfoContentY = elInfoY.querySelector(`.${pfx}guide-info__content`) ?? undefined;
 
       em.on(
         'canvas:update frame:scroll',
         debounce(() => {
           this.updateGuides();
-          opts?.debug && this.guides?.forEach((item: any) => this.renderGuide(item));
+          opts?.debug && this.guides?.forEach((item) => this.renderGuide(item));
         }, 200),
       );
     }
@@ -160,32 +120,40 @@ export default {
   },
 
   getGuidesStatic() {
-    let result: any = [];
-    const el = this.target.getEl();
-    const { parentNode = {} } = el;
-    each(parentNode.children, (item) => (result = result.concat(el !== item ? this.getElementGuides(item) : [])));
+    let result: Guide[] = [];
+    const el = this.target?.getEl();
+    const parentNode = el?.parentElement;
+    if (!parentNode) return [];
+    each(
+      parentNode.children,
+      (item) => (result = result.concat(el !== item ? this.getElementGuides(item as HTMLElement) : [])),
+    );
 
     return result.concat(this.getElementGuides(parentNode));
   },
 
   getGuidesTarget() {
-    return this.getElementGuides(this.target.getEl());
+    const targetEl = this.target?.getEl();
+    if (!targetEl) return [];
+    return this.getElementGuides(targetEl);
   },
 
-  updateGuides(guides: any) {
-    let lastEl: any;
-    let lastPos: any;
-    (guides || this.guides).forEach((item: any) => {
+  updateGuides(guides) {
+    let lastEl: HTMLElement;
+    let lastPos: ComponentOrigRect;
+    const guidesToUpdate = guides ?? this.guides ?? [];
+    guidesToUpdate.forEach((item) => {
       const { origin } = item;
       const pos = lastEl === origin ? lastPos : this.getElementPos(origin);
       lastEl = origin;
       lastPos = pos;
+      // @ts-expect-error // TODO: this type
       each(this.getGuidePosUpdate(item, pos), (val, key) => (item[key] = val));
       item.originRect = pos;
     });
   },
 
-  getGuidePosUpdate(item: any, rect: any) {
+  getGuidePosUpdate(item, rect) {
     const result: { x?: number; y?: number } = {};
     const { top, height, left, width } = rect;
 
@@ -213,16 +181,16 @@ export default {
     return result;
   },
 
-  renderGuide(item: any = {}) {
-    const el = item.guide || document.createElement('div');
+  renderGuide(item) {
+    const el = item.guide ?? document.createElement('div');
     const un = 'px';
     const guideSize = item.active ? 2 : 1;
-    let numEl = el.children[0];
-    el.style = `position: absolute; background-color: ${item.active ? 'green' : 'red'};`;
+
+    el.style.cssText = `position: absolute; background-color: ${item.active ? 'green' : 'red'};`;
 
     if (!el.children.length) {
-      numEl = document.createElement('div');
-      numEl.style = 'position: absolute; color: red; padding: 5px; top: 0; left: 0;';
+      const numEl = document.createElement('div');
+      numEl.style.cssText = 'position: absolute; color: red; padding: 5px; top: 0; left: 0;';
       el.appendChild(numEl);
     }
 
@@ -230,7 +198,7 @@ export default {
       el.style.width = '100%';
       el.style.height = `${guideSize}${un}`;
       el.style.top = `${item.y}${un}`;
-      el.style.left = 0;
+      el.style.left = '0';
     } else {
       el.style.width = `${guideSize}${un}`;
       el.style.height = '100%';
@@ -238,38 +206,53 @@ export default {
       el.style.top = `0${un}`;
     }
 
-    !item.guide && this.guidesContainer.appendChild(el);
+    !item.guide && this.guidesContainer?.appendChild(el);
     return el;
   },
 
-  getElementPos(el: HTMLElement) {
-    return this.editor.Canvas.getElementPos(el, { noScroll: 1 });
+  getElementPos(el) {
+    return this.editor!.Canvas.getElementPos(el, { noScroll: 1 });
   },
 
-  getElementGuides(el: HTMLElement) {
+  getElementGuides(el) {
     const { opts } = this;
+    const origin = el;
     const originRect = this.getElementPos(el);
+    const component = getComponentModel(el);
+    const componentView = getComponentView(el);
+
     const { top, height, left, width } = originRect;
-    // @ts-ignore
-    const guides: Guide[] = [
+    const guidePoints: { type: string; x?: number; y?: number }[] = [
       { type: 't', y: top }, // Top
       { type: 'b', y: top + height }, // Bottom
       { type: 'l', x: left }, // Left
       { type: 'r', x: left + width }, // Right
       { type: 'x', x: left + width / 2 }, // Mid x
       { type: 'y', y: top + height / 2 }, // Mid y
-    ].map((item) => ({
-      ...item,
-      origin: el,
-      originRect,
-      guide: opts?.debug && this.renderGuide(item),
-    }));
-    guides.forEach((item) => this.guides?.push(item));
+    ];
+
+    const guides = guidePoints.map((guidePoint) => {
+      const guide = opts?.debug ? this.renderGuide(guidePoint) : undefined;
+      // INFO: origin, originRect, and guide are repeated to don't introduce breaking changes
+      return {
+        ...guidePoint,
+        component,
+        componentView,
+        componentEl: origin,
+        origin,
+        componentElRect: originRect,
+        originRect,
+        guideEl: guide,
+        guide,
+      };
+    }) as Guide[];
+
+    guides.forEach((guidePoint) => this.guides?.push(guidePoint));
 
     return guides;
   },
 
-  getTranslate(transform: string, axis = 'x') {
+  getTranslate(transform, axis = 'x') {
     let result = 0;
     (transform || '').split(' ').forEach((item) => {
       const itemStr = item.trim();
@@ -279,7 +262,7 @@ export default {
     return result;
   },
 
-  setTranslate(transform: string, axis: string, value: string) {
+  setTranslate(transform, axis, value) {
     const fn = `translate${axis.toUpperCase()}(`;
     const val = `${fn}${value})`;
     let result = (transform || '')
@@ -297,31 +280,36 @@ export default {
 
   getPosition() {
     const { target, isTran } = this;
-    const { left, top, transform } = target.getStyle();
+    const targetStyle = target?.getStyle();
+
+    const transform = targetStyle?.transform as string | undefined;
+    const left = targetStyle?.left as string | undefined;
+    const top = targetStyle?.top as string | undefined;
+
     let x = 0;
     let y = 0;
 
-    if (isTran) {
+    if (isTran && transform) {
       x = this.getTranslate(transform);
       y = this.getTranslate(transform, 'y');
     } else {
-      x = parseFloat(left || 0);
-      y = parseFloat(top || 0);
+      x = parseFloat(left ?? '0');
+      y = parseFloat(top ?? '0');
     }
 
     return { x, y };
   },
 
-  setPosition({ x, y, end, position, width, height }: any) {
+  setPosition({ x, y, end, position, width, height }) {
     const { target, isTran, em } = this;
     const unit = 'px';
     const __p = !end; // Indicate if partial change
-    const left = `${parseInt(x, 10)}${unit}`;
-    const top = `${parseInt(y, 10)}${unit}`;
+    const left = `${parseInt(`${x}`, 10)}${unit}`;
+    const top = `${parseInt(`${y}`, 10)}${unit}`;
     let styleUp = {};
 
     if (isTran) {
-      let transform = target.getStyle()['transform'] || '';
+      let transform = (target?.getStyle()?.transform ?? '') as string;
       transform = this.setTranslate(transform, 'x', left);
       transform = this.setTranslate(transform, 'y', top);
       styleUp = { transform, __p };
@@ -335,7 +323,7 @@ export default {
       styleUp = style;
     }
 
-    target.addStyle(styleUp, { avoidStore: !end });
+    target?.addStyle(styleUp, { avoidStore: !end });
     em?.Styles.__emitCmpStyleUpdate(styleUp, { components: em.getSelected() });
   },
 
@@ -343,39 +331,45 @@ export default {
     const { target } = this;
     return {
       target,
-      parent: target.parent(),
-      index: target.index(),
+      parent: target?.parent(),
+      index: target?.index(),
     };
   },
 
-  onStart(event: Event) {
+  onStart(event) {
     const { target, editor, isTran, opts, guidesTarget } = this;
-    const { Canvas } = editor;
-    const style = target.getStyle();
+    const { Canvas } = editor!;
+    const style = target?.getStyle();
     const position = 'absolute';
     const relPos = [position, 'relative'];
     opts?.onStart?.(this._getDragData());
     if (isTran) return;
 
-    if (style.position !== position) {
-      let { left, top, width, height } = Canvas.offset(target.getEl());
-      let parent = target.parent();
+    if (style?.position !== position) {
+      const targetEl = target?.getEl();
+      const offset = targetEl ? Canvas.offset(targetEl) : { left: 0, top: 0, width: 0, height: 0 };
+      let { left, top, width, height } = offset;
+      let parent = target?.parent();
       let parentRel;
 
       // Check for the relative parent
       do {
-        const pStyle = parent.getStyle();
-        parentRel = relPos.indexOf(pStyle.position) >= 0 ? parent : null;
-        parent = parent.parent();
+        const pStyle = parent?.getStyle();
+        const position = pStyle?.position as string | undefined;
+        if (position) {
+          parentRel = relPos.indexOf(position) >= 0 ? parent : null;
+        }
+        parent = parent?.parent();
       } while (parent && !parentRel);
 
       // Center the target to the pointer position (used in Droppable for Blocks)
       if (opts?.center) {
-        const { x, y } = Canvas.getMouseRelativeCanvas(event);
+        const { x, y } = Canvas.getMouseRelativeCanvas(event as MouseEvent);
         left = x;
         top = y;
       } else if (parentRel) {
-        const offsetP = Canvas.offset(parentRel.getEl());
+        const parentRelEl = parentRel.getEl();
+        const offsetP = parentRelEl ? Canvas.offset(parentRelEl) : { left: 0, top: 0, width: 0, height: 0 };
         left = left - offsetP.left;
         top = top - offsetP.top;
       }
@@ -389,8 +383,9 @@ export default {
       });
     }
 
+    // TODO: remove this and move to the drag:start event
     const originComponent = target;
-    const originComponentView = getComponentView(originComponent);
+    const originComponentView = getComponentView(originComponent?.getEl());
     const originGuides = this.renderGuideInfo(guidesTarget);
 
     const dragStartProps: DragEventProps = {
@@ -399,20 +394,19 @@ export default {
       originGuides,
     };
 
-    this.editor.trigger(`${evName}:drag:start`, dragStartProps);
+    this.editor!.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
-  onDrag(mouseEvent: MouseEvent, _dragger: Dragger) {
+  onDrag() {
     const { guidesTarget, opts } = this;
-    let matchedGuides = [];
-    const guidesTargetActive = guidesTarget.filter((item: any) => item.active) ?? [];
+    let matchedGuides: GuideMatched[] = [];
+    const guidesTargetActive = guidesTarget?.filter((item) => item.active) ?? [];
 
     this.updateGuides(guidesTarget);
-    opts?.debug && guidesTarget.forEach((item: any) => this.renderGuide(item));
+    opts?.debug && guidesTarget?.forEach((item) => this.renderGuide(item));
     opts?.guidesInfo && (matchedGuides = this.renderGuideInfo(guidesTargetActive));
-    opts?.onDrag && opts.onDrag(this._getDragData());
+    opts?.onDrag?.(this._getDragData());
 
-    const { x, y } = mouseEvent;
     const matchedComponentEl = matchedGuides[0]?.matched.origin;
     let matchedComponent = getComponentModel(matchedComponentEl);
     let matchedComponentView = getComponentView(matchedComponentEl);
@@ -423,13 +417,14 @@ export default {
       matchedGuides,
     };
 
-    this.editor.trigger(`${evName}:drag:move`, dragMoveProps);
+    // TODO: use the `${evName}:move` event
+    this.editor!.trigger(`${evName}:drag:move`, dragMoveProps);
   },
 
-  onEnd(ev: Event, _dragger: Dragger, opt = {}) {
+  onEnd(ev, _dragger, opt) {
     const { editor, opts, id } = this;
     opts?.onEnd?.(ev, opt, { event: ev, ...opt, ...this._getDragData() });
-    editor.stopCommand(id);
+    editor!.stopCommand(`${id}`);
     this.hideGuidesInfo();
 
     this.em.trigger(`${evName}:end`, this.getEventOpts());
@@ -439,7 +434,7 @@ export default {
 
   hideGuidesInfo() {
     ['X', 'Y'].forEach((item) => {
-      const guide = this[`elGuideInfo${item}`];
+      const guide = this[`elGuideInfo${item}` as ElGuideInfoKey];
       if (guide) guide.style.display = 'none';
     });
   },
@@ -447,7 +442,7 @@ export default {
   /**
    * Render guides with spacing information
    */
-  renderGuideInfo(guides: Guide[] = []) {
+  renderGuideInfo(guides = []) {
     const { guidesStatic } = this;
     this.hideGuidesInfo();
     const guidesData = guides.map((item) => {
@@ -459,14 +454,14 @@ export default {
       const origEdge1Raw = rectOrigin.rect[isY ? 'left' : 'top'];
       const origEdge2 = isY ? origEdge1 + rectOrigin.width : origEdge1 + rectOrigin.height;
       const origEdge2Raw = isY ? origEdge1Raw + rectOrigin.rect.width : origEdge1Raw + rectOrigin.rect.height;
-      const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}`];
-      const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}`];
-      const guideInfoStyle = elGuideInfo.style;
+      const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey];
+      const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey];
+      const guideInfoStyle = elGuideInfo?.style;
 
-      let guideNearElement = null;
+      let guideMatched: GuideMatched | null = null;
 
       // Find the nearest element
-      const res = guidesStatic
+      const matched = guidesStatic
         ?.filter((stat) => stat.type === item.type)
         .map((stat) => {
           const { left, width, top, height } = stat.originRect;
@@ -481,8 +476,8 @@ export default {
         .sort((a, b) => a.gap - b.gap)
         .map((item) => item.guide)[0];
 
-      if (res) {
-        const { left, width, top, height, rect } = res.originRect;
+      if (matched) {
+        const { left, width, top, height, rect } = matched.originRect;
         const isEdge1 = isY ? left < rectOrigin.left : top < rectOrigin.top;
         const statEdge1 = isY ? left : top;
         const statEdge1Raw = isY ? rect.left : rect.top;
@@ -493,17 +488,22 @@ export default {
         const pos2 = `${posFirst}px`;
         const size = isEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2;
         const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
-        const sizePercent = (sizeRaw / (isY ? res.originRect.height : res.originRect.width)) * 100; // TODO: fix calculation
-        guideInfoStyle.display = '';
-        guideInfoStyle[isY ? 'top' : 'left'] = pos2;
-        guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
-        guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-        elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+        const sizePercent = (sizeRaw / (isY ? matched.originRect.height : matched.originRect.width)) * 100; // TODO: fix calculation
 
-        guideNearElement = {
+        if (guideInfoStyle) {
+          guideInfoStyle.display = '';
+          guideInfoStyle[isY ? 'top' : 'left'] = pos2;
+          guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
+          guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
+        }
+        if (elGuideInfoCnt) {
+          elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+        }
+
+        guideMatched = {
           guide: item,
           guidesStatic,
-          matched: res,
+          matched,
           posFirst,
           posSecond,
           size,
@@ -515,31 +515,121 @@ export default {
 
         this.em.trigger(`${evName}:active`, {
           ...this.getEventOpts(),
-          ...guideNearElement,
+          ...guideMatched,
         });
       }
 
-      return guideNearElement;
+      return guideMatched;
     });
 
-    return guidesData.filter(Boolean);
+    return guidesData.filter(Boolean) as GuideMatched[];
   },
 
-  toggleDrag(enable: boolean) {
+  toggleDrag(enable) {
     const { ppfx, editor } = this;
     const methodCls = enable ? 'add' : 'remove';
     const classes = [`${ppfx}is__grabbing`];
-    const { Canvas } = editor;
+    const { Canvas } = editor!;
     const body = Canvas.getBody();
     classes.forEach((cls) => body.classList[methodCls](cls));
     Canvas[enable ? 'startAutoscroll' : 'stopAutoscroll']();
   },
-} as CommandObject<
-  any,
-  {
-    guidesStatic?: Guide[];
-    guides?: Guide[];
-    opts?: Opts;
-    [k: string]: any;
-  }
->;
+} as CommandObject<ComponentDragOpts, ComponentDragProps>;
+
+interface ComponentDragProps {
+  editor?: Editor;
+  em?: EditorModel;
+  guides?: Guide[];
+  guidesContainer?: HTMLElement;
+  guidesEl?: HTMLElement;
+  guidesStatic?: Guide[];
+  guidesTarget?: Guide[];
+  isTran?: boolean;
+  opts?: ComponentDragOpts;
+  target?: Component;
+  elGuideInfoX?: HTMLElement;
+  elGuideInfoY?: HTMLElement;
+  elGuideInfoContentX?: HTMLElement;
+  elGuideInfoContentY?: HTMLElement;
+  dragger?: Dragger;
+
+  getEventOpts: () => { mode: string; target: Component; guidesTarget: Guide[]; guidesStatic: Guide[] };
+  stop: () => void;
+  setupGuides: () => void;
+  getGuidesContainer: () => HTMLElement;
+  getGuidesStatic: () => Guide[];
+  getGuidesTarget: () => Guide[];
+  updateGuides: (guides?: Guide[]) => void;
+  getGuidePosUpdate: (item: Guide, rect: ComponentOrigRect) => { x?: number; y?: number };
+  renderGuide: (item: { active?: boolean; guide?: HTMLElement; x?: number; y?: number }) => HTMLElement;
+  getElementPos: (el: HTMLElement) => ComponentOrigRect;
+  getElementGuides: (el: HTMLElement) => Guide[];
+  getTranslate: (transform: string, axis?: string) => number;
+  setTranslate: (transform: string, axis: string, value: string) => string;
+  getPosition: DraggerOptions['getPosition'];
+  setPosition: (data: any) => void; // TODO: fix any
+  _getDragData: () => { target?: Component; parent?: Component; index?: number };
+  onStart: DraggerOptions['onStart'];
+  onDrag: DraggerOptions['onDrag'];
+  onEnd: DraggerOptions['onEnd'];
+  hideGuidesInfo: () => void;
+  renderGuideInfo: (guides?: Guide[]) => GuideMatched[];
+  toggleDrag: (enable?: boolean) => void;
+}
+
+type ComponentDragOpts = {
+  center?: number;
+  debug?: boolean;
+  dragger?: DraggerOptions;
+  event?: Event;
+  guidesInfo?: number;
+  mode?: 'absolute' | 'translate';
+  target?: Component;
+  addStyle?: () => Record<string, unknown>;
+  onDrag?: (data: any) => Editor; // TODO: fix any
+  onEnd?: (ev: Event, opt: any, data: any) => void; // TODO: fix any
+  onStart?: (data: any) => Editor; // TODO: fix any
+};
+
+type Guide = {
+  type: string;
+  y: number;
+  x: number;
+  component: Component;
+  componentView: ComponentView;
+  componentEl: HTMLElement;
+  origin: HTMLElement; // @deprecated: use componentEl instead
+  componentElRect: ComponentOrigRect;
+  originRect: ComponentOrigRect; // @deprecated: use componentElRect instead
+  guideEl?: HTMLElement;
+  guide?: HTMLElement; // @deprecated: use guideEl instead
+  active?: boolean; // TODO: is this used?
+};
+
+type GuideMatched = {
+  guide: Guide;
+  guidesStatic: Guide[];
+  matched: Guide;
+  posFirst: number;
+  posSecond: number;
+  size: number;
+  sizeRaw: number;
+  sizePercent: number;
+  elGuideInfo?: HTMLElement;
+  elGuideInfoCnt?: HTMLElement;
+};
+
+type ComponentRect = { left: number; width: number; top: number; height: number };
+type ComponentOrigRect = ComponentRect & { rect: ComponentRect };
+type ElGuideInfoKey = 'elGuideInfoX' | 'elGuideInfoY';
+type ElGuideInfoContentKey = 'elGuideInfoContentX' | 'elGuideInfoContentY';
+
+// TODO: should we export this type? and if so, we should create 1 type for every event?
+export type DragEventProps = {
+  originComponent?: Component;
+  originComponentView?: ComponentView;
+  originGuides?: GuideMatched[];
+  matchedComponent?: Component;
+  matchedComponentView?: ComponentView;
+  matchedGuides?: GuideMatched[];
+};
