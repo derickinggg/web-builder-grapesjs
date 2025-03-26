@@ -340,7 +340,7 @@ export default {
   },
 
   onStart(event) {
-    const { target, editor, isTran, opts, guidesTarget } = this;
+    const { target, editor, isTran, opts } = this;
     const { Canvas } = editor!;
     const style = target?.getStyle();
     const position = 'absolute';
@@ -389,11 +389,10 @@ export default {
 
   onDrag() {
     const { guidesTarget, opts } = this;
-    const guidesTargetActive = guidesTarget?.filter((item) => item.active) ?? [];
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget?.forEach((item) => this.renderGuide(item));
-    opts?.guidesInfo && this.renderGuideInfo(guidesTargetActive);
+    opts?.guidesInfo && this.renderGuideInfo(guidesTarget?.filter((item) => item.active) ?? []);
     opts?.onDrag?.(this._getDragData());
   },
 
