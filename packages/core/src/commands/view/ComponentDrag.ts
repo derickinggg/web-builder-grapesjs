@@ -385,43 +385,16 @@ export default {
         position,
       });
     }
-
-    // TODO: remove this and move to the drag:start event
-    const originComponent = target;
-    const originComponentView = getComponentView(originComponent?.getEl());
-    const originGuides = this.renderGuideInfo(guidesTarget);
-
-    const dragStartProps: DragEventProps = {
-      originComponent,
-      originComponentView,
-      originGuides,
-    };
-
-    this.editor!.trigger(`${evName}:drag:start`, dragStartProps);
   },
 
   onDrag() {
     const { guidesTarget, opts } = this;
-    let matchedGuides: MatchedGuide[] = [];
     const guidesTargetActive = guidesTarget?.filter((item) => item.active) ?? [];
 
     this.updateGuides(guidesTarget);
     opts?.debug && guidesTarget?.forEach((item) => this.renderGuide(item));
-    opts?.guidesInfo && (matchedGuides = this.renderGuideInfo(guidesTargetActive));
+    opts?.guidesInfo && this.renderGuideInfo(guidesTargetActive);
     opts?.onDrag?.(this._getDragData());
-
-    const matchedComponentEl = matchedGuides[0]?.matched.origin;
-    let matchedComponent = getComponentModel(matchedComponentEl);
-    let matchedComponentView = getComponentView(matchedComponentEl);
-
-    const dragMoveProps: DragEventProps = {
-      matchedComponent,
-      matchedComponentView,
-      matchedGuides,
-    };
-
-    // TODO: use the `${evName}:move` event
-    this.editor!.trigger(`${evName}:drag:move`, dragMoveProps);
   },
 
   onEnd(ev, _dragger, opt) {
@@ -431,8 +404,6 @@ export default {
     this.hideGuidesInfo();
 
     this.em.trigger(`${evName}:end`, this.getEventOpts());
-
-    this.em.trigger(`${evName}:drag:end`, undefined);
   },
 
   hideGuidesInfo() {
@@ -442,94 +413,101 @@ export default {
     });
   },
 
-  /**
-   * Render guides with spacing information
-   */
-  // TODO: consider splitting this method into getMatchedGuides and renderGuideInfo
   renderGuideInfo(guides = []) {
-    const { guidesStatic } = this;
+    const matchedGuides = this.getMatchedGuides(guides);
+
     this.hideGuidesInfo();
-    const guidesData = guides.map((item) => {
-      const { origin, x } = item;
-      const rectOrigin = this.getElementPos(origin);
-      const axis = isUndefined(x) ? 'y' : 'x';
-      const isY = axis === 'y';
-      const origEdge1 = rectOrigin[isY ? 'left' : 'top'];
-      const origEdge1Raw = rectOrigin.rect[isY ? 'left' : 'top'];
-      const origEdge2 = isY ? origEdge1 + rectOrigin.width : origEdge1 + rectOrigin.height;
-      const origEdge2Raw = isY ? origEdge1Raw + rectOrigin.rect.width : origEdge1Raw + rectOrigin.rect.height;
-      const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey];
-      const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey];
-      const guideInfoStyle = elGuideInfo?.style;
-
-      let guideMatched: MatchedGuide | null = null;
-
-      // Find the nearest element
-      const matched = guidesStatic
-        ?.filter((stat) => stat.type === item.type)
-        .map((stat) => {
-          const { left, width, top, height } = stat.originRect;
-          const statEdge1 = isY ? left : top;
-          const statEdge2 = isY ? left + width : top + height;
-          return {
-            gap: statEdge2 < origEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2,
-            guide: stat,
-          };
-        })
-        .filter((item) => item.gap > 0)
-        .sort((a, b) => a.gap - b.gap)
-        .map((item) => item.guide)[0];
-
-      if (matched) {
-        const { left, width, top, height, rect } = matched.originRect;
-        const isEdge1 = isY ? left < rectOrigin.left : top < rectOrigin.top;
-        const statEdge1 = isY ? left : top;
-        const statEdge1Raw = isY ? rect.left : rect.top;
-        const statEdge2 = isY ? left + width : top + height;
-        const statEdge2Raw = isY ? rect.left + rect.width : rect.top + rect.height;
-        const posFirst = isY ? item.y : item.x;
-        const posSecond = isEdge1 ? statEdge2 : origEdge2;
-        const pos2 = `${posFirst}px`;
-        const size = isEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2;
-        const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
-        const sizePercent = (sizeRaw / (isY ? matched.originRect.height : matched.originRect.width)) * 100; // TODO: fix calculation
-
-        // INFO: skip rendering the guide info if the option is set
-        if (!this?.opts?.skipGuidesRender) {
-          if (guideInfoStyle) {
-            guideInfoStyle.display = '';
-            guideInfoStyle[isY ? 'top' : 'left'] = pos2;
-            guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
-            guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-          }
-          if (elGuideInfoCnt) {
-            elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
-          }
-        }
-
-        guideMatched = {
-          guide: item,
-          guidesStatic,
-          matched,
-          posFirst,
-          posSecond,
-          size,
-          sizeRaw,
-          sizePercent,
-          elGuideInfo,
-          elGuideInfoCnt,
-        };
-
-        this.em.trigger(`${evName}:active`, {
-          ...this.getEventOpts(),
-          ...guideMatched,
-        });
+    matchedGuides.forEach((matchedGuide) => {
+      // TODO: improve this
+      if (!this.opts?.skipGuidesRender) {
+        this.renderSingleGuideInfo(matchedGuide);
       }
 
-      return guideMatched;
+      this.em.trigger(`${evName}:active`, {
+        ...this.getEventOpts(),
+        ...matchedGuide,
+      });
     });
+  },
 
-    return guidesData.filter(Boolean) as MatchedGuide[];
+  renderSingleGuideInfo(matchedGuide: MatchedGuide) {
+    const { posFirst, posSecond, size, sizeRaw, guide, elGuideInfo, elGuideInfoCnt } = matchedGuide;
+
+    const axis = isUndefined(guide.x) ? 'y' : 'x';
+    const isY = axis === 'y';
+    const guideInfoStyle = elGuideInfo?.style;
+
+    if (guideInfoStyle) {
+      guideInfoStyle.display = '';
+      guideInfoStyle[isY ? 'top' : 'left'] = `${posFirst}px`;
+      guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
+      guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
+    }
+
+    if (elGuideInfoCnt) {
+      elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
+    }
+  },
+
+  getMatchedGuides(guides = []): MatchedGuide[] {
+    const { guidesStatic } = this;
+
+    return guides
+      .map((item) => {
+        const { origin, x } = item;
+        const rectOrigin = this.getElementPos(origin);
+        const axis = isUndefined(x) ? 'y' : 'x';
+        const isY = axis === 'y';
+        const origEdge1 = rectOrigin[isY ? 'left' : 'top'];
+        const origEdge2 = isY ? origEdge1 + rectOrigin.width : origEdge1 + rectOrigin.height;
+        const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey];
+        const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey];
+
+        // Find the nearest element
+        const matched = guidesStatic
+          ?.filter((stat) => stat.type === item.type)
+          .map((stat) => {
+            const { left, width, top, height } = stat.originRect;
+            const statEdge1 = isY ? left : top;
+            const statEdge2 = isY ? left + width : top + height;
+            return {
+              gap: statEdge2 < origEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2,
+              guide: stat,
+            };
+          })
+          .filter((item) => item.gap > 0)
+          .sort((a, b) => a.gap - b.gap)
+          .map((item) => item.guide)[0];
+
+        if (matched) {
+          const { left, width, top, height, rect } = matched.originRect;
+          const isEdge1 = isY ? left < rectOrigin.left : top < rectOrigin.top;
+          const statEdge2 = isY ? left + width : top + height;
+          const posFirst = isY ? item.y : item.x;
+          const posSecond = isEdge1 ? statEdge2 : origEdge2;
+          const size = isEdge1 ? origEdge1 - statEdge2 : statEdge2 - origEdge2;
+          const sizeRaw = isEdge1
+            ? rectOrigin.rect[isY ? 'left' : 'top'] - rect[isY ? 'left' : 'top']
+            : rect[isY ? 'left' : 'top'] - rectOrigin.rect[isY ? 'left' : 'top'];
+          const sizePercent = (sizeRaw / (isY ? matched.originRect.height : matched.originRect.width)) * 100;
+
+          return {
+            guide: item,
+            guidesStatic,
+            matched,
+            posFirst,
+            posSecond,
+            size,
+            sizeRaw,
+            sizePercent,
+            elGuideInfo,
+            elGuideInfoCnt,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as MatchedGuide[];
   },
 
   toggleDrag(enable) {
@@ -580,7 +558,9 @@ interface ComponentDragProps {
   onDrag: DraggerOptions['onDrag'];
   onEnd: DraggerOptions['onEnd'];
   hideGuidesInfo: () => void;
-  renderGuideInfo: (guides?: Guide[]) => MatchedGuide[];
+  renderGuideInfo: (guides?: Guide[]) => void;
+  renderSingleGuideInfo: (matchedGuide: MatchedGuide) => void;
+  getMatchedGuides: (guides?: Guide[]) => MatchedGuide[];
   toggleDrag: (enable?: boolean) => void;
 }
 
