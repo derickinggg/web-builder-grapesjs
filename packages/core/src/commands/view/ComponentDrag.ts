@@ -138,9 +138,7 @@ export default {
   },
 
   getGuidesTarget() {
-    const targetEl = this.target.getEl();
-    if (!targetEl) return [];
-    return this.getElementGuides(targetEl);
+    return this.getElementGuides(this.target.getEl()!);
   },
 
   updateGuides(guides) {
@@ -152,8 +150,9 @@ export default {
       const pos = lastEl === origin ? lastPos : this.getElementPos(origin);
       lastEl = origin;
       lastPos = pos;
-      // @ts-expect-error // TODO: this type
-      each(this.getGuidePosUpdate(item, pos), (val, key) => (item[key] = val));
+      each(this.getGuidePosUpdate(item, pos), (val, key) => {
+        (item as Record<string, unknown>)[key] = val;
+      });
       item.originRect = pos;
     });
   },
@@ -288,9 +287,9 @@ export default {
     const { target, isTran } = this;
     const targetStyle = target.getStyle();
 
-    const transform = targetStyle.transform as string;
-    const left = targetStyle.left as string;
-    const top = targetStyle.top as string;
+    const transform = targetStyle.transform as string | undefined;
+    const left = targetStyle.left as string | undefined;
+    const top = targetStyle.top as string | undefined;
 
     let x = 0;
     let y = 0;
@@ -356,12 +355,10 @@ export default {
     opts.onStart?.(this._getDragData());
     if (isTran) return;
 
-    if (style?.position !== position) {
-      const targetEl = target.getEl();
-      const offset = targetEl ? Canvas.offset(targetEl) : { left: 0, top: 0, width: 0, height: 0 };
-      let { left, top, width, height } = offset;
+    if (style.position !== position) {
+      let { left, top, width, height } = Canvas.offset(target.getEl()!);
       let parent = target.parent();
-      let parentRel;
+      let parentRel = null;
 
       // Check for the relative parent
       do {
@@ -379,8 +376,7 @@ export default {
         left = x;
         top = y;
       } else if (parentRel) {
-        const parentRelEl = parentRel.getEl();
-        const offsetP = parentRelEl ? Canvas.offset(parentRelEl) : { left: 0, top: 0, width: 0, height: 0 };
+        const offsetP = Canvas.offset(parentRel.getEl()!);
         left = left - offsetP.left;
         top = top - offsetP.top;
       }
@@ -423,11 +419,11 @@ export default {
   },
 
   renderGuideInfo(guides = []) {
+    this.hideGuidesInfo();
+
     const matchedGuides = this.getMatchedGuides(guides);
 
-    this.hideGuidesInfo();
     matchedGuides.forEach((matchedGuide) => {
-      // TODO: improve this
       if (!this.opts.skipGuidesRender) {
         this.renderSingleGuideInfo(matchedGuide);
       }
@@ -439,42 +435,40 @@ export default {
     });
   },
 
-  renderSingleGuideInfo(matchedGuide: MatchedGuide) {
+  renderSingleGuideInfo(matchedGuide) {
     const { posFirst, posSecond, size, sizeRaw, guide, elGuideInfo, elGuideInfoCnt } = matchedGuide;
 
     const axis = isUndefined(guide.x) ? 'y' : 'x';
     const isY = axis === 'y';
-    const guideInfoStyle = elGuideInfo?.style;
 
-    if (guideInfoStyle) {
-      guideInfoStyle.display = '';
-      guideInfoStyle[isY ? 'top' : 'left'] = `${posFirst}px`;
-      guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
-      guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
-    }
+    const guideInfoStyle = elGuideInfo.style;
 
-    if (elGuideInfoCnt) {
-      elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
-    }
+    guideInfoStyle.display = '';
+    guideInfoStyle[isY ? 'top' : 'left'] = `${posFirst}px`;
+    guideInfoStyle[isY ? 'left' : 'top'] = `${posSecond}px`;
+    guideInfoStyle[isY ? 'width' : 'height'] = `${size}px`;
+
+    elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
   },
 
-  getMatchedGuides(guides = []): MatchedGuide[] {
+  getMatchedGuides(guides = []) {
     const { guidesStatic } = this;
-
     return guides
-      .map((item) => {
-        const { origin, x } = item;
+      .map((guide) => {
+        const { origin, x } = guide;
         const rectOrigin = this.getElementPos(origin);
         const axis = isUndefined(x) ? 'y' : 'x';
         const isY = axis === 'y';
         const origEdge1 = rectOrigin[isY ? 'left' : 'top'];
+        const origEdge1Raw = rectOrigin.rect[isY ? 'left' : 'top'];
         const origEdge2 = isY ? origEdge1 + rectOrigin.width : origEdge1 + rectOrigin.height;
-        const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey];
-        const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey];
+        const origEdge2Raw = isY ? origEdge1Raw + rectOrigin.rect.width : origEdge1Raw + rectOrigin.rect.height;
+        const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey]!;
+        const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey]!;
 
         // Find the nearest element
         const matched = guidesStatic
-          ?.filter((stat) => stat.type === item.type)
+          ?.filter((stat) => stat.type === guide.type)
           .map((stat) => {
             const { left, width, top, height } = stat.originRect;
             const statEdge1 = isY ? left : top;
@@ -491,30 +485,29 @@ export default {
         if (matched) {
           const { left, width, top, height, rect } = matched.originRect;
           const isEdge1 = isY ? left < rectOrigin.left : top < rectOrigin.top;
+          const statEdge1 = isY ? left : top;
+          const statEdge1Raw = isY ? rect.left : rect.top;
           const statEdge2 = isY ? left + width : top + height;
-          const posFirst = isY ? item.y : item.x;
+          const statEdge2Raw = isY ? rect.left + rect.width : rect.top + rect.height;
+          const posFirst = isY ? guide.y : guide.x;
           const posSecond = isEdge1 ? statEdge2 : origEdge2;
-          const size = isEdge1 ? origEdge1 - statEdge2 : statEdge2 - origEdge2;
-          const sizeRaw = isEdge1
-            ? rectOrigin.rect[isY ? 'left' : 'top'] - rect[isY ? 'left' : 'top']
-            : rect[isY ? 'left' : 'top'] - rectOrigin.rect[isY ? 'left' : 'top'];
-          const sizePercent = (sizeRaw / (isY ? matched.originRect.height : matched.originRect.width)) * 100;
+          const size = isEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2;
+          const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
 
           return {
-            guide: item,
+            guide,
             guidesStatic,
             matched,
             posFirst,
             posSecond,
             size,
             sizeRaw,
-            sizePercent,
             elGuideInfo,
             elGuideInfoCnt,
           };
+        } else {
+          return null;
         }
-
-        return null;
       })
       .filter(Boolean) as MatchedGuide[];
   },
@@ -692,9 +685,8 @@ type MatchedGuide = {
   posSecond: number;
   size: number;
   sizeRaw: number;
-  sizePercent: number;
-  elGuideInfo?: HTMLElement;
-  elGuideInfoCnt?: HTMLElement;
+  elGuideInfo: HTMLElement;
+  elGuideInfoCnt: HTMLElement;
 };
 
 type ComponentRect = { left: number; width: number; top: number; height: number };
