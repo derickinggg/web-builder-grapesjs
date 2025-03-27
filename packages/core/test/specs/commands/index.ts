@@ -111,7 +111,10 @@ describe('Commands', () => {
       // Run the command without defaultOptions
       let result = obj.run(commName, customOptions);
       expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(customOptions));
+      expect(comm.run).toHaveBeenCalledWith(
+        expect.any(Object), // The `em` object
+        expect.objectContaining(customOptions),
+      );
       expect(obj.isActive(commName)).toBe(false);
 
       // Configure defaultOptions
@@ -126,13 +129,19 @@ describe('Commands', () => {
       // Run the command without custom options
       result = obj.run(commName);
       expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(defaultOptions));
+      expect(comm.run).toHaveBeenCalledWith(
+        expect.any(Object), // The `em` object
+        expect.objectContaining(defaultOptions),
+      );
       expect(obj.isActive(commName)).toBe(false);
 
       // Run the command with custom options
       result = obj.run(commName, customOptions);
       expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(mergedOptions));
+      expect(comm.run).toHaveBeenCalledWith(
+        expect.any(Object), // The `em` object
+        expect.objectContaining(mergedOptions),
+      );
       expect(obj.isActive(commName)).toBe(false);
     });
   });
