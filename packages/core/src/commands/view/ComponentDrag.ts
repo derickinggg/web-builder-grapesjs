@@ -67,9 +67,9 @@ export default {
     return {
       mode: this.opts.mode,
       component: this.target,
-      target: this.target, // deprecated
-      guidesTarget: this.guidesTarget, // deprecated
-      guidesStatic: this.guidesStatic, // deprecated
+      target: this.target,
+      guidesTarget: this.guidesTarget,
+      guidesStatic: this.guidesStatic,
       guidesMatched: this.getGuidesMatched(guidesActive),
     };
   },
@@ -238,7 +238,6 @@ export default {
 
     const guides = guidePoints.map((guidePoint) => {
       const guide = opts.debug ? this.renderGuide(guidePoint) : undefined;
-      // INFO: origin, originRect, and guide are repeated to don't introduce breaking changes
       return {
         ...guidePoint,
         component,

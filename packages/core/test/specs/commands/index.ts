@@ -95,50 +95,45 @@ describe('Commands', () => {
       expect(Object.keys(obj.getActive()).length).toBe(0);
     });
 
-    test.skip('Run command with and without default options', () => {
-      const options = { test: 'custom' };
-      // const defaultOptions = { test: 'default' };
-      const command = { run: jest.fn(), stop: jest.fn() };
-      obj.add(commName, command);
-      // Test run command without default options
-      obj.run(commName, options);
-      expect(command.run).toHaveBeenCalledWith(em, expect.objectContaining(options));
+    test('Run command and check if defaultOptions are passed or not', () => {
+      const defaultOptions = { key: 'defaultValue' };
+      const customOptions = { key: 'customValue' };
+      const mergedOptions = { ...defaultOptions, ...customOptions };
 
-      // TODO: Fix this test
-      // Test run command with default options
-      // em.config.commands = {
-      //   defaultOptions: {
-      //     [commName]: {
-      //       run: (opts) => ({ ...opts, ...defaultOptions }),
-      //     },
-      //   },
-      // };
-      // obj.run(commName, options);
-      // expect(command.run).toHaveBeenCalledWith(em, expect.objectContaining(defaultOptions));
-    });
+      const comm = {
+        run: jest.fn(() => commResultRun), // Mock the run method
+      };
 
-    test.skip('Stop command with and without default options', () => {
-      const options = { test: 'custom' };
-      // const defaultOptions = { test: 'default' };
-      const command = { run: jest.fn(), stop: jest.fn() };
-      obj.add(commName, command);
+      // Add the command
+      obj.add(commName, comm);
+      expect(obj.isActive(commName)).toBe(false);
 
-      // Test stop command without default options
-      obj.stop(commName, options);
-      expect(command.stop).toHaveBeenCalledWith(em, expect.objectContaining(options));
+      // Run the command without defaultOptions
+      let result = obj.run(commName, customOptions);
+      expect(result).toBe(commResultRun);
+      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(customOptions));
+      expect(obj.isActive(commName)).toBe(false);
 
-      // TODO: Fix this test
-      // Test stop command with default options
-      // em.config.commands = {
-      //   defaultOptions: {
-      //     [commName]: {
-      //       stop: (opts) => ({ ...opts, ...defaultOptions }),
-      //     },
-      //   },
-      // };
-      // obj.run(commName, options);
-      // obj.stop(commName, options);
-      // expect(command.stop).toHaveBeenCalledWith(em, expect.objectContaining(defaultOptions));
+      // Configure defaultOptions
+      em.config.commands = {
+        defaultOptions: {
+          [commName]: {
+            run: (opts) => ({ ...defaultOptions, ...opts }), // Merge defaultOptions with provided options
+          },
+        },
+      };
+
+      // Run the command without custom options
+      result = obj.run(commName);
+      expect(result).toBe(commResultRun);
+      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(defaultOptions));
+      expect(obj.isActive(commName)).toBe(false);
+
+      // Run the command with custom options
+      result = obj.run(commName, customOptions);
+      expect(result).toBe(commResultRun);
+      expect(comm.run).toHaveBeenCalledWith(em, expect.objectContaining(mergedOptions));
+      expect(obj.isActive(commName)).toBe(false);
     });
   });
 });
