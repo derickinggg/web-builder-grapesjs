@@ -389,6 +389,9 @@ export default {
         position,
       });
     }
+
+    // Recalculate guides to avoid issues with the new position durin the first drag
+    this.guidesStatic = this.getGuidesStatic();
   },
 
   onDrag() {
