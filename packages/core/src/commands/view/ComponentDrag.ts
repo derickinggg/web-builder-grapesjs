@@ -63,14 +63,14 @@ export default {
   },
 
   getEventOpts() {
-    const activeGuides = this.guidesTarget?.filter((item) => item.active) ?? [];
+    const guidesActive = this.guidesTarget?.filter((item) => item.active) ?? [];
     return {
       mode: this.opts.mode,
       component: this.target,
       target: this.target, // deprecated
       guidesTarget: this.guidesTarget, // deprecated
       guidesStatic: this.guidesStatic, // deprecated
-      guidesMatched: this.getMatchedGuides(activeGuides).map((item) => item.matched),
+      guidesMatched: this.getGuidesMatched(guidesActive),
     };
   },
 
@@ -424,22 +424,22 @@ export default {
   renderGuideInfo(guides = []) {
     this.hideGuidesInfo();
 
-    const matchedGuides = this.getMatchedGuides(guides);
+    const guidesMatched = this.getGuidesMatched(guides);
 
-    matchedGuides.forEach((matchedGuide) => {
+    guidesMatched.forEach((guideMatched) => {
       if (!this.opts.skipGuidesRender) {
-        this.renderSingleGuideInfo(matchedGuide);
+        this.renderSingleGuideInfo(guideMatched);
       }
 
       this.em.trigger(`${evName}:active`, {
         ...this.getEventOpts(),
-        ...matchedGuide,
+        ...guideMatched,
       });
     });
   },
 
-  renderSingleGuideInfo(matchedGuide) {
-    const { posFirst, posSecond, size, sizeRaw, guide, elGuideInfo, elGuideInfoCnt } = matchedGuide;
+  renderSingleGuideInfo(guideMatched) {
+    const { posFirst, posSecond, size, sizeRaw, guide, elGuideInfo, elGuideInfoCnt } = guideMatched;
 
     const axis = isUndefined(guide.x) ? 'y' : 'x';
     const isY = axis === 'y';
@@ -454,7 +454,7 @@ export default {
     elGuideInfoCnt.innerHTML = `${Math.round(sizeRaw)}px`;
   },
 
-  getMatchedGuides(guides = []) {
+  getGuidesMatched(guides = []) {
     const { guidesStatic = [] } = this;
     return guides
       .map((guide) => {
@@ -470,7 +470,7 @@ export default {
         const origEdge2Raw = isY ? origEdge1Raw + rectOrigin.rect.width : origEdge1Raw + rectOrigin.rect.height;
 
         // Find the nearest element
-        const matched = guidesStatic
+        const guidesMatched = guidesStatic
           .filter((guideStatic) => guideStatic.type === guide.type)
           .map((guideStatic) => {
             const { left, width, top, height } = guideStatic.originRect;
@@ -498,10 +498,13 @@ export default {
               default:
                 return false;
             }
-          })[0];
+          });
 
-        if (matched) {
-          const { left, width, top, height, rect } = matched.originRect;
+        // TODO: consider supporting multiple guides
+        const firstGuideMatched = guidesMatched[0];
+
+        if (firstGuideMatched) {
+          const { left, width, top, height, rect } = firstGuideMatched.originRect;
           const isEdge1 = isY ? left < rectOrigin.left : top < rectOrigin.top;
           const statEdge1 = isY ? left : top;
           const statEdge1Raw = isY ? rect.left : rect.top;
@@ -518,7 +521,7 @@ export default {
           return {
             guide,
             guidesStatic,
-            matched,
+            matched: firstGuideMatched,
             posFirst,
             posSecond,
             size,
@@ -530,7 +533,7 @@ export default {
           return null;
         }
       })
-      .filter(Boolean) as MatchedGuide[];
+      .filter(Boolean) as GuideMatched[];
   },
 
   toggleDrag(enable) {
@@ -588,8 +591,8 @@ interface ComponentDragProps {
   onEnd: DraggerOptions['onEnd'];
   hideGuidesInfo: () => void;
   renderGuideInfo: (guides?: Guide[]) => void;
-  renderSingleGuideInfo: (matchedGuide: MatchedGuide) => void;
-  getMatchedGuides: (guides?: Guide[]) => MatchedGuide[];
+  renderSingleGuideInfo: (guideMatched: GuideMatched) => void;
+  getGuidesMatched: (guides?: Guide[]) => GuideMatched[];
   toggleDrag: (enable?: boolean) => void;
 }
 
@@ -608,7 +611,7 @@ type ComponentDragOpts = {
   onEnd?: (ev: Event, opt: any, data: any) => void;
 };
 /**
- * Represents the properties of the drag events (eg., dmode:start, dmode:active, dmode:end).
+ * Represents the properties of the drag events.
  */
 type ComponentDragEventProps = {
   /**
@@ -637,7 +640,7 @@ type ComponentDragEventProps = {
   /**
    * The guides that are being matched.
    */
-  guidesMatched: Guide[];
+  guidesMatched: GuideMatched[];
 };
 
 /**
@@ -693,12 +696,12 @@ type Guide = {
   guideEl?: HTMLElement;
   /**
    * Indicates whether the guide is active.
-   * @todo Check if this property is used.
+   * @todo Check if this property is used. The `active` property is not set in the code, but the value is changing.
    */
   active?: boolean;
 };
 
-type MatchedGuide = {
+type GuideMatched = {
   guide: Guide;
   guidesStatic: Guide[];
   matched: Guide;
