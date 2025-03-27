@@ -455,35 +455,50 @@ export default {
   },
 
   getMatchedGuides(guides = []) {
-    const { guidesStatic } = this;
+    const { guidesStatic = [] } = this;
     return guides
       .map((guide) => {
         const { origin, x } = guide;
         const rectOrigin = this.getElementPos(origin);
         const axis = isUndefined(x) ? 'y' : 'x';
         const isY = axis === 'y';
+
+        // Calculate the edges of the element
         const origEdge1 = rectOrigin[isY ? 'left' : 'top'];
         const origEdge1Raw = rectOrigin.rect[isY ? 'left' : 'top'];
         const origEdge2 = isY ? origEdge1 + rectOrigin.width : origEdge1 + rectOrigin.height;
         const origEdge2Raw = isY ? origEdge1Raw + rectOrigin.rect.width : origEdge1Raw + rectOrigin.rect.height;
-        const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey]!;
-        const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey]!;
 
         // Find the nearest element
         const matched = guidesStatic
-          ?.filter((stat) => stat.type === guide.type)
-          .map((stat) => {
-            const { left, width, top, height } = stat.originRect;
+          .filter((guideStatic) => guideStatic.type === guide.type)
+          .map((guideStatic) => {
+            const { left, width, top, height } = guideStatic.originRect;
             const statEdge1 = isY ? left : top;
             const statEdge2 = isY ? left + width : top + height;
             return {
               gap: statEdge2 < origEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2,
-              guide: stat,
+              guide: guideStatic,
             };
           })
           .filter((item) => item.gap > 0)
           .sort((a, b) => a.gap - b.gap)
-          .map((item) => item.guide)[0];
+          .map((item) => item.guide)
+          // Filter the guides that don't match the position of the dragged element
+          .filter((item) => {
+            switch (guide.type) {
+              case 'l':
+              case 'r':
+              case 'x':
+                return Math.abs(item.x - guide.x) < 1;
+              case 't':
+              case 'b':
+              case 'y':
+                return Math.abs(item.y - guide.y) < 1;
+              default:
+                return false;
+            }
+          })[0];
 
         if (matched) {
           const { left, width, top, height, rect } = matched.originRect;
@@ -496,6 +511,9 @@ export default {
           const posSecond = isEdge1 ? statEdge2 : origEdge2;
           const size = isEdge1 ? origEdge1 - statEdge2 : statEdge1 - origEdge2;
           const sizeRaw = isEdge1 ? origEdge1Raw - statEdge2Raw : statEdge1Raw - origEdge2Raw;
+
+          const elGuideInfo = this[`elGuideInfo${axis.toUpperCase()}` as ElGuideInfoKey]!;
+          const elGuideInfoCnt = this[`elGuideInfoContent${axis.toUpperCase()}` as ElGuideInfoContentKey]!;
 
           return {
             guide,
