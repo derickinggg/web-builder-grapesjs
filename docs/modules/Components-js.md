@@ -12,7 +12,7 @@ To get a better understanding of the content in this guide, we recommend reading
 :::
 
 ::: tip
-Looking for the polished UI that's ready to use? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/overview)
+Looking for the polished UI that's ready to use? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/overview?utm_source=grapesjs-docs&utm_medium=tip)
 :::
 
 [[toc]]

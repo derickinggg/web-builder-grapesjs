@@ -11,7 +11,7 @@ This guide requires GrapesJS v0.19.\* or higher
 :::
 
 ::: tip
-Looking for a more flexible storage system? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/projects#storage)
+Looking for a more flexible storage system? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/projects?utm_source=grapesjs-docs&utm_medium=tip#storage)
 :::
 
 [[toc]]
