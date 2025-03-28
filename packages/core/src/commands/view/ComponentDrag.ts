@@ -726,11 +726,11 @@ type GuideMatched = {
    */
   posSecond: number;
   /**
-   * The distance between the two matched guides.
+   * The distance between the two matched guides in pixels.
    */
   size: number;
   /**
-   * The raw distance between the two matched guides.
+   * The raw distance between the two matched guides in pixels.
    */
   sizeRaw: number;
   /**
