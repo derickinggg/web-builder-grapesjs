@@ -1,6 +1,6 @@
-import Commands from '../../../src/commands';
 import EditorModel from '../../../src/editor/model/Editor';
-import { Command, CommandFunction } from '../../../src/commands/view/CommandAbstract';
+import type Commands from '../../../src/commands';
+import type { Command, CommandFunction, CommandOptions } from '../../../src/commands/view/CommandAbstract';
 
 describe('Commands', () => {
   describe('Main', () => {
@@ -95,54 +95,34 @@ describe('Commands', () => {
       expect(Object.keys(obj.getActive()).length).toBe(0);
     });
 
-    test('Run command and check if defaultOptions are passed or not', () => {
-      const defaultOptions = { key: 'defaultValue' };
-      const customOptions = { key: 'customValue' };
-      const mergedOptions = { ...defaultOptions, ...customOptions };
+    test('Run command and check if none, custom, and default options are passed', () => {
+      const customOptions = { customValue: 'customValue' };
+      const defaultOptions = { defaultValue: 'defaultValue' };
 
-      const comm = {
-        run: jest.fn(() => commResultRun), // Mock the run method
-      };
+      // Create a function that returns the options
+      const runFn = (_editor: any, _sender: any, options: any) => options;
 
       // Add the command
-      obj.add(commName, comm);
-      expect(obj.isActive(commName)).toBe(false);
-
-      // Run the command without defaultOptions
-      let result = obj.run(commName, customOptions);
-      expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(
-        expect.any(Object), // The `em` object
-        expect.objectContaining(customOptions),
-      );
-      expect(obj.isActive(commName)).toBe(false);
-
-      // Configure defaultOptions
-      em.config.commands = {
-        defaultOptions: {
-          [commName]: {
-            run: (opts) => ({ ...defaultOptions, ...opts }), // Merge defaultOptions with provided options
-          },
-        },
-      };
+      obj.add(commName, { run: runFn });
 
       // Run the command without custom options
-      result = obj.run(commName);
-      expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(
-        expect.any(Object), // The `em` object
-        expect.objectContaining(defaultOptions),
-      );
-      expect(obj.isActive(commName)).toBe(false);
+      let result = obj.run(commName);
+      expect(result).toEqual({});
 
       // Run the command with custom options
       result = obj.run(commName, customOptions);
-      expect(result).toBe(commResultRun);
-      expect(comm.run).toHaveBeenCalledWith(
-        expect.any(Object), // The `em` object
-        expect.objectContaining(mergedOptions),
-      );
-      expect(obj.isActive(commName)).toBe(false);
+      expect(result).toEqual(customOptions);
+
+      // Set default options for the command
+      obj.config.defaultOptions = {
+        [commName]: {
+          run: (options: CommandOptions) => ({ ...options, ...defaultOptions }),
+        },
+      };
+
+      // Run the command with default options
+      result = obj.run(commName, customOptions);
+      expect(result).toEqual({ ...customOptions, ...defaultOptions });
     });
   });
 });
