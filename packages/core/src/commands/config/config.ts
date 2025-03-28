@@ -57,18 +57,7 @@ const config: () => CommandsConfig = () => ({
   stylePrefix: 'com-',
   defaults: {},
   strict: true,
-  defaultOptions: {
-    'core:component-drag': {
-      run: (options: CommandOptions) => ({
-        ...options,
-        // skipGuidesRender: true,
-        // debug: true,
-        // addStyle({ component, styles, partial }) {
-        //   component.addStyle(styles, { partial });
-        // },
-      }),
-    },
-  },
+  defaultOptions: {},
 });
 
 export default config;

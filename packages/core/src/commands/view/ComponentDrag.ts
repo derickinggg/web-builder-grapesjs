@@ -609,6 +609,7 @@ type ComponentDragOpts = {
   onDrag?: (data: any) => Editor;
   onEnd?: (ev: Event, opt: any, data: any) => void;
 };
+
 /**
  * Represents the properties of the drag events.
  */
@@ -695,20 +696,50 @@ type Guide = {
   guideEl?: HTMLElement;
   /**
    * Indicates whether the guide is active.
-   * @todo Check if this property is used. The `active` property is not set in the code, but the value is changing.
+   * @todo The `active` property is not set in the code, but the value is changing.
    */
   active?: boolean;
 };
 
+/**
+ * Represents a matched guide during component dragging.
+ */
 type GuideMatched = {
-  guide: Guide;
+  /**
+   * The static guides used for matching.
+   */
   guidesStatic: Guide[];
+  /**
+   * The origin component guide.
+   */
+  guide: Guide;
+  /**
+   * The matched component guide.
+   */
   matched: Guide;
+  /**
+   * The primary position of the guide (either x or y depending on the axis).
+   */
   posFirst: number;
+  /**
+   * The secondary position of the guide (the opposite axis of posFirst).
+   */
   posSecond: number;
+  /**
+   * The distance between the two matched guides.
+   */
   size: number;
+  /**
+   * The raw distance between the two matched guides.
+   */
   sizeRaw: number;
+  /**
+   * The HTML element representing the guide info (line between the guides).
+   */
   elGuideInfo: HTMLElement;
+  /**
+   * The container element for the guide info (text content of the line).
+   */
   elGuideInfoCnt: HTMLElement;
 };
 
