@@ -36,14 +36,19 @@ Thank you for your interest in contributing to GrapesJS! We welcome all types of
    ```bash
    pnpm install
    ```
+5. Run the build script: 
 
-5. Start the development server:
+   ```bash
+   pnpm run build
+   ```
+
+6. Start the development server:
 
    ```bash
    pnpm start
    ```
 
-6. Open `http://localhost:8080/` in your browser to see the editor in action.
+7. Open `http://localhost:8080/` in your browser to see the editor in action.
 
 ## Development Workflow
 

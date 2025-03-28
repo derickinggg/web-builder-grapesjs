@@ -11,6 +11,10 @@ This guide is referring to GrapesJS v0.21.9 or higher.<br><br>
 To get a better understanding of the content in this guide we recommend reading [Components](Components.html) first
 :::
 
+::: tip
+Looking for the a more polished UI for traits that's ready to use immediately? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/properties#traits)
+:::
+
 [[toc]]
 
 ## Add Traits to Components

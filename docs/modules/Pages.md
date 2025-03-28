@@ -10,6 +10,9 @@ The Pages module in GrapesJS allows you to create a project with multiple pages.
 This guide is referring to GrapesJS v0.21.1 or higher
 :::
 
+::: tip
+Looking for the pages UI to be setup and ready to use? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/pages)
+:::
 [[toc]]
 
 ## Initialization

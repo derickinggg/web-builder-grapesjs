@@ -10,6 +10,10 @@ Creating plugins in GrapesJS is pretty straightforward and here you'll get how t
 This guide is referring to GrapesJS v0.21.2 or higher
 :::
 
+::: tip
+Looking for plugins that are Grapes approved and tested? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/plugins/overview)
+:::
+
 [[toc]]
 
 ## Basic plugin
