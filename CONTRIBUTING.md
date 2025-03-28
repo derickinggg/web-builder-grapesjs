@@ -36,7 +36,8 @@ Thank you for your interest in contributing to GrapesJS! We welcome all types of
    ```bash
    pnpm install
    ```
-5. Run the build script: 
+
+5. Run the build script:
 
    ```bash
    pnpm run build
