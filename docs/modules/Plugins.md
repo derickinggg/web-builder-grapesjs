@@ -11,7 +11,7 @@ This guide is referring to GrapesJS v0.21.2 or higher
 :::
 
 ::: tip
-Looking for plugins that are Grapes approved and tested? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/plugins/overview?utm_source=grapesjs-docs&utm_medium=tip)
+Looking for plugins that are tested, verified, and built to scale? [Browse them all in the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/plugins/overview?utm_source=grapesjs-docs&utm_medium=tip)
 :::
 
 [[toc]]

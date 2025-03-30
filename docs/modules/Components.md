@@ -11,7 +11,7 @@ This guide is referring to GrapesJS v0.15.8 or higher
 :::
 
 ::: tip
-Looking for the polished UI that's ready to use? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/overview?utm_source=grapesjs-docs&utm_medium=tip)
+Skip the boilerplate—use a refined component editor out of the box. [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/overview?utm_source=grapesjs-docs&utm_medium=tip)
 :::
 
 [[toc]]

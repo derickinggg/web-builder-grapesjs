@@ -12,7 +12,7 @@ To get a better understanding of the content in this guide we recommend reading 
 :::
 
 ::: tip
-Looking for the a more polished UI for traits that's ready to use immediately? [Checkout the Grapes Studio SDK!](https://app.grapesjs.com/docs-sdk/configuration/components/properties?utm_source=grapesjs-docs&utm_medium=tip#traits)
+Want traits that look great and work out of the box? [See how the Grapes Studio SDK handles it.](https://app.grapesjs.com/docs-sdk/configuration/components/properties?utm_source=grapesjs-docs&utm_medium=tip#traits)
 :::
 
 [[toc]]
