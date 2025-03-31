@@ -9,6 +9,8 @@ import type ComponentView from '../../dom_components/view/ComponentView';
 
 const evName = 'dmode';
 
+// TODO: check setZoom, setCoords
+
 export default {
   run(editor, _sender, opts = {} as ComponentDragOpts) {
     bindAll(
@@ -470,7 +472,20 @@ export default {
 
         // Find the nearest element
         const guidesMatched = guidesStatic
-          .filter((guideStatic) => guideStatic.type === guide.type)
+          .filter((guideStatic) => {
+            // Define complementary guide types
+            const complementaryTypes: Record<string, string[]> = {
+              l: ['r', 'x'], // Left can match with Right or Middle (horizontal)
+              r: ['l', 'x'], // Right can match with Left or Middle (horizontal)
+              x: ['l', 'r'], // Middle (horizontal) can match with Left or Right
+              t: ['b', 'y'], // Top can match with Bottom or Middle (vertical)
+              b: ['t', 'y'], // Bottom can match with Top or Middle (vertical)
+              y: ['t', 'b'], // Middle (vertical) can match with Top or Bottom
+            };
+
+            // Check if the guide type matches or is complementary
+            return guideStatic.type === guide.type || complementaryTypes[guide.type]?.includes(guideStatic.type);
+          })
           .map((guideStatic) => {
             const { left, width, top, height } = guideStatic.originRect;
             const statEdge1 = isY ? left : top;
