@@ -626,7 +626,7 @@ type ComponentDragOpts = {
 /**
  * Represents the properties of the drag events.
  */
-type ComponentDragEventProps = {
+export type ComponentDragEventProps = {
   /**
    * The mode of the drag (absolute or translate).
    */
@@ -717,7 +717,7 @@ type Guide = {
 /**
  * Represents a matched guide during component dragging.
  */
-export type GuideMatched = {
+type GuideMatched = {
   /**
    * The static guides used for matching.
    */
