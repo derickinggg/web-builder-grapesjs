@@ -9,8 +9,6 @@ import type ComponentView from '../../dom_components/view/ComponentView';
 
 const evName = 'dmode';
 
-// TODO: check setZoom, setCoords
-
 export default {
   run(editor, _sender, opts = {} as ComponentDragOpts) {
     bindAll(
@@ -719,7 +717,7 @@ type Guide = {
 /**
  * Represents a matched guide during component dragging.
  */
-type GuideMatched = {
+export type GuideMatched = {
   /**
    * The static guides used for matching.
    */
