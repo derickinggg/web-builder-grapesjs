@@ -40,9 +40,10 @@ import CommandAbstract, { Command, CommandOptions, CommandObject, CommandFunctio
 import defConfig, { CommandsConfig } from './config/config';
 import { Module } from '../abstract';
 import Component, { eventDrag } from '../dom_components/model/Component';
-import Editor from '../editor/model/Editor';
-import { ObjectAny } from '../common';
+import type Editor from '../editor/model/Editor';
+import type { ObjectAny } from '../common';
 import CommandsEvents from './types';
+import type { ComponentDragEventProps } from './view/ComponentDrag';
 
 export type CommandEvent = 'run' | 'stop' | `run:${string}` | `stop:${string}` | `abort:${string}`;
 
@@ -449,5 +450,10 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
     this.defaultCommands = {};
     this.commands = {};
     this.active = {};
+  }
+
+  // Dummy property to ensure ComponentDragEventProps type is included in the build
+  dummyComponentDragEventProps() {
+    return undefined as ComponentDragEventProps | undefined;
   }
 }
