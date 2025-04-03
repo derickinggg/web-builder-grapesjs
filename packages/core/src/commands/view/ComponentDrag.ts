@@ -125,7 +125,7 @@ export default {
   },
 
   getGuidesStatic() {
-    let result: ComponentGuide[] = [];
+    let result: ComponentDragGuide[] = [];
     const el = this.target.getEl();
     const parentNode = el?.parentElement;
     if (!parentNode) return [];
@@ -249,7 +249,7 @@ export default {
         guideEl: guide,
         guide,
       };
-    }) as ComponentGuide[];
+    }) as ComponentDragGuide[];
 
     guides.forEach((guidePoint) => this.guides?.push(guidePoint));
 
@@ -568,11 +568,11 @@ export default {
 interface ComponentDragProps {
   editor: Editor;
   em?: EditorModel;
-  guides?: ComponentGuide[];
+  guides?: ComponentDragGuide[];
   guidesContainer?: HTMLElement;
   guidesEl?: HTMLElement;
-  guidesStatic?: ComponentGuide[];
-  guidesTarget?: ComponentGuide[];
+  guidesStatic?: ComponentDragGuide[];
+  guidesTarget?: ComponentDragGuide[];
   isTran?: boolean;
   opts: ComponentDragOpts;
   target: Component;
@@ -586,13 +586,13 @@ interface ComponentDragProps {
   stop: () => void;
   setupGuides: () => void;
   getGuidesContainer: () => HTMLElement;
-  getGuidesStatic: () => ComponentGuide[];
-  getGuidesTarget: () => ComponentGuide[];
-  updateGuides: (guides?: ComponentGuide[]) => void;
-  getGuidePosUpdate: (item: ComponentGuide, rect: ComponentOrigRect) => { x?: number; y?: number };
+  getGuidesStatic: () => ComponentDragGuide[];
+  getGuidesTarget: () => ComponentDragGuide[];
+  updateGuides: (guides?: ComponentDragGuide[]) => void;
+  getGuidePosUpdate: (item: ComponentDragGuide, rect: ComponentOrigRect) => { x?: number; y?: number };
   renderGuide: (item: { active?: boolean; guide?: HTMLElement; x?: number; y?: number }) => HTMLElement;
   getElementPos: (el: HTMLElement) => ComponentOrigRect;
-  getElementGuides: (el: HTMLElement) => ComponentGuide[];
+  getElementGuides: (el: HTMLElement) => ComponentDragGuide[];
   getTranslate: (transform: string, axis?: string) => number;
   setTranslate: (transform: string, axis: string, value: string) => string;
   getPosition: DraggerOptions['getPosition'];
@@ -602,9 +602,9 @@ interface ComponentDragProps {
   onDrag: DraggerOptions['onDrag'];
   onEnd: DraggerOptions['onEnd'];
   hideGuidesInfo: () => void;
-  renderGuideInfo: (guides?: ComponentGuide[]) => void;
+  renderGuideInfo: (guides?: ComponentDragGuide[]) => void;
   renderSingleGuideInfo: (guideMatched: ComponentGuideMatched) => void;
-  getGuidesMatched: (guides?: ComponentGuide[]) => ComponentGuideMatched[];
+  getGuidesMatched: (guides?: ComponentDragGuide[]) => ComponentGuideMatched[];
   toggleDrag: (enable?: boolean) => void;
 }
 
@@ -644,12 +644,12 @@ export interface ComponentDragEventProps {
    * The guides of the component being dragged.
    * @deprecated Use `guidesMatched` instead.
    */
-  guidesTarget: ComponentGuide[];
+  guidesTarget: ComponentDragGuide[];
   /**
    * All the guides except the ones of the component being dragged.
    * @deprecated Use `guidesMatched` instead.
    */
-  guidesStatic: ComponentGuide[];
+  guidesStatic: ComponentDragGuide[];
   /**
    * The guides that are being matched.
    */
@@ -659,7 +659,7 @@ export interface ComponentDragEventProps {
 /**
  * Represents a guide used during component dragging.
  */
-interface ComponentGuide {
+interface ComponentDragGuide {
   /**
    * The type of the guide (e.g., 't', 'b', 'l', 'r', 'x', 'y').
    */
@@ -721,15 +721,15 @@ interface ComponentGuideMatched {
   /**
    * The static guides used for matching.
    */
-  guidesStatic: ComponentGuide[];
+  guidesStatic: ComponentDragGuide[];
   /**
    * The origin component guide.
    */
-  guide: ComponentGuide;
+  guide: ComponentDragGuide;
   /**
    * The matched component guide.
    */
-  matched: ComponentGuide;
+  matched: ComponentDragGuide;
   /**
    * The primary position of the guide (either x or y depending on the axis).
    */
