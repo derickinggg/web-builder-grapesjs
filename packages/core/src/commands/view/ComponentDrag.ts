@@ -545,7 +545,7 @@ export default {
           return null;
         }
       })
-      .filter(Boolean) as ComponentGuideMatched[];
+      .filter(Boolean) as ComponentDragGuideMatched[];
   },
 
   toggleDrag(enable) {
@@ -603,8 +603,8 @@ interface ComponentDragProps {
   onEnd: DraggerOptions['onEnd'];
   hideGuidesInfo: () => void;
   renderGuideInfo: (guides?: ComponentDragGuide[]) => void;
-  renderSingleGuideInfo: (guideMatched: ComponentGuideMatched) => void;
-  getGuidesMatched: (guides?: ComponentDragGuide[]) => ComponentGuideMatched[];
+  renderSingleGuideInfo: (guideMatched: ComponentDragGuideMatched) => void;
+  getGuidesMatched: (guides?: ComponentDragGuide[]) => ComponentDragGuideMatched[];
   toggleDrag: (enable?: boolean) => void;
 }
 
@@ -653,7 +653,7 @@ export interface ComponentDragEventProps {
   /**
    * The guides that are being matched.
    */
-  guidesMatched: ComponentGuideMatched[];
+  guidesMatched: ComponentDragGuideMatched[];
 }
 
 /**
@@ -717,7 +717,7 @@ interface ComponentDragGuide {
 /**
  * Represents a matched guide during component dragging.
  */
-interface ComponentGuideMatched {
+interface ComponentDragGuideMatched {
   /**
    * The static guides used for matching.
    */
