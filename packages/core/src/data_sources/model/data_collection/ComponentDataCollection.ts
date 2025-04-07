@@ -103,6 +103,10 @@ export default class ComponentDataCollection extends Component {
     return this.components().at(0).components();
   }
 
+  setCollectionId(collectionId: string) {
+    this.updateCollectionConfig({ collectionId });
+  }
+
   setStartIndex(startIndex: number): void {
     if (startIndex < 0) {
       this.em.logError('Start index should be greater than or equal to 0');
@@ -219,7 +223,7 @@ export default class ComponentDataCollection extends Component {
       };
 
       if (isFirstItem) {
-        setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(firstChild);
+        setCollectionStateMapAndPropagate(firstChild, collectionsStateMap, collectionId);
         // TODO: Move to component view
         firstChild.addStyle({ display: '' });
 
@@ -228,7 +232,7 @@ export default class ComponentDataCollection extends Component {
 
       const instance = firstChild!.clone({ symbol: true });
       instance.set('locked', true);
-      setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(instance);
+      setCollectionStateMapAndPropagate(instance, collectionsStateMap, collectionId);
       components.push(instance);
     }
 
@@ -248,12 +252,24 @@ export default class ComponentDataCollection extends Component {
   }
 }
 
-function setCollectionStateMapAndPropagate(collectionsStateMap: DataCollectionStateMap, collectionId: string) {
-  return (cmp: Component) => {
+function applyToComponentAndChildren(operation: (cmp: Component) => void, component: Component) {
+  operation(component);
+
+  component.components().forEach((child) => {
+    applyToComponentAndChildren(operation, child);
+  });
+}
+
+function setCollectionStateMapAndPropagate(
+  cmp: Component,
+  collectionsStateMap: DataCollectionStateMap,
+  collectionId: string,
+) {
+  applyToComponentAndChildren(() => {
     setCollectionStateMap(collectionsStateMap)(cmp);
 
     const addListener = (component: Component) => {
-      setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(component);
+      setCollectionStateMapAndPropagate(component, collectionsStateMap, collectionId);
     };
 
     const listenerKey = `_hasAddListener${collectionId ? `_${collectionId}` : ''}`;
@@ -281,12 +297,8 @@ function setCollectionStateMapAndPropagate(collectionsStateMap: DataCollectionSt
       cmp.listenTo(cmps, 'remove', removeListener);
     }
 
-    cmps?.toArray().forEach((component: Component) => {
-      setCollectionStateMapAndPropagate(collectionsStateMap, collectionId)(component);
-    });
-
     cmp.on(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange);
-  };
+  }, cmp);
 }
 
 function handleCollectionStateMapChange(this: Component) {
