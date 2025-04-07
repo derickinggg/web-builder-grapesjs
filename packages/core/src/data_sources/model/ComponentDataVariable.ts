@@ -1,3 +1,4 @@
+import { ModelDestroyOptions } from 'backbone';
 import { ObjectAny } from '../../common';
 import Component from '../../dom_components/model/Component';
 import { ComponentDefinition, ComponentOptions, ComponentProperties } from '../../dom_components/model/types';
@@ -29,7 +30,7 @@ export default class ComponentDataVariable extends Component {
     super(props, opt);
 
     this.dataResolver = new DataVariable(props.dataResolver, opt);
-    this.listenToPropsChange();
+    this.listenToDataResolverChange();
   }
 
   getPath() {
@@ -56,7 +57,14 @@ export default class ComponentDataVariable extends Component {
     this.dataResolver.set('defaultValue', newValue);
   }
 
-  private listenToPropsChange() {
+  private listenToDataResolverChange() {
+    this.listenTo(
+      this.dataResolver,
+      'change',
+      (() => {
+        this.__changesUp({ m: this });
+      }).bind(this),
+    );
     this.on('change:dataResolver', () => {
       this.dataResolver.set(this.get('dataResolver'));
     });
@@ -71,6 +79,12 @@ export default class ComponentDataVariable extends Component {
       ...json,
       dataResolver,
     };
+  }
+
+  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+    this.stopListening(this.dataResolver, 'change');
+    this.off('change:dataResolver');
+    return super.destroy(options);
   }
 
   static isComponent(el: HTMLElement) {
