@@ -1,9 +1,9 @@
 import Component from '../../../dom_components/model/Component';
-import { ComponentDefinitionDefined, ToHTMLOptions } from '../../../dom_components/model/types';
+import { ComponentDefinitionDefined } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
-import { isDataConditionDisplayType } from '../../utils';
+import { isComponentDataOutputType } from '../../utils';
 
-export default class ConditionalOutputBase extends Component {
+export default class ComponentDataOutput extends Component {
   get defaults(): ComponentDefinitionDefined {
     return {
       // @ts-ignore
@@ -14,6 +14,6 @@ export default class ConditionalOutputBase extends Component {
   }
 
   static isComponent(el: HTMLElement) {
-    return isDataConditionDisplayType(toLowerCase(el.tagName));
+    return isComponentDataOutputType(toLowerCase(el.tagName));
   }
 }

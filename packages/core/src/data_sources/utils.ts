@@ -1,9 +1,8 @@
 import EditorModel from '../editor/model/Editor';
 import { DataResolver, DataResolverProps } from './types';
-import { DataConditionDisplayType } from './model/conditional_variables/ComponentDataCondition';
 import { DataCollectionStateMap } from './model/data_collection/types';
 import DataCollectionVariable from './model/data_collection/DataCollectionVariable';
-import { DataCollectionVariableType } from './model/data_collection/constants';
+import { DataCollectionItemType, DataCollectionVariableType } from './model/data_collection/constants';
 import { DataConditionType, DataCondition } from './model/conditional_variables/DataCondition';
 import DataVariable, { DataVariableProps, DataVariableType } from './model/DataVariable';
 import Component from '../dom_components/model/Component';
@@ -86,6 +85,6 @@ export const ensureComponentInstance = (
   return new Model(serialize(cmp ?? {}), opt);
 };
 
-export const isDataConditionDisplayType = (type: string | undefined): type is DataConditionDisplayType => {
-  return !!type && [DataConditionIfTrueType, DataConditionIfFalseType].includes(type);
+export const isComponentDataOutputType = (type: string | undefined) => {
+  return !!type && [DataCollectionItemType, DataConditionIfTrueType, DataConditionIfFalseType].includes(type);
 };

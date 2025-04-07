@@ -4,7 +4,10 @@ import {
   DataCollectionType,
   DataCollectionVariableType,
 } from '../../../../../src/data_sources/model/data_collection/constants';
-import { DataCollectionStateVariableType } from '../../../../../src/data_sources/model/data_collection/types';
+import {
+  ComponentDataCollectionProps,
+  DataCollectionStateVariableType,
+} from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { ProjectData } from '../../../../../src/storage_manager';
 import { setupTestEditor } from '../../../../common';
@@ -39,29 +42,28 @@ describe('Collection variable components', () => {
   });
 
   test('Gets the correct static value', async () => {
-    const cmp = wrapper.components({
+    const cmpDef = {
       type: DataCollectionType,
-      collectionDef: {
-        componentDef: {
-          type: 'default',
-          components: [
-            {
-              type: DataCollectionVariableType,
-              variableType: DataCollectionStateVariableType.currentItem,
-              collectionId: 'my_collection',
-              path: 'user',
-            },
-          ],
-        },
-        collectionConfig: {
-          collectionId: 'my_collection',
-          dataSource: {
-            type: DataVariableType,
-            path: 'my_data_source_id',
+      components: {
+        type: 'default',
+        components: [
+          {
+            type: DataCollectionVariableType,
+            variableType: DataCollectionStateVariableType.currentItem,
+            collectionId: 'my_collection',
+            path: 'user',
           },
+        ],
+      },
+      collectionDef: {
+        collectionId: 'my_collection',
+        dataSource: {
+          type: DataVariableType,
+          path: 'my_data_source_id',
         },
       },
-    })[0];
+    } as ComponentDataCollectionProps;
+    const cmp = wrapper.components(cmpDef)[0];
 
     const firstGrandchild = cmp.components().at(0).components().at(0);
     expect(firstGrandchild.getInnerHTML()).toContain('user1');
@@ -73,27 +75,26 @@ describe('Collection variable components', () => {
   });
 
   test('Watches collection variable changes', async () => {
-    const cmp = wrapper.components({
+    const cmpDef = {
       type: DataCollectionType,
-      collectionDef: {
-        componentDef: {
-          type: 'default',
-          components: {
-            type: DataCollectionVariableType,
-            variableType: DataCollectionStateVariableType.currentItem,
-            collectionId: 'my_collection',
-            path: 'user',
-          },
-        },
-        collectionConfig: {
+      components: {
+        type: 'default',
+        components: {
+          type: DataCollectionVariableType,
+          variableType: DataCollectionStateVariableType.currentItem,
           collectionId: 'my_collection',
-          dataSource: {
-            type: DataVariableType,
-            path: 'my_data_source_id',
-          },
+          path: 'user',
         },
       },
-    })[0];
+      collectionDef: {
+        collectionId: 'my_collection',
+        dataSource: {
+          type: DataVariableType,
+          path: 'my_data_source_id',
+        },
+      },
+    } as ComponentDataCollectionProps;
+    const cmp = wrapper.components(cmpDef)[0];
     firstRecord.set('user', 'new_correct_value');
 
     const firstGrandchild = cmp.components().at(0).components().at(0);
@@ -116,31 +117,29 @@ describe('Collection variable components', () => {
         path: 'user',
       };
 
-      const collectionComponentDefinition = {
+      const collectionCmpDef = {
         type: DataCollectionType,
-        collectionDef: {
-          componentDef: {
-            type: 'default',
-            components: [
-              {
-                type: 'default',
-              },
-              variableCmpDef,
-            ],
-          },
-          collectionConfig: {
-            collectionId: 'my_collection',
-            startIndex: 0,
-            endIndex: 2,
-            dataSource: {
-              type: DataVariableType,
-              path: 'my_data_source_id',
+        components: {
+          type: 'default',
+          components: [
+            {
+              type: 'default',
             },
+            variableCmpDef,
+          ],
+        },
+        collectionDef: {
+          collectionId: 'my_collection',
+          startIndex: 0,
+          endIndex: 2,
+          dataSource: {
+            type: DataVariableType,
+            path: 'my_data_source_id',
           },
         },
-      };
+      } as ComponentDataCollectionProps;
 
-      cmp = wrapper.components(collectionComponentDefinition)[0];
+      cmp = wrapper.components(collectionCmpDef)[0];
     });
 
     test('Serializion to JSON', () => {
@@ -178,6 +177,30 @@ describe('Collection variable components', () => {
     });
 
     test('Loading', () => {
+      const cmpDef = {
+        components: {
+          components: [
+            {
+              type: DataCollectionVariableType,
+              variableType: DataCollectionStateVariableType.currentItem,
+              collectionId: 'my_collection',
+              path: 'user',
+            },
+          ],
+          type: 'default',
+        },
+        collectionDef: {
+          collectionId: 'my_collection',
+          dataSource: {
+            path: 'my_data_source_id',
+            type: DataVariableType,
+          },
+          endIndex: 1,
+          startIndex: 0,
+        },
+        type: DataCollectionType,
+      } as ComponentDataCollectionProps;
+
       const componentProjectData: ProjectData = {
         assets: [],
         pages: [
@@ -185,33 +208,7 @@ describe('Collection variable components', () => {
             frames: [
               {
                 component: {
-                  components: [
-                    {
-                      collectionDef: {
-                        componentDef: {
-                          type: 'default',
-                          components: [
-                            {
-                              type: DataCollectionVariableType,
-                              variableType: DataCollectionStateVariableType.currentItem,
-                              collectionId: 'my_collection',
-                              path: 'user',
-                            },
-                          ],
-                        },
-                        collectionConfig: {
-                          collectionId: 'my_collection',
-                          dataSource: {
-                            path: 'my_data_source_id',
-                            type: DataVariableType,
-                          },
-                          endIndex: 1,
-                          startIndex: 0,
-                        },
-                      },
-                      type: DataCollectionType,
-                    },
-                  ],
+                  components: [cmpDef],
                   docEl: {
                     tagName: 'html',
                   },

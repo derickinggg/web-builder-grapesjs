@@ -3,16 +3,16 @@
 exports[`Collection component Serialization Saving: Collection with grandchildren 1`] = `
 {
   "collectionDef": {
-    "collectionConfig": {
-      "collectionId": "my_collection",
-      "dataSource": {
-        "path": "my_data_source_id",
-        "type": "data-variable",
-      },
-      "endIndex": 1,
-      "startIndex": 0,
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
     },
-    "componentDef": {
+    "endIndex": 1,
+    "startIndex": 0,
+  },
+  "components": [
+    {
       "attributes": {
         "attribute_trait": {
           "collectionId": "my_collection",
@@ -130,7 +130,7 @@ exports[`Collection component Serialization Saving: Collection with grandchildre
       },
       "type": "default",
     },
-  },
+  ],
   "type": "data-collection",
 }
 `;
@@ -138,16 +138,16 @@ exports[`Collection component Serialization Saving: Collection with grandchildre
 exports[`Collection component Serialization Saving: Collection with no grandchildren 1`] = `
 {
   "collectionDef": {
-    "collectionConfig": {
-      "collectionId": "my_collection",
-      "dataSource": {
-        "path": "my_data_source_id",
-        "type": "data-variable",
-      },
-      "endIndex": 1,
-      "startIndex": 0,
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
     },
-    "componentDef": {
+    "endIndex": 1,
+    "startIndex": 0,
+  },
+  "components": [
+    {
       "attributes": {
         "attribute_trait": {
           "collectionId": "my_collection",
@@ -254,7 +254,7 @@ exports[`Collection component Serialization Saving: Collection with no grandchil
       },
       "type": "default",
     },
-  },
+  ],
   "type": "data-collection",
 }
 `;
@@ -262,16 +262,16 @@ exports[`Collection component Serialization Saving: Collection with no grandchil
 exports[`Collection component Serialization Serializion with Collection Variables to JSON: Collection with grandchildren 1`] = `
 {
   "collectionDef": {
-    "collectionConfig": {
-      "collectionId": "my_collection",
-      "dataSource": {
-        "path": "my_data_source_id",
-        "type": "data-variable",
-      },
-      "endIndex": 1,
-      "startIndex": 0,
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
     },
-    "componentDef": {
+    "endIndex": 1,
+    "startIndex": 0,
+  },
+  "components": [
+    {
       "attributes": {
         "attribute_trait": {
           "collectionId": "my_collection",
@@ -389,7 +389,7 @@ exports[`Collection component Serialization Serializion with Collection Variable
       },
       "type": "default",
     },
-  },
+  ],
   "type": "data-collection",
 }
 `;
@@ -397,16 +397,16 @@ exports[`Collection component Serialization Serializion with Collection Variable
 exports[`Collection component Serialization Serializion with Collection Variables to JSON: Collection with no grandchildren 1`] = `
 {
   "collectionDef": {
-    "collectionConfig": {
-      "collectionId": "my_collection",
-      "dataSource": {
-        "path": "my_data_source_id",
-        "type": "data-variable",
-      },
-      "endIndex": 1,
-      "startIndex": 0,
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
     },
-    "componentDef": {
+    "endIndex": 1,
+    "startIndex": 0,
+  },
+  "components": [
+    {
       "attributes": {
         "attribute_trait": {
           "collectionId": "my_collection",
@@ -513,7 +513,7 @@ exports[`Collection component Serialization Serializion with Collection Variable
       },
       "type": "default",
     },
-  },
+  ],
   "type": "data-collection",
 }
 `;

@@ -4,13 +4,6 @@ import { DataVariableProps } from '../DataVariable';
 
 export type DataCollectionDataSource = DataVariableProps | DataCollectionVariableProps;
 
-export interface DataCollectionConfig {
-  collectionId: string;
-  startIndex?: number;
-  endIndex?: number;
-  dataSource: DataCollectionDataSource;
-}
-
 export enum DataCollectionStateVariableType {
   currentIndex = 'currentIndex',
   startIndex = 'startIndex',
@@ -45,8 +38,10 @@ export interface ComponentDataCollectionVariableProps
     Omit<ComponentProperties, 'type'> {}
 
 export interface DataCollectionProps {
-  collectionConfig: DataCollectionConfig;
-  componentDef: ComponentDefinition;
+  collectionId: string;
+  startIndex?: number;
+  endIndex?: number;
+  dataSource: DataCollectionDataSource;
 }
 
 export interface DataCollectionVariableProps {
