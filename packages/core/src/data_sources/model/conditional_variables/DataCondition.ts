@@ -35,7 +35,6 @@ export interface DataConditionProps {
 
 export class DataCondition extends Model<DataConditionProps> {
   private em: EditorModel;
-  // TODO: Make conditions accept variables that resolves from collections
   private collectionsStateMap: DataCollectionStateMap = {};
   private resolverListeners: DataResolverListener[] = [];
   private _previousEvaluationResult: boolean | null = null;
@@ -59,7 +58,6 @@ export class DataCondition extends Model<DataConditionProps> {
       opts.em.logError('No condition was provided to a conditional component.');
     }
 
-    // @ts-ignore
     super(props, opts);
     this.em = opts.em;
 
@@ -131,9 +129,7 @@ export class DataCondition extends Model<DataConditionProps> {
   }
 
   private listenToDataVariables() {
-    // Clear previous listeners to avoid memory leaks
     this.cleanupListeners();
-
     this.setupConditionDataVariableListeners();
     this.setupOutputDataVariableListeners();
   }
@@ -148,16 +144,10 @@ export class DataCondition extends Model<DataConditionProps> {
 
   private setupOutputDataVariableListeners() {
     const isConditionTrue = this.isTrue();
-
     this.setupOutputVariableListener(this.getIfTrue(), isConditionTrue);
     this.setupOutputVariableListener(this.getIfFalse(), !isConditionTrue);
   }
 
-  /**
-   * Sets up a listener for an output variable (ifTrue or ifFalse).
-   * @param outputVariable - The output variable to listen to.
-   * @param isConditionTrue - Whether the condition is currently true.
-   */
   private setupOutputVariableListener(outputVariable: any, isConditionTrue: boolean) {
     if (isDataVariable(outputVariable)) {
       this.addListener(outputVariable, () => {

@@ -19,9 +19,9 @@ export default class ComponentDataVariable extends Component {
     return {
       // @ts-ignore
       ...super.defaults,
-      droppable: false,
       type: DataVariableType,
       dataResolver: {},
+      droppable: false,
     };
   }
 
@@ -32,10 +32,8 @@ export default class ComponentDataVariable extends Component {
       ...opt,
       collectionsStateMap: this.get(keyCollectionsStateMap),
     });
-    this.listenToDataResolverChange();
-    this.listenTo(this, `change:${keyCollectionsStateMap}`, (_: Component, value: DataCollectionStateMap) => {
-      this.dataResolver.updateCollectionsStateMap(value);
-    });
+
+    this.listenToPropsChange();
   }
 
   getPath() {
@@ -62,7 +60,7 @@ export default class ComponentDataVariable extends Component {
     this.dataResolver.set('defaultValue', newValue);
   }
 
-  private listenToDataResolverChange() {
+  private listenToPropsChange() {
     this.listenTo(
       this.dataResolver,
       'change',
@@ -72,6 +70,9 @@ export default class ComponentDataVariable extends Component {
     );
     this.on('change:dataResolver', () => {
       this.dataResolver.set(this.get('dataResolver'));
+    });
+    this.on(`change:${keyCollectionsStateMap}`, (_: Component, value: DataCollectionStateMap) => {
+      this.dataResolver.updateCollectionsStateMap(value);
     });
   }
 
@@ -89,6 +90,7 @@ export default class ComponentDataVariable extends Component {
   destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
     this.stopListening(this.dataResolver, 'change');
     this.off('change:dataResolver');
+    this.off(`change:${keyCollectionsStateMap}`);
     return super.destroy(options);
   }
 
