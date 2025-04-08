@@ -128,13 +128,7 @@ import { DataVariableType } from '../data_sources/model/DataVariable';
 import { DataConditionType } from '../data_sources/model/conditional_variables/DataCondition';
 import ComponentDataConditionView from '../data_sources/view/ComponentDataConditionView';
 import ComponentDataCollection from '../data_sources/model/data_collection/ComponentDataCollection';
-import {
-  DataCollectionItemType,
-  DataCollectionType,
-  DataCollectionVariableType,
-} from '../data_sources/model/data_collection/constants';
-import ComponentDataCollectionVariable from '../data_sources/model/data_collection/ComponentDataCollectionVariable';
-import ComponentDataCollectionVariableView from '../data_sources/view/ComponentDataCollectionVariableView';
+import { DataCollectionItemType, DataCollectionType } from '../data_sources/model/data_collection/constants';
 import ComponentDataCollectionView from '../data_sources/view/ComponentDataCollectionView';
 import ComponentDataCondition from '../data_sources/model/conditional_variables/ComponentDataCondition';
 import {
@@ -221,11 +215,6 @@ export default class ComponentManager extends ItemManagerModule<DomComponentsCon
       id: DataConditionIfFalseType,
       model: ComponentDataOutput,
       view: ComponentView,
-    },
-    {
-      id: DataCollectionVariableType,
-      model: ComponentDataCollectionVariable,
-      view: ComponentDataCollectionVariableView,
     },
     {
       id: DataCollectionType,

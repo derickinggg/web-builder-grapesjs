@@ -27,7 +27,7 @@ exports[`Collection component Nested collections are correctly serialized 1`] = 
                   "name": {
                     "collectionId": "nested_collection",
                     "path": "user",
-                    "type": "data-collection-variable",
+                    "type": "data-variable",
                     "variableType": "currentItem",
                   },
                   "type": "default",

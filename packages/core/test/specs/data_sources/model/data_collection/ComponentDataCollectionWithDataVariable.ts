@@ -1,12 +1,9 @@
 import { Component, DataRecord, DataSource, DataSourceManager, Editor } from '../../../../../src';
 import { DataVariableType } from '../../../../../src/data_sources/model/DataVariable';
-import {
-  DataCollectionType,
-  DataCollectionVariableType,
-} from '../../../../../src/data_sources/model/data_collection/constants';
+import { DataCollectionType } from '../../../../../src/data_sources/model/data_collection/constants';
 import {
   ComponentDataCollectionProps,
-  DataCollectionStateVariableType,
+  DataCollectionStateType,
 } from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { ProjectData } from '../../../../../src/storage_manager';
@@ -48,10 +45,12 @@ describe('Collection variable components', () => {
         type: 'default',
         components: [
           {
-            type: DataCollectionVariableType,
-            variableType: DataCollectionStateVariableType.currentItem,
-            collectionId: 'my_collection',
-            path: 'user',
+            type: DataVariableType,
+            dataResolver: {
+              variableType: DataCollectionStateType.currentItem,
+              collectionId: 'my_collection',
+              path: 'user',
+            },
           },
         ],
       },
@@ -80,10 +79,12 @@ describe('Collection variable components', () => {
       components: {
         type: 'default',
         components: {
-          type: DataCollectionVariableType,
-          variableType: DataCollectionStateVariableType.currentItem,
-          collectionId: 'my_collection',
-          path: 'user',
+          type: DataVariableType,
+          dataResolver: {
+            variableType: DataCollectionStateType.currentItem,
+            collectionId: 'my_collection',
+            path: 'user',
+          },
         },
       },
       collectionDef: {
@@ -111,10 +112,12 @@ describe('Collection variable components', () => {
 
     beforeEach(() => {
       const variableCmpDef = {
-        type: DataCollectionVariableType,
-        variableType: DataCollectionStateVariableType.currentItem,
-        collectionId: 'my_collection',
-        path: 'user',
+        type: DataVariableType,
+        dataResolver: {
+          variableType: DataCollectionStateType.currentItem,
+          collectionId: 'my_collection',
+          path: 'user',
+        },
       };
 
       const collectionCmpDef = {
@@ -147,10 +150,12 @@ describe('Collection variable components', () => {
 
       const firstChild = cmp.components().at(0);
       const newChildDefinition = {
-        type: DataCollectionVariableType,
-        variableType: DataCollectionStateVariableType.currentIndex,
-        collectionId: 'my_collection',
-        path: 'user',
+        type: DataVariableType,
+        dataResolver: {
+          variableType: DataCollectionStateType.currentIndex,
+          collectionId: 'my_collection',
+          path: 'user',
+        },
       };
       firstChild.components().at(0).components(newChildDefinition);
       expect(cmp.toJSON()).toMatchSnapshot(`Collection with collection variable component ( with grandchildren )`);
@@ -166,10 +171,12 @@ describe('Collection variable components', () => {
 
       const firstChild = cmp.components().at(0);
       const newChildDefinition = {
-        type: DataCollectionVariableType,
-        variableType: DataCollectionStateVariableType.currentIndex,
-        collectionId: 'my_collection',
-        path: 'user',
+        type: DataVariableType,
+        dataResolver: {
+          variableType: DataCollectionStateType.currentIndex,
+          collectionId: 'my_collection',
+          path: 'user',
+        },
       };
 
       firstChild.components().at(0).components(newChildDefinition);
@@ -181,10 +188,12 @@ describe('Collection variable components', () => {
         components: {
           components: [
             {
-              type: DataCollectionVariableType,
-              variableType: DataCollectionStateVariableType.currentItem,
-              collectionId: 'my_collection',
-              path: 'user',
+              type: DataVariableType,
+              dataResolver: {
+                variableType: DataCollectionStateType.currentItem,
+                collectionId: 'my_collection',
+                path: 'user',
+              },
             },
           ],
           type: 'default',

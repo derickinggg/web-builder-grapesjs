@@ -1,10 +1,10 @@
-import { DataCollectionType, DataCollectionVariableType, keyCollectionDefinition } from './constants';
-import { ComponentDefinition, ComponentProperties } from '../../../dom_components/model/types';
+import { DataCollectionType, keyCollectionDefinition } from './constants';
+import { ComponentDefinition } from '../../../dom_components/model/types';
 import { DataVariableProps } from '../DataVariable';
 
-export type DataCollectionDataSource = DataVariableProps | DataCollectionVariableProps;
+export type DataCollectionDataSource = DataVariableProps;
 
-export enum DataCollectionStateVariableType {
+export enum DataCollectionStateType {
   currentIndex = 'currentIndex',
   startIndex = 'startIndex',
   currentItem = 'currentItem',
@@ -15,13 +15,13 @@ export enum DataCollectionStateVariableType {
 }
 
 export interface DataCollectionState {
-  [DataCollectionStateVariableType.currentIndex]: number;
-  [DataCollectionStateVariableType.startIndex]: number;
-  [DataCollectionStateVariableType.currentItem]: DataVariableProps;
-  [DataCollectionStateVariableType.endIndex]: number;
-  [DataCollectionStateVariableType.collectionId]: string;
-  [DataCollectionStateVariableType.totalItems]: number;
-  [DataCollectionStateVariableType.remainingItems]: number;
+  [DataCollectionStateType.currentIndex]: number;
+  [DataCollectionStateType.startIndex]: number;
+  [DataCollectionStateType.currentItem]: DataVariableProps;
+  [DataCollectionStateType.endIndex]: number;
+  [DataCollectionStateType.collectionId]: string;
+  [DataCollectionStateType.totalItems]: number;
+  [DataCollectionStateType.remainingItems]: number;
 }
 
 export interface DataCollectionStateMap {
@@ -33,20 +33,9 @@ export interface ComponentDataCollectionProps extends ComponentDefinition {
   [keyCollectionDefinition]: DataCollectionProps;
 }
 
-export interface ComponentDataCollectionVariableProps
-  extends DataCollectionVariableProps,
-    Omit<ComponentProperties, 'type'> {}
-
 export interface DataCollectionProps {
   collectionId: string;
   startIndex?: number;
   endIndex?: number;
   dataSource: DataCollectionDataSource;
-}
-
-export interface DataCollectionVariableProps {
-  type: typeof DataCollectionVariableType;
-  variableType: DataCollectionStateVariableType;
-  collectionId: string;
-  path?: string;
 }

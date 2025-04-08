@@ -9,8 +9,6 @@ import {
   DataConditionOutputChangedEvent,
   DataConditionType,
 } from './conditional_variables/DataCondition';
-import { DataCollectionVariableType } from './data_collection/constants';
-import DataCollectionVariable from './data_collection/DataCollectionVariable';
 
 export interface DataResolverListenerProps {
   em: EditorModel;
@@ -52,9 +50,6 @@ export default class DataResolverListener {
     const type = resolver.attributes.type;
 
     switch (type) {
-      case DataCollectionVariableType:
-        listeners = this.listenToDataCollectionVariable(resolver as DataCollectionVariable);
-        break;
       case DataVariableType:
         listeners = this.listenToDataVariable(resolver as DataVariable);
         break;
@@ -79,7 +74,9 @@ export default class DataResolverListener {
 
   private listenToDataVariable(dataVariable: DataVariable): ListenerWithCallback[] {
     const { em } = this;
-    const { path } = dataVariable.attributes;
+    const path = dataVariable.getResolverPath();
+    if (!path) return [];
+
     const normPath = stringToPath(path || '').join('.');
     const [ds, dr] = em.DataSources.fromPath(path!);
 
@@ -104,10 +101,6 @@ export default class DataResolverListener {
     );
 
     return dataListeners;
-  }
-
-  private listenToDataCollectionVariable(dataVariable: DataCollectionVariable): ListenerWithCallback[] {
-    return [this.createListener(dataVariable, 'change:value')];
   }
 
   private removeListeners() {

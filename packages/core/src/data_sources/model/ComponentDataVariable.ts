@@ -4,10 +4,12 @@ import Component from '../../dom_components/model/Component';
 import { ComponentDefinition, ComponentOptions, ComponentProperties } from '../../dom_components/model/types';
 import { toLowerCase } from '../../utils/mixins';
 import DataVariable, { DataVariableProps, DataVariableType } from './DataVariable';
+import { DataCollectionStateMap } from './data_collection/types';
+import { keyCollectionsStateMap } from './data_collection/constants';
 
 export interface ComponentDataVariableProps extends ComponentProperties {
-  type: typeof DataVariableType;
-  dataResolver: DataVariableProps;
+  type?: typeof DataVariableType;
+  dataResolver?: DataVariableProps;
 }
 
 export default class ComponentDataVariable extends Component {
@@ -19,18 +21,21 @@ export default class ComponentDataVariable extends Component {
       ...super.defaults,
       droppable: false,
       type: DataVariableType,
-      dataResolver: {
-        path: '',
-        defaultValue: '',
-      },
+      dataResolver: {},
     };
   }
 
   constructor(props: ComponentDataVariableProps, opt: ComponentOptions) {
     super(props, opt);
 
-    this.dataResolver = new DataVariable(props.dataResolver, opt);
+    this.dataResolver = new DataVariable(props.dataResolver ?? {}, {
+      ...opt,
+      collectionsStateMap: this.get(keyCollectionsStateMap),
+    });
     this.listenToDataResolverChange();
+    this.listenTo(this, `change:${keyCollectionsStateMap}`, (_: Component, value: DataCollectionStateMap) => {
+      this.dataResolver.updateCollectionsStateMap(value);
+    });
   }
 
   getPath() {
@@ -72,7 +77,7 @@ export default class ComponentDataVariable extends Component {
 
   toJSON(opts?: ObjectAny): ComponentDefinition {
     const json = super.toJSON(opts);
-    const dataResolver = this.dataResolver.toJSON();
+    const dataResolver: DataVariableProps = this.dataResolver.toJSON();
     delete dataResolver.type;
 
     return {

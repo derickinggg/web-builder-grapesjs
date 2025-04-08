@@ -9,6 +9,7 @@ import { BooleanOperation } from './operators/BooleanOperator';
 import { NumberOperation } from './operators/NumberOperator';
 import { StringOperation } from './operators/StringOperator';
 import { isUndefined } from 'underscore';
+import { DataCollectionStateMap } from '../data_collection/types';
 
 export const DataConditionType = 'data-condition' as const;
 export const DataConditionEvaluationChangedEvent = 'data-condition-evaluation-changed';
@@ -34,6 +35,8 @@ export interface DataConditionProps {
 
 export class DataCondition extends Model<DataConditionProps> {
   private em: EditorModel;
+  // TODO: Make conditions accept variables that resolves from collections
+  private collectionsStateMap: DataCollectionStateMap = {};
   private resolverListeners: DataResolverListener[] = [];
   private _previousEvaluationResult: boolean | null = null;
   private _conditionEvaluator: DataConditionEvaluator;
@@ -108,6 +111,14 @@ export class DataCondition extends Model<DataConditionProps> {
     return isConditionTrue ? resolveDynamicValue(ifTrue, this.em) : resolveDynamicValue(ifFalse, this.em);
   }
 
+  resolvesFromCollection() {
+    return false;
+  }
+
+  updateCollectionsStateMap(collectionsStateMap: DataCollectionStateMap) {
+    this.collectionsStateMap = collectionsStateMap;
+  }
+
   private listenToPropsChange() {
     this.on('change:condition', this.handleConditionChange.bind(this));
     this.on('change:condition change:ifTrue change:ifFalse', () => {
@@ -160,7 +171,7 @@ export class DataCondition extends Model<DataConditionProps> {
   private addListener(variable: DataVariableProps, onUpdate: () => void) {
     const listener = new DataResolverListener({
       em: this.em,
-      resolver: new DataVariable(variable, { em: this.em }),
+      resolver: new DataVariable(variable, { em: this.em, collectionsStateMap: this.collectionsStateMap }),
       onUpdate,
     });
 

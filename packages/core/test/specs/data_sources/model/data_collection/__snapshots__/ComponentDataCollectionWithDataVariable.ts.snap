@@ -18,10 +18,12 @@ exports[`Collection variable components Serialization Saving: Collection with co
           "type": "default",
         },
         {
-          "collectionId": "my_collection",
-          "path": "user",
-          "type": "data-collection-variable",
-          "variableType": "currentItem",
+          "dataResolver": {
+            "collectionId": "my_collection",
+            "path": "user",
+            "variableType": "currentItem",
+          },
+          "type": "data-variable",
         },
       ],
       "type": "default",
@@ -48,19 +50,23 @@ exports[`Collection variable components Serialization Saving: Collection with co
         {
           "components": [
             {
-              "collectionId": "my_collection",
-              "path": "user",
-              "type": "data-collection-variable",
-              "variableType": "currentIndex",
+              "dataResolver": {
+                "collectionId": "my_collection",
+                "path": "user",
+                "variableType": "currentIndex",
+              },
+              "type": "data-variable",
             },
           ],
           "type": "default",
         },
         {
-          "collectionId": "my_collection",
-          "path": "user",
-          "type": "data-collection-variable",
-          "variableType": "currentItem",
+          "dataResolver": {
+            "collectionId": "my_collection",
+            "path": "user",
+            "variableType": "currentItem",
+          },
+          "type": "data-variable",
         },
       ],
       "type": "default",
@@ -88,10 +94,12 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
           "type": "default",
         },
         {
-          "collectionId": "my_collection",
-          "path": "user",
-          "type": "data-collection-variable",
-          "variableType": "currentItem",
+          "dataResolver": {
+            "collectionId": "my_collection",
+            "path": "user",
+            "variableType": "currentItem",
+          },
+          "type": "data-variable",
         },
       ],
       "type": "default",
@@ -118,19 +126,23 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
         {
           "components": [
             {
-              "collectionId": "my_collection",
-              "path": "user",
-              "type": "data-collection-variable",
-              "variableType": "currentIndex",
+              "dataResolver": {
+                "collectionId": "my_collection",
+                "path": "user",
+                "variableType": "currentIndex",
+              },
+              "type": "data-variable",
             },
           ],
           "type": "default",
         },
         {
-          "collectionId": "my_collection",
-          "path": "user",
-          "type": "data-collection-variable",
-          "variableType": "currentItem",
+          "dataResolver": {
+            "collectionId": "my_collection",
+            "path": "user",
+            "variableType": "currentItem",
+          },
+          "type": "data-variable",
         },
       ],
       "type": "default",

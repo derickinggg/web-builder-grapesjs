@@ -4,11 +4,10 @@ import ComponentDataCollection from '../../../../../src/data_sources/model/data_
 import {
   DataCollectionItemType,
   DataCollectionType,
-  DataCollectionVariableType,
 } from '../../../../../src/data_sources/model/data_collection/constants';
 import {
   ComponentDataCollectionProps,
-  DataCollectionStateVariableType,
+  DataCollectionStateType,
 } from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../../common';
@@ -70,8 +69,8 @@ describe('Collection component', () => {
         components: {
           type: 'default',
           name: {
-            type: DataCollectionVariableType,
-            variableType: DataCollectionStateVariableType.currentItem,
+            type: DataVariableType,
+            variableType: DataCollectionStateType.currentItem,
             collectionId: 'nested_collection',
             path: 'user',
           },
@@ -128,8 +127,8 @@ describe('Collection component', () => {
         components: {
           type: 'default',
           name: {
-            type: DataCollectionVariableType,
-            variableType: DataCollectionStateVariableType.currentItem,
+            type: DataVariableType,
+            variableType: DataCollectionStateType.currentItem,
             collectionId: 'nested_collection',
             path: 'user',
           },
@@ -159,8 +158,8 @@ describe('Collection component', () => {
         components: {
           type: 'default',
           name: {
-            type: DataCollectionVariableType,
-            variableType: DataCollectionStateVariableType.currentItem,
+            type: DataVariableType,
+            variableType: DataCollectionStateType.currentItem,
             collectionId: 'parent_collection',
             path: 'user',
           },
@@ -191,8 +190,8 @@ describe('Collection component', () => {
 
     firstChild.set('name', {
       // @ts-ignore
-      type: DataCollectionVariableType,
-      variableType: DataCollectionStateVariableType.currentItem,
+      type: DataVariableType,
+      variableType: DataCollectionStateType.currentItem,
       path: 'user',
       collectionId: 'nested_collection',
     });
@@ -205,8 +204,8 @@ describe('Collection component', () => {
       nestedCmpDef = {
         type: DataCollectionType,
         name: {
-          type: DataCollectionVariableType,
-          variableType: DataCollectionStateVariableType.currentItem,
+          type: DataVariableType,
+          variableType: DataCollectionStateType.currentItem,
           collectionId: 'parent_collection',
           path: 'user',
         },
@@ -215,8 +214,8 @@ describe('Collection component', () => {
           components: {
             type: 'default',
             name: {
-              type: DataCollectionVariableType,
-              variableType: DataCollectionStateVariableType.currentItem,
+              type: DataVariableType,
+              variableType: DataCollectionStateType.currentItem,
               collectionId: 'nested_collection',
               path: 'user',
             },

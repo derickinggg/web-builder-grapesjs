@@ -3,11 +3,10 @@ import { DataVariableType } from '../../../../../src/data_sources/model/DataVari
 import {
   DataCollectionItemType,
   DataCollectionType,
-  DataCollectionVariableType,
 } from '../../../../../src/data_sources/model/data_collection/constants';
 import {
   ComponentDataCollectionProps,
-  DataCollectionStateVariableType,
+  DataCollectionStateType,
 } from '../../../../../src/data_sources/model/data_collection/types';
 import EditorModel from '../../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../../common';
@@ -52,8 +51,8 @@ describe('Collection component getters and setters', () => {
                 tagName: 'div',
                 attributes: {
                   dataUser: {
-                    type: DataCollectionVariableType,
-                    variableType: DataCollectionStateVariableType.currentItem,
+                    type: DataVariableType,
+                    variableType: DataCollectionStateType.currentItem,
                     collectionId: 'my_collection',
                     path: 'user',
                   },
@@ -94,8 +93,8 @@ describe('Collection component getters and setters', () => {
       expect(firstChildJSON['type']).toBe('default');
       expect(firstChildJSON.components).toHaveLength(1);
       expect(firstChildJSON.components?.[0].attributes?.['dataUser']).toEqual({
-        type: DataCollectionVariableType,
-        variableType: DataCollectionStateVariableType.currentItem,
+        type: DataVariableType,
+        variableType: DataCollectionStateType.currentItem,
         collectionId: 'my_collection',
         path: 'user',
       });
@@ -153,8 +152,8 @@ describe('Collection component getters and setters', () => {
                 tagName: 'div',
                 attributes: {
                   dataUser: {
-                    type: DataCollectionVariableType,
-                    variableType: DataCollectionStateVariableType.currentItem,
+                    type: DataVariableType,
+                    variableType: DataCollectionStateType.currentItem,
                     collectionId: 'my_collection',
                     path: 'user',
                   },
@@ -186,8 +185,8 @@ describe('Collection component getters and setters', () => {
             tagName: 'span',
             attributes: {
               'data-name': {
-                type: DataCollectionVariableType,
-                variableType: DataCollectionStateVariableType.currentItem,
+                type: DataVariableType,
+                variableType: DataCollectionStateType.currentItem,
                 collectionId: 'my_collection',
                 path: 'firstName',
               },
@@ -297,8 +296,8 @@ describe('Collection component getters and setters', () => {
                 tagName: 'div',
                 attributes: {
                   dataUser: {
-                    type: DataCollectionVariableType,
-                    variableType: DataCollectionStateVariableType.currentItem,
+                    type: DataVariableType,
+                    variableType: DataCollectionStateType.currentItem,
                     collectionId: 'my_collection',
                     path: 'user',
                   },

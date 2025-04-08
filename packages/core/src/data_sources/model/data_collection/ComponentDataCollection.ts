@@ -1,18 +1,13 @@
 import { bindAll, isArray } from 'underscore';
 import { ObjectAny } from '../../../common';
-import Component from '../../../dom_components/model/Component';
-import {
-  ComponentAddType,
-  ComponentDefinition,
-  ComponentDefinitionDefined,
-  ComponentOptions,
-} from '../../../dom_components/model/types';
+import Component, { keySymbol } from '../../../dom_components/model/Component';
+import { ComponentAddType, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
 import EditorModel from '../../../editor/model/Editor';
-import { isObject, serialize, toLowerCase } from '../../../utils/mixins';
+import { isObject, toLowerCase } from '../../../utils/mixins';
 import DataResolverListener from '../DataResolverListener';
 import DataSource from '../DataSource';
 import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
-import { ensureComponentInstance, isDataVariable } from '../../utils';
+import { isDataVariable } from '../../utils';
 import {
   DataCollectionItemType,
   DataCollectionType,
@@ -31,7 +26,6 @@ import { getSymbolsToUpdate } from '../../../dom_components/model/SymbolUtils';
 import { StyleProps, UpdateStyleOptions } from '../../../domain_abstract/model/StyleableModel';
 import { updateFromWatcher } from '../../../dom_components/model/ComponentDataResolverWatchers';
 import Components from '../../../dom_components/model/Components';
-import ComponentDataOutput from '../conditional_variables/ComponentDataOutput';
 
 export default class ComponentDataCollection extends Component {
   dataSourceWatcher?: DataResolverListener;
@@ -65,9 +59,9 @@ export default class ComponentDataCollection extends Component {
       return cmp;
     }
 
-    this.rebuildChildrenFromCollection();
     bindAll(this, 'rebuildChildrenFromCollection');
     this.listenTo(this, `change:${keyCollectionDefinition}`, this.rebuildChildrenFromCollection);
+    this.rebuildChildrenFromCollection();
     this.listenToDataSource();
 
     return cmp;
@@ -160,7 +154,10 @@ export default class ComponentDataCollection extends Component {
     if (!path) return;
     this.dataSourceWatcher = new DataResolverListener({
       em,
-      resolver: new DataVariable({ type: DataVariableType, path }, { em }),
+      resolver: new DataVariable(
+        { type: DataVariableType, path },
+        { em, collectionsStateMap: this.get(keyCollectionsStateMap) },
+      ),
       onUpdate: this.rebuildChildrenFromCollection,
     });
   }
@@ -246,6 +243,8 @@ export default class ComponentDataCollection extends Component {
   toJSON(opts?: ObjectAny) {
     const json = super.toJSON.call(this, opts) as ComponentDataCollectionProps;
     delete json.droppable;
+    delete json[keySymbol];
+    delete json.attributes?.id;
 
     const components = new Components(this.components().at(0), this.opt) as any;
     return { ...json, components };
@@ -296,6 +295,8 @@ function setCollectionStateMapAndPropagate(
 
       cmp.listenTo(cmps, 'remove', removeListener);
     }
+
+    cmps.forEach((cmp) => setCollectionStateMapAndPropagate(cmp, collectionsStateMap, collectionId));
 
     cmp.on(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange);
   }, cmp);
@@ -386,12 +387,13 @@ function getDataSourceItems(dataSource: DataCollectionDataSource, em: EditorMode
       break;
     }
     case isDataVariable(dataSource): {
-      const isDataSourceId = dataSource.path.split('.').length === 1;
+      const path = dataSource.path;
+      if (!path) break;
+      const isDataSourceId = path.split('.').length === 1;
       if (isDataSourceId) {
-        const id = dataSource.path;
-        items = listDataSourceVariables(id, em);
+        items = listDataSourceVariables(path, em);
       } else {
-        items = em.DataSources.getValue(dataSource.path, []);
+        items = em.DataSources.getValue(path, []);
       }
       break;
     }
