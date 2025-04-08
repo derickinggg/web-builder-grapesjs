@@ -679,7 +679,6 @@ describe('Collection component', () => {
         },
       };
       firstItemCmp.components(newChildDefinition);
-      console.log('🚀 ~ test ~ cmp.toJSON():', cmp.components().at(0).components().toJSON());
       expect(cmp.toJSON()).toMatchSnapshot(`Collection with grandchildren`);
     });
 

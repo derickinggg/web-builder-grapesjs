@@ -167,15 +167,7 @@ export default class ComponentDataCollection extends Component {
   }
 
   private getCollectionItems() {
-    const dataConditionItemModel = this.em.Components.getType(DataCollectionItemType)!.model;
-    const firstChild =
-      this.components().at(0) ||
-      new dataConditionItemModel(
-        {
-          type: DataCollectionItemType,
-        },
-        this.opt,
-      );
+    const firstChild = this.ensureFirstChild();
     // TODO: Move to component view
     firstChild.addStyle({ display: 'none' });
     const components: Component[] = [firstChild];
@@ -234,6 +226,20 @@ export default class ComponentDataCollection extends Component {
     }
 
     return components;
+  }
+
+  private ensureFirstChild() {
+    const dataConditionItemModel = this.em.Components.getType(DataCollectionItemType)!.model;
+
+    return (
+      this.components().at(0) ||
+      new dataConditionItemModel(
+        {
+          type: DataCollectionItemType,
+        },
+        this.opt,
+      )
+    );
   }
 
   static isComponent(el: HTMLElement) {
