@@ -74,13 +74,19 @@ export default class DataResolverListener {
 
   private listenToDataVariable(dataVariable: DataVariable): ListenerWithCallback[] {
     const { em } = this;
+    const dataListeners: ListenerWithCallback[] = [];
+    dataListeners.push(
+      this.createListener(dataVariable, 'change', () => {
+        this.listenToResolver();
+        this.onChange();
+      }),
+    );
+
     const path = dataVariable.getResolverPath();
-    if (!path) return [];
+    if (!path) return dataListeners;
 
     const normPath = stringToPath(path || '').join('.');
     const [ds, dr] = em.DataSources.fromPath(path!);
-
-    const dataListeners: ListenerWithCallback[] = [];
 
     if (ds) {
       dataListeners.push(this.createListener(ds.records, 'add remove reset'));
@@ -91,11 +97,6 @@ export default class DataResolverListener {
     }
 
     dataListeners.push(
-      this.createListener(dataVariable, 'change:path', () => {
-        this.listenToResolver();
-        this.onChange();
-      }),
-      this.createListener(dataVariable, 'change:defaultValue'),
       this.createListener(em.DataSources.all, 'add remove reset'),
       this.createListener(em, `${DataSourcesEvents.path}:${normPath}`),
     );
