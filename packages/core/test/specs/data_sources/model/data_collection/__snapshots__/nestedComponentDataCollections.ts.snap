@@ -2,24 +2,10 @@
 
 exports[`Collection component Nested collections are correctly serialized 1`] = `
 {
-  "collectionDef": {
-    "collectionId": "parent_collection",
-    "dataSource": {
-      "path": "my_data_source_id",
-      "type": "data-variable",
-    },
-  },
   "components": [
     {
       "components": [
         {
-          "collectionDef": {
-            "collectionId": "nested_collection",
-            "dataSource": {
-              "path": "nested_data_source_id",
-              "type": "data-variable",
-            },
-          },
           "components": [
             {
               "components": [
@@ -36,12 +22,26 @@ exports[`Collection component Nested collections are correctly serialized 1`] = 
               "type": "data-collection-item",
             },
           ],
+          "dataResolver": {
+            "collectionId": "nested_collection",
+            "dataSource": {
+              "path": "nested_data_source_id",
+              "type": "data-variable",
+            },
+          },
           "type": "data-collection",
         },
       ],
       "type": "data-collection-item",
     },
   ],
+  "dataResolver": {
+    "collectionId": "parent_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
+    },
+  },
   "type": "data-collection",
 }
 `;

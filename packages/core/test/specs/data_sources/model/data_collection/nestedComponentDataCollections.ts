@@ -29,7 +29,7 @@ describe('Collection component', () => {
     return {
       type: DataCollectionType,
       components: { type: DataCollectionItemType, components: nestedCmpDef },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'parent_collection',
         dataSource: {
           type: DataVariableType,
@@ -76,7 +76,7 @@ describe('Collection component', () => {
           },
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'nested_collection',
         dataSource: {
           type: DataVariableType,
@@ -134,7 +134,7 @@ describe('Collection component', () => {
           },
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'nested_collection',
         startIndex: 0,
         endIndex: 1,
@@ -165,7 +165,7 @@ describe('Collection component', () => {
           },
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'nested_collection',
         startIndex: 0,
         endIndex: 1,
@@ -221,7 +221,7 @@ describe('Collection component', () => {
             },
           },
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'nested_collection',
           dataSource: {
             type: DataVariableType,

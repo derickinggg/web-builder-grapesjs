@@ -2,15 +2,6 @@
 
 exports[`Collection variable components Serialization Saving: Collection with collection variable component ( no grandchildren ) 1`] = `
 {
-  "collectionDef": {
-    "collectionId": "my_collection",
-    "dataSource": {
-      "path": "my_data_source_id",
-      "type": "data-variable",
-    },
-    "endIndex": 2,
-    "startIndex": 0,
-  },
   "components": [
     {
       "components": [
@@ -29,21 +20,21 @@ exports[`Collection variable components Serialization Saving: Collection with co
       "type": "default",
     },
   ],
+  "dataResolver": {
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
+    },
+    "endIndex": 2,
+    "startIndex": 0,
+  },
   "type": "data-collection",
 }
 `;
 
 exports[`Collection variable components Serialization Saving: Collection with collection variable component ( with grandchildren ) 1`] = `
 {
-  "collectionDef": {
-    "collectionId": "my_collection",
-    "dataSource": {
-      "path": "my_data_source_id",
-      "type": "data-variable",
-    },
-    "endIndex": 2,
-    "startIndex": 0,
-  },
   "components": [
     {
       "components": [
@@ -72,21 +63,21 @@ exports[`Collection variable components Serialization Saving: Collection with co
       "type": "default",
     },
   ],
+  "dataResolver": {
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
+    },
+    "endIndex": 2,
+    "startIndex": 0,
+  },
   "type": "data-collection",
 }
 `;
 
 exports[`Collection variable components Serialization Serializion to JSON: Collection with collection variable component ( no grandchildren ) 1`] = `
 {
-  "collectionDef": {
-    "collectionId": "my_collection",
-    "dataSource": {
-      "path": "my_data_source_id",
-      "type": "data-variable",
-    },
-    "endIndex": 2,
-    "startIndex": 0,
-  },
   "components": [
     {
       "components": [
@@ -105,13 +96,7 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
       "type": "default",
     },
   ],
-  "type": "data-collection",
-}
-`;
-
-exports[`Collection variable components Serialization Serializion to JSON: Collection with collection variable component ( with grandchildren ) 1`] = `
-{
-  "collectionDef": {
+  "dataResolver": {
     "collectionId": "my_collection",
     "dataSource": {
       "path": "my_data_source_id",
@@ -120,6 +105,12 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
     "endIndex": 2,
     "startIndex": 0,
   },
+  "type": "data-collection",
+}
+`;
+
+exports[`Collection variable components Serialization Serializion to JSON: Collection with collection variable component ( with grandchildren ) 1`] = `
+{
   "components": [
     {
       "components": [
@@ -148,6 +139,15 @@ exports[`Collection variable components Serialization Serializion to JSON: Colle
       "type": "default",
     },
   ],
+  "dataResolver": {
+    "collectionId": "my_collection",
+    "dataSource": {
+      "path": "my_data_source_id",
+      "type": "data-variable",
+    },
+    "endIndex": 2,
+    "startIndex": 0,
+  },
   "type": "data-collection",
 }
 `;

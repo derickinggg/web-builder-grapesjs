@@ -61,7 +61,7 @@ describe('Collection component getters and setters', () => {
             ],
           },
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           startIndex: 1,
           endIndex: 2,
@@ -162,7 +162,7 @@ describe('Collection component getters and setters', () => {
             ],
           },
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           startIndex: 1,
           endIndex: 2,
@@ -306,7 +306,7 @@ describe('Collection component getters and setters', () => {
             ],
           },
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           startIndex: 1,
           endIndex: 2,

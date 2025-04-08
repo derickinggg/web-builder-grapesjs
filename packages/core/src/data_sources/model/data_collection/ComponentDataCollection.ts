@@ -25,8 +25,8 @@ import {
 import { getSymbolsToUpdate } from '../../../dom_components/model/SymbolUtils';
 import { StyleProps, UpdateStyleOptions } from '../../../domain_abstract/model/StyleableModel';
 import { updateFromWatcher } from '../../../dom_components/model/ComponentDataResolverWatchers';
-import Components from '../../../dom_components/model/Components';
 
+const AvoidStoreOptions = { avoidStore: true, partial: true };
 export default class ComponentDataCollection extends Component {
   dataSourceWatcher?: DataResolverListener;
 
@@ -45,7 +45,7 @@ export default class ComponentDataCollection extends Component {
   }
 
   constructor(props: ComponentDataCollectionProps, opt: ComponentOptions) {
-    const collectionDef = props[keyCollectionDefinition];
+    const dataResolver = props[keyCollectionDefinition];
 
     if (opt.forCloning) {
       return super(props as any, opt) as unknown as ComponentDataCollection;
@@ -54,7 +54,7 @@ export default class ComponentDataCollection extends Component {
     const em = opt.em;
     const newProps = { ...props, droppable: false } as any;
     const cmp: ComponentDataCollection = super(newProps, opt) as unknown as ComponentDataCollection;
-    if (!collectionDef) {
+    if (!dataResolver) {
       em.logError('missing collection definition');
       return cmp;
     }
@@ -78,23 +78,23 @@ export default class ComponentDataCollection extends Component {
   }
 
   getConfigStartIndex() {
-    return this.collectionDef.startIndex;
+    return this.dataResolver.startIndex;
   }
 
   getConfigEndIndex() {
-    return this.collectionDef.endIndex;
+    return this.dataResolver.endIndex;
   }
 
   getDataSource(): DataCollectionDataSource {
-    return this.collectionDef?.dataSource;
+    return this.dataResolver?.dataSource;
   }
 
   getCollectionId(): string {
-    return this.collectionDef?.collectionId;
+    return this.dataResolver?.collectionId;
   }
 
   getCollectionItemComponents() {
-    return this.components().at(0).components();
+    return this.firstChild.components();
   }
 
   setCollectionId(collectionId: string) {
@@ -116,36 +116,40 @@ export default class ComponentDataCollection extends Component {
 
   private updateCollectionConfig(updates: Partial<DataCollectionProps>): void {
     this.set(keyCollectionDefinition, {
-      ...this.collectionDef,
+      ...this.dataResolver,
       ...updates,
     });
   }
 
   setDataSource(dataSource: DataCollectionDataSource) {
     this.set(keyCollectionDefinition, {
-      ...this.collectionDef,
+      ...this.dataResolver,
       dataSource,
     });
   }
 
   setCollectionItemComponents(content: ComponentAddType) {
-    this.components().at(0).components(content);
+    this.firstChild.components(content);
+  }
+
+  private get firstChild() {
+    return this.components().at(0);
   }
 
   private getDataSourceItems() {
-    return getDataSourceItems(this.collectionDef.dataSource, this.em);
+    return getDataSourceItems(this.dataResolver.dataSource, this.em);
   }
 
   private getCollectionStateMap() {
     return (this.get(keyCollectionsStateMap) || {}) as DataCollectionStateMap;
   }
 
-  private get collectionDef() {
+  private get dataResolver() {
     return (this.get(keyCollectionDefinition) || {}) as DataCollectionProps;
   }
 
   private get collectionDataSource() {
-    return this.collectionDef.dataSource;
+    return this.dataResolver.dataSource;
   }
 
   private listenToDataSource() {
@@ -169,15 +173,15 @@ export default class ComponentDataCollection extends Component {
   private getCollectionItems() {
     const firstChild = this.ensureFirstChild();
     // TODO: Move to component view
-    firstChild.addStyle({ display: 'none' });
+    firstChild.addStyle({ display: 'none' }, AvoidStoreOptions);
     const components: Component[] = [firstChild];
 
-    const result = validateCollectionDef(this.collectionDef, this.em);
+    const result = validateCollectionDef(this.dataResolver, this.em);
     if (!result) {
       return components;
     }
 
-    const collectionId = this.collectionDef.collectionId;
+    const collectionId = this.dataResolver.collectionId;
     const items = this.getDataSourceItems();
 
     const startIndex = this.getConfigStartIndex() ?? 0;
@@ -214,13 +218,13 @@ export default class ComponentDataCollection extends Component {
       if (isFirstItem) {
         setCollectionStateMapAndPropagate(firstChild, collectionsStateMap, collectionId);
         // TODO: Move to component view
-        firstChild.addStyle({ display: '' });
+        firstChild.addStyle({ display: '' }, AvoidStoreOptions);
 
         continue;
       }
 
       const instance = firstChild!.clone({ symbol: true });
-      instance.set('locked', true);
+      instance.set('locked', true, AvoidStoreOptions);
       setCollectionStateMapAndPropagate(instance, collectionsStateMap, collectionId);
       components.push(instance);
     }
@@ -232,7 +236,7 @@ export default class ComponentDataCollection extends Component {
     const dataConditionItemModel = this.em.Components.getType(DataCollectionItemType)!.model;
 
     return (
-      this.components().at(0) ||
+      this.firstChild ||
       new dataConditionItemModel(
         {
           type: DataCollectionItemType,
@@ -252,8 +256,8 @@ export default class ComponentDataCollection extends Component {
     delete json[keySymbol];
     delete json.attributes?.id;
 
-    const components = new Components(this.components().at(0), this.opt) as any;
-    return { ...json, components };
+    const firstChild = this.firstChild as any;
+    return { ...json, components: [firstChild] };
   }
 }
 
@@ -325,19 +329,19 @@ function logErrorIfMissing(property: any, propertyPath: string, em: EditorModel)
   return true;
 }
 
-function validateCollectionDef(collectionDef: DataCollectionProps, em: EditorModel) {
+function validateCollectionDef(dataResolver: DataCollectionProps, em: EditorModel) {
   const validations = [
-    { property: collectionDef?.collectionId, propertyPath: 'collectionDef.collectionId' },
-    { property: collectionDef?.dataSource, propertyPath: 'collectionDef.dataSource' },
+    { property: dataResolver?.collectionId, propertyPath: 'dataResolver.collectionId' },
+    { property: dataResolver?.dataSource, propertyPath: 'dataResolver.dataSource' },
   ];
 
   for (const { propertyPath } of validations) {
-    if (!logErrorIfMissing(collectionDef, propertyPath, em)) {
+    if (!logErrorIfMissing(dataResolver, propertyPath, em)) {
       return [];
     }
   }
 
-  const startIndex = collectionDef?.startIndex;
+  const startIndex = dataResolver?.startIndex;
 
   if (startIndex !== undefined && (startIndex < 0 || !Number.isInteger(startIndex))) {
     em.logError(`Invalid startIndex: ${startIndex}. It must be a non-negative integer.`);

@@ -54,7 +54,7 @@ describe('Collection variable components', () => {
           },
         ],
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'my_collection',
         dataSource: {
           type: DataVariableType,
@@ -87,7 +87,7 @@ describe('Collection variable components', () => {
           },
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'my_collection',
         dataSource: {
           type: DataVariableType,
@@ -131,7 +131,7 @@ describe('Collection variable components', () => {
             variableCmpDef,
           ],
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           startIndex: 0,
           endIndex: 2,
@@ -198,7 +198,7 @@ describe('Collection variable components', () => {
           ],
           type: 'default',
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           dataSource: {
             path: 'my_data_source_id',

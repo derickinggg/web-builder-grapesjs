@@ -51,7 +51,7 @@ describe('Collection component', () => {
           type: 'default',
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'my_collection',
         dataSource: {
           type: DataVariableType,
@@ -73,7 +73,7 @@ describe('Collection component', () => {
           type: 'default',
         },
       },
-      collectionDef: {
+      dataResolver: {
         collectionId: 'my_collection',
         dataSource: {
           type: DataVariableType,
@@ -153,7 +153,7 @@ describe('Collection component', () => {
               },
             },
           },
-          collectionDef: {
+          dataResolver: {
             collectionId: 'my_collection',
             dataSource: {
               type: DataVariableType,
@@ -358,7 +358,7 @@ describe('Collection component', () => {
               },
             },
           },
-          collectionDef: {
+          dataResolver: {
             collectionId: 'my_collection',
             dataSource: {
               type: DataVariableType,
@@ -539,7 +539,7 @@ describe('Collection component', () => {
             ],
           },
         },
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           dataSource: {
             type: DataVariableType,
@@ -629,7 +629,7 @@ describe('Collection component', () => {
             components: [childCmpDef, childCmpDef],
           },
         ],
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           startIndex: 0,
           endIndex: 1,
@@ -796,7 +796,7 @@ describe('Collection component', () => {
             },
           },
         ],
-        collectionDef: {
+        dataResolver: {
           collectionId: 'my_collection',
           dataSource: {
             path: 'my_data_source_id',
@@ -891,7 +891,7 @@ describe('Collection component', () => {
             },
           },
         },
-        collectionDef: {
+        dataResolver: {
           startIndex: 1,
           endIndex: 2,
           collectionId: 'my_collection',
@@ -966,7 +966,7 @@ describe('Collection component', () => {
               ],
             },
           },
-          collectionDef: {
+          dataResolver: {
             collectionId: 'my_collection',
             dataSource: {
               type: DataVariableType,
