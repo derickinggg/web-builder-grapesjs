@@ -84,9 +84,9 @@ export interface DraggerOptions {
 
   /**
    * Snapping value for the x-y axis. If you pass a value of 0, the snapping will be disabled for that axis.
-   * @example { snap: { x: 10, y: 5 } }
+   * @example { snapGuides: { x: 10, y: 5 } }
    */
-  snap?: { x?: number; y?: number };
+  snapGuides?: { x?: number; y?: number };
 
   /**
    * Document on which listen to pointer events.
@@ -128,7 +128,8 @@ export default class Dragger {
    */
   constructor(opts: DraggerOptions = {}) {
     this.opts = {
-      snap: { x: 5, y: 5 },
+      // TODO: move per pixel in the Studio (by event)
+      snapGuides: { x: 20, y: 0 },
       snapOffset: 5,
       scale: 1,
     };
@@ -319,10 +320,10 @@ export default class Dragger {
   }
 
   isPointIn(src: number, trg: number, { offset, axis }: { offset?: number; axis?: PositionXY } = {}) {
-    const { snap = {}, snapOffset = 0 } = this.opts;
-    const axisOffset = axis === 'x' ? snap.x : axis === 'y' ? snap.y : undefined;
+    const { snapGuides = {}, snapOffset = 0 } = this.opts;
+    const axisOffset = axis === 'x' ? snapGuides.x : axis === 'y' ? snapGuides.y : undefined;
 
-    // If snap.x or snap.y is explicitly 0, disable snapping for that axis
+    // If snapGuides.x or snapGuides.y is explicitly 0, disable snapping for that axis
     const effectiveOffset = axisOffset === 0 ? 0 : (offset ?? axisOffset ?? snapOffset);
 
     // If effectiveOffset is 0, snapping is disabled for this axis

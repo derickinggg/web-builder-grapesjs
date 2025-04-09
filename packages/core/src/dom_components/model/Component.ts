@@ -1153,6 +1153,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
             const clientX = rect ? rect.left + rect.width / 2 : 0;
             const clientY = rect ? rect.top + rect.height / 2 : 0;
 
+            // TODO: support multiple selection
             ed.runCommand('tlb-move', {
               target,
               event: new DragEvent('dragstart', { clientX, clientY }),
