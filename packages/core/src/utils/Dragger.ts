@@ -128,8 +128,7 @@ export default class Dragger {
    */
   constructor(opts: DraggerOptions = {}) {
     this.opts = {
-      // TODO: move per pixel in the Studio (by event)
-      snapGuides: { x: 20, y: 0 },
+      snapGuides: { x: 5, y: 5 },
       snapOffset: 5,
       scale: 1,
     };
@@ -222,25 +221,17 @@ export default class Dragger {
     this.lastScrollDiff = resetPos();
     let { lockedAxis } = this;
 
-    // Handle axis locking when Shift key is pressed
-    const isShiftKeyPressed = 'shiftKey' in ev && ev.shiftKey;
-    if (isShiftKeyPressed) {
-      const { trgX, trgY } = this.snapGuides(delta);
-
-      // If snapped to a vertical guide, lock vertical movement (allow only horizontal movement)
-      if (trgX) lockedAxis = 'y';
-      // If snapped to a horizontal guide, lock horizontal movement (allow only vertical movement)
-      else if (trgY) lockedAxis = 'x';
-      // If no snapping occurs, detect axis lock based on movement direction
-      else if (!lockedAxis) lockedAxis = this.detectAxisLock(delta.x, delta.y);
-
-      // Lock the axis based on the detected axis lock
-      if (lockedAxis === 'x') delta.y = 0;
-      // Lock the axis based on the detected axis lock
-      else if (lockedAxis === 'y') delta.x = 0;
+    // @ts-ignore Lock one axis
+    if (ev.shiftKey) {
+      lockedAxis = !lockedAxis && this.detectAxisLock(delta.x, delta.y);
     } else {
-      // Reset axis locking when Shift key is released
       lockedAxis = null;
+    }
+
+    if (lockedAxis === 'x') {
+      delta.x = startPointer.x;
+    } else if (lockedAxis === 'y') {
+      delta.y = startPointer.y;
     }
 
     const moveDelta = (delta: DraggerPosition) => {
