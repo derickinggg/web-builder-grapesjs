@@ -221,17 +221,25 @@ export default class Dragger {
     this.lastScrollDiff = resetPos();
     let { lockedAxis } = this;
 
-    // @ts-ignore Lock one axis
-    if (ev.shiftKey) {
-      lockedAxis = !lockedAxis && this.detectAxisLock(delta.x, delta.y);
-    } else {
-      lockedAxis = null;
-    }
+    // Handle axis locking when Shift key is pressed
+    const isShiftKeyPressed = 'shiftKey' in ev && ev.shiftKey;
+    if (isShiftKeyPressed) {
+      const { trgX, trgY } = this.snapGuides(delta);
 
-    if (lockedAxis === 'x') {
-      delta.x = startPointer.x;
-    } else if (lockedAxis === 'y') {
-      delta.y = startPointer.y;
+      // If snapped to a vertical guide, lock vertical movement (allow only horizontal movement)
+      if (trgX) lockedAxis = 'y';
+      // If snapped to a horizontal guide, lock horizontal movement (allow only vertical movement)
+      else if (trgY) lockedAxis = 'x';
+      // If no snapping occurs, detect axis lock based on movement direction
+      else if (!lockedAxis) lockedAxis = this.detectAxisLock(delta.x, delta.y);
+
+      // Lock the axis based on the detected axis lock
+      if (lockedAxis === 'x') delta.y = 0;
+      // Lock the axis based on the detected axis lock
+      else if (lockedAxis === 'y') delta.x = 0;
+    } else {
+      // Reset axis locking when Shift key is released
+      lockedAxis = null;
     }
 
     const moveDelta = (delta: DraggerPosition) => {
