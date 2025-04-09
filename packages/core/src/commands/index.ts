@@ -139,7 +139,7 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
       run(ed, s, opts = {}) {
         let dragger;
         const em = ed.getModel();
-        const { event } = opts;
+        let { event } = opts;
         const trg = opts.target as Component | undefined;
         const trgs = Array.isArray(trg) ? trg : trg ? [trg] : [...ed.getSelectedAll()];
         const targets = trgs.map((trg) => trg.delegate?.move?.(trg) || trg).filter(Boolean);
@@ -164,7 +164,17 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
         const onEnd = getOnComponentDragEnd(em, targets, { altMode });
 
         if (altMode) {
-          // TODO move grabbing func in editor/canvas from the Sorter
+          // Create the event if none is provided
+          // TODO: Check why this logic is needed with the toolbar move button in absolute mode (in not absolute mode it isn't needed)
+          if (!event) {
+            const rect = target.view?.el.getBoundingClientRect();
+
+            const clientX = rect ? rect.left + rect.width / 2 : 0;
+            const clientY = rect ? rect.top + rect.height / 2 : 0;
+
+            event = { type: 'manual', clientX, clientY };
+          }
+
           dragger = ed.runCommand('core:component-drag', {
             guidesInfo: 1,
             mode,
