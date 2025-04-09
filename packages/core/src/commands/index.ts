@@ -139,7 +139,7 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
       run(ed, s, opts = {}) {
         let dragger;
         const em = ed.getModel();
-        let { event } = opts;
+        const { event } = opts;
         const trg = opts.target as Component | undefined;
         const trgs = Array.isArray(trg) ? trg : trg ? [trg] : [...ed.getSelectedAll()];
         const targets = trgs.map((trg) => trg.delegate?.move?.(trg) || trg).filter(Boolean);
@@ -164,6 +164,7 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
         const onEnd = getOnComponentDragEnd(em, targets, { altMode });
 
         if (altMode) {
+          // TODO move grabbing func in editor/canvas from the Sorter
           dragger = ed.runCommand('core:component-drag', {
             guidesInfo: 1,
             mode,
