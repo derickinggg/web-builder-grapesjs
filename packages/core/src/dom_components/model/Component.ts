@@ -180,6 +180,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
       [keySymbolOvrd]: 0,
       _undo: true,
       _undoexc: ['status', 'open'],
+      [keyCollectionsStateMap]: {},
     };
   }
 

@@ -52,6 +52,10 @@ export default class ComponentDataVariable extends Component {
     return this.getDataValue();
   }
 
+  getCollectionsStateMap() {
+    return this.get(keyCollectionsStateMap) ?? {};
+  }
+
   setPath(newPath: string) {
     this.dataResolver.set('path', newPath);
   }
