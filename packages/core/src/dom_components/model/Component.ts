@@ -1146,7 +1146,18 @@ export default class Component extends StyleableModel<ComponentProperties> {
         tb.push({
           attributes: { class: `${ppfx}no-touch-actions`, draggable: true },
           label: em.getIcon('move'),
-          command: 'tlb-move',
+          command: (ed) => {
+            // tld-move event needs to be called with a target and a drag event
+            const target = ed.getSelected();
+            const rect = target?.view?.el.getBoundingClientRect();
+            const clientX = rect ? rect.left + rect.width / 2 : 0;
+            const clientY = rect ? rect.top + rect.height / 2 : 0;
+
+            ed.runCommand('tlb-move', {
+              target,
+              event: new DragEvent('dragstart', { clientX, clientY }),
+            });
+          },
         });
       model.get('copyable') &&
         tb.push({

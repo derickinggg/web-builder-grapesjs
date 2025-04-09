@@ -164,17 +164,6 @@ export default class CommandsModule extends Module<CommandsConfig & { pStylePref
         const onEnd = getOnComponentDragEnd(em, targets, { altMode });
 
         if (altMode) {
-          // Create the event if none is provided
-          // TODO: Check why this logic is needed with the toolbar move button in absolute mode (in not absolute mode it isn't needed)
-          if (!event) {
-            const rect = target.view?.el.getBoundingClientRect();
-
-            const clientX = rect ? rect.left + rect.width / 2 : 0;
-            const clientY = rect ? rect.top + rect.height / 2 : 0;
-
-            event = { type: 'manual', clientX, clientY };
-          }
-
           dragger = ed.runCommand('core:component-drag', {
             guidesInfo: 1,
             mode,
