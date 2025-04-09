@@ -1147,16 +1147,18 @@ export default class Component extends StyleableModel<ComponentProperties> {
           attributes: { class: `${ppfx}no-touch-actions`, draggable: true },
           label: em.getIcon('move'),
           command: (ed) => {
-            // tld-move event needs to be called with a target and a drag event
-            const target = ed.getSelected();
-            const rect = target?.view?.el.getBoundingClientRect();
-            const clientX = rect ? rect.left + rect.width / 2 : 0;
-            const clientY = rect ? rect.top + rect.height / 2 : 0;
+            const targets = ed.getSelectedAll();
 
-            // TODO: support multiple selection
-            ed.runCommand('tlb-move', {
-              target,
-              event: new DragEvent('dragstart', { clientX, clientY }),
+            targets.forEach((target) => {
+              const rect = target?.view?.el.getBoundingClientRect();
+              const clientX = rect ? rect.left + rect.width / 2 : 0;
+              const clientY = rect ? rect.top + rect.height / 2 : 0;
+
+              // tld-move event needs to be called with a target and a drag event
+              ed.runCommand('tlb-move', {
+                target,
+                event: new DragEvent('dragstart', { clientX, clientY }),
+              });
             });
           },
         });
