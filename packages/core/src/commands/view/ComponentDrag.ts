@@ -6,6 +6,7 @@ import type Component from '../../dom_components/model/Component';
 import type EditorModel from '../../editor/model/Editor';
 import { getComponentModel, getComponentView } from '../../utils/mixins';
 import type ComponentView from '../../dom_components/view/ComponentView';
+import type CommandAbstract from './CommandAbstract';
 
 const evName = 'dmode';
 
@@ -71,7 +72,7 @@ export default {
       guidesTarget: this.guidesTarget,
       guidesStatic: this.guidesStatic,
       guidesMatched: this.getGuidesMatched(guidesActive),
-      opts: this.opts,
+      command: this,
     };
   },
 
@@ -659,7 +660,7 @@ export interface ComponentDragEventProps {
   /**
    * The options used for the drag event.
    */
-  opts: ComponentDragOpts;
+  command: ComponentDragProps & CommandAbstract<ComponentDragOpts>;
 }
 
 /**
