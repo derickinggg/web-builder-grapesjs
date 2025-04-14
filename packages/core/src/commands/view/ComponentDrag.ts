@@ -395,7 +395,7 @@ export default {
     this.guidesStatic = this.getGuidesStatic();
   },
 
-  onDrag() {
+  onDrag(event) {
     const { guidesTarget, opts } = this;
 
     this.updateGuides(guidesTarget);
@@ -403,6 +403,7 @@ export default {
     opts.guidesInfo && this.renderGuideInfo(guidesTarget?.filter((item) => item.active) ?? []);
     opts.onDrag?.(this._getDragData());
 
+    this.opts.event = event;
     this.em.trigger(`${evName}:move`, this.getEventOpts());
   },
 
