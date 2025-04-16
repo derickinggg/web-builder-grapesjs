@@ -47,7 +47,7 @@ export function getDataResolverInstance(
       break;
     }
     default:
-      options.em?.logError(`Unsupported dynamic type: ${type}`);
+      options.em?.logWarning(`Unsupported dynamic type: ${type}`);
       return;
   }
 
@@ -83,3 +83,9 @@ export const ensureComponentInstance = (
 export const isComponentDataOutputType = (type: string | undefined) => {
   return !!type && [DataCollectionItemType, DataConditionIfTrueType, DataConditionIfFalseType].includes(type);
 };
+
+export function enumToArray(enumObj: any) {
+  return Object.keys(enumObj)
+    .filter((key) => isNaN(Number(key)))
+    .map((key) => enumObj[key]);
+}

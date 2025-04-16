@@ -1,5 +1,6 @@
+import { enumToArray } from '../../../utils';
 import DataVariable from '../../DataVariable';
-import { Operator } from './BaseOperator';
+import { SimpleOperator } from './BaseOperator';
 
 export enum AnyTypeOperation {
   equals = 'equals',
@@ -16,9 +17,11 @@ export enum AnyTypeOperation {
   isDefaultValue = 'isDefaultValue', // For Datasource variables
 }
 
-export class AnyTypeOperator extends Operator<AnyTypeOperation> {
+export class AnyTypeOperator extends SimpleOperator<AnyTypeOperation> {
+  protected operationsEnum = AnyTypeOperation;
+
   evaluate(left: any, right: any): boolean {
-    switch (this.operation) {
+    switch (this.operationString) {
       case 'equals':
         return left === right;
       case 'isTruthy':
@@ -44,7 +47,7 @@ export class AnyTypeOperator extends Operator<AnyTypeOperation> {
       case 'isDefaultValue':
         return left instanceof DataVariable && left.get('defaultValue') === right;
       default:
-        this.em?.logError(`Unsupported generic operation: ${this.operation}`);
+        this.em?.logWarning(`Unsupported generic operation: ${this.operationString}`);
         return false;
     }
   }

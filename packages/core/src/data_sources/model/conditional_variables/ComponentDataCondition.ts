@@ -7,11 +7,14 @@ import {
   ComponentAddType,
 } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
-import { DataCondition, DataConditionOutputChangedEvent, DataConditionProps, DataConditionType } from './DataCondition';
+import { DataCondition, DataConditionProps, DataConditionType } from './DataCondition';
 import { ConditionProps } from './DataConditionEvaluator';
 import { StringOperation } from './operators/StringOperator';
 import { ObjectAny } from '../../../common';
 import { DataConditionIfTrueType, DataConditionIfFalseType } from './constants';
+import { ModelDestroyOptions } from 'backbone';
+import { keyCollectionsStateMap } from '../data_collection/constants';
+import { DataCollectionStateMap } from '../data_collection/types';
 
 export type DataConditionDisplayType = typeof DataConditionIfTrueType | typeof DataConditionIfFalseType;
 
@@ -48,13 +51,18 @@ export default class ComponentDataCondition extends Component {
   }
 
   constructor(props: ComponentDataConditionProps, opt: ComponentOptions) {
+    const collectionsStateMap = props[keyCollectionsStateMap] as DataCollectionStateMap;
     // @ts-ignore
     super(props, opt);
 
     const { condition } = props.dataResolver;
-    this.dataResolver = new DataCondition({ condition }, { em: opt.em });
+    this.dataResolver = new DataCondition({ condition }, { em: opt.em, collectionsStateMap });
 
     this.listenToPropsChange();
+  }
+
+  getDataResolver() {
+    return this.get('dataResolver');
   }
 
   isTrue() {
@@ -77,6 +85,10 @@ export default class ComponentDataCondition extends Component {
     return this.isTrue() ? this.getIfTrueContent() : this.getIfFalseContent();
   }
 
+  setDataResolver(props: DataConditionProps) {
+    return this.set('dataResolver', props);
+  }
+
   setCondition(newCondition: ConditionProps) {
     this.dataResolver.setCondition(newCondition);
   }
@@ -89,6 +101,10 @@ export default class ComponentDataCondition extends Component {
     this.setComponentsAtIndex(1, content);
   }
 
+  getCollectionsStateMap() {
+    return this.get(keyCollectionsStateMap) ?? {};
+  }
+
   getInnerHTML(opts?: ToHTMLOptions): string {
     return this.getOutputContent()?.getInnerHTML(opts) ?? '';
   }
@@ -99,9 +115,27 @@ export default class ComponentDataCondition extends Component {
   }
 
   private listenToPropsChange() {
+    this.listenTo(
+      this.dataResolver,
+      'change',
+      (() => {
+        this.__changesUp({ m: this });
+      }).bind(this),
+    );
+
     this.on('change:dataResolver', () => {
       this.dataResolver.set(this.get('dataResolver'));
     });
+
+    this.on(`change:${keyCollectionsStateMap}`, () => {
+      this.dataResolver.updateCollectionsStateMap(this.get(keyCollectionsStateMap));
+    });
+  }
+
+  private removePropsListeners() {
+    this.stopListening(this.dataResolver);
+    this.off('change:dataResolver');
+    this.off(`change:${keyCollectionsStateMap}`);
   }
 
   toJSON(opts?: ObjectAny): ComponentProperties {
@@ -115,6 +149,11 @@ export default class ComponentDataCondition extends Component {
       ...json,
       dataResolver,
     };
+  }
+
+  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+    this.removePropsListeners();
+    return super.destroy(options);
   }
 
   static isComponent(el: HTMLElement) {

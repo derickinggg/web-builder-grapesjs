@@ -450,6 +450,8 @@ export default class Component extends StyleableModel<ComponentProperties> {
     updateSymbolComps(this, m, c, o);
   }
 
+  __onDestroy() {}
+
   /**
    * Check component's type
    * @param  {string}  type Component type
@@ -1832,6 +1834,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
   destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
     this.dataResolverWatchers.destroy();
+    this.__onDestroy();
     return super.destroy(options);
   }
 

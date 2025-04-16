@@ -40,6 +40,14 @@ export default class ComponentDataVariable extends Component {
     return this.dataResolver.get('path');
   }
 
+  getCollectionId() {
+    return this.dataResolver.get('collectionId');
+  }
+
+  getVariableType() {
+    return this.dataResolver.get('variableType');
+  }
+
   getDefaultValue() {
     return this.dataResolver.get('defaultValue');
   }
@@ -48,12 +56,20 @@ export default class ComponentDataVariable extends Component {
     return this.dataResolver.getDataValue();
   }
 
-  getInnerHTML() {
-    return this.getDataValue();
+  resolvesFromCollection() {
+    return this.dataResolver.resolvesFromCollection();
   }
 
   getCollectionsStateMap() {
     return this.get(keyCollectionsStateMap) ?? {};
+  }
+
+  getDataResolver() {
+    return this.get('dataResolver');
+  }
+
+  getInnerHTML() {
+    return this.getDataValue();
   }
 
   setPath(newPath: string) {
@@ -65,7 +81,7 @@ export default class ComponentDataVariable extends Component {
   }
 
   setDataResolver(props: DataVariableProps) {
-    this.dataResolver.set(props);
+    this.set('dataResolver', props);
   }
 
   /**
@@ -90,9 +106,11 @@ export default class ComponentDataVariable extends Component {
         this.__changesUp({ m: this });
       }).bind(this),
     );
+
     this.on('change:dataResolver', () => {
       this.dataResolver.set(this.get('dataResolver'));
     });
+
     this.on(`change:${keyCollectionsStateMap}`, (_: Component, value: DataCollectionStateMap) => {
       this.dataResolver.updateCollectionsStateMap(value);
     });

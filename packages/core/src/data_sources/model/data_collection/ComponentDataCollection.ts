@@ -1,4 +1,4 @@
-import { bindAll, isArray } from 'underscore';
+import { isArray } from 'underscore';
 import { ObjectAny } from '../../../common';
 import Component, { keySymbol } from '../../../dom_components/model/Component';
 import { ComponentAddType, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
@@ -25,6 +25,7 @@ import {
 import { getSymbolsToUpdate } from '../../../dom_components/model/SymbolUtils';
 import { StyleProps, UpdateStyleOptions } from '../../../domain_abstract/model/StyleableModel';
 import { updateFromWatcher } from '../../../dom_components/model/ComponentDataResolverWatchers';
+import { ModelDestroyOptions } from 'backbone';
 
 const AvoidStoreOptions = { avoidStore: true, partial: true };
 export default class ComponentDataCollection extends Component {
@@ -59,12 +60,15 @@ export default class ComponentDataCollection extends Component {
       return cmp;
     }
 
-    bindAll(this, 'rebuildChildrenFromCollection');
-    this.listenTo(this, `change:${keyCollectionDefinition}`, this.rebuildChildrenFromCollection);
+    this.rebuildChildrenFromCollection = this.rebuildChildrenFromCollection.bind(this);
+    this.listenToPropsChange();
     this.rebuildChildrenFromCollection();
-    this.listenToDataSource();
 
     return cmp;
+  }
+
+  getDataResolver() {
+    return this.get('dataResolver');
   }
 
   getItemsCount() {
@@ -97,6 +101,10 @@ export default class ComponentDataCollection extends Component {
     return this.firstChild.components();
   }
 
+  setDataResolver(props: DataCollectionProps) {
+    return this.set('dataResolver', props);
+  }
+
   setCollectionId(collectionId: string) {
     this.updateCollectionConfig({ collectionId });
   }
@@ -114,13 +122,6 @@ export default class ComponentDataCollection extends Component {
     this.updateCollectionConfig({ endIndex });
   }
 
-  private updateCollectionConfig(updates: Partial<DataCollectionProps>): void {
-    this.set(keyCollectionDefinition, {
-      ...this.dataResolver,
-      ...updates,
-    });
-  }
-
   setDataSource(dataSource: DataCollectionDataSource) {
     this.set(keyCollectionDefinition, {
       ...this.dataResolver,
@@ -134,6 +135,13 @@ export default class ComponentDataCollection extends Component {
 
   private get firstChild() {
     return this.components().at(0);
+  }
+
+  private updateCollectionConfig(updates: Partial<DataCollectionProps>): void {
+    this.set(keyCollectionDefinition, {
+      ...this.dataResolver,
+      ...updates,
+    });
   }
 
   private getDataSourceItems() {
@@ -246,6 +254,19 @@ export default class ComponentDataCollection extends Component {
     );
   }
 
+  private listenToPropsChange() {
+    this.on(`change:${keyCollectionDefinition}`, () => {
+      this.rebuildChildrenFromCollection();
+      this.listenToDataSource();
+    });
+    this.listenToDataSource();
+  }
+
+  private removePropsListeners() {
+    this.off(`change:${keyCollectionDefinition}`);
+    this.dataSourceWatcher?.destroy();
+  }
+
   static isComponent(el: HTMLElement) {
     return toLowerCase(el.tagName) === DataCollectionType;
   }
@@ -258,6 +279,11 @@ export default class ComponentDataCollection extends Component {
 
     const firstChild = this.firstChild as any;
     return { ...json, components: [firstChild] };
+  }
+
+  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+    this.removePropsListeners();
+    return super.destroy(options);
   }
 }
 
@@ -284,36 +310,57 @@ function setCollectionStateMapAndPropagate(
     const listenerKey = `_hasAddListener${collectionId ? `_${collectionId}` : ''}`;
     const cmps = cmp.components();
 
-    if (!cmp.collectionStateListeners.includes(listenerKey)) {
-      cmp.listenTo(cmps, 'add', addListener);
-      cmp.collectionStateListeners.push(listenerKey);
+    const removeListener = (component: Component) => {
+      const index = component.collectionStateListeners?.indexOf(listenerKey) ?? -1;
+      if (index !== -1) {
+        component.collectionStateListeners?.splice(index, 1);
+      }
 
-      const removeListener = (component: Component) => {
-        component.stopListening(component.components(), 'add', addListener);
+      if (!component.collectionStateListeners?.length) {
         component.off(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange);
-        const index = component.collectionStateListeners.indexOf(listenerKey);
-        if (index !== -1) {
-          component.collectionStateListeners.splice(index, 1);
-        }
+        component.stopListening(component.components(), 'add', addListener);
+        component.stopListening(component.components(), 'remove', removeListener);
+      }
 
-        const collectionsStateMap = component.get(keyCollectionsStateMap);
+      const currentCollectionsStateMap = component.get(keyCollectionsStateMap);
+      if (currentCollectionsStateMap) {
         component.set(keyCollectionsStateMap, {
-          ...collectionsStateMap,
+          ...currentCollectionsStateMap,
           [collectionId]: undefined,
         });
-      };
+      }
+    };
 
+    const removeAllListeners = (cmp: Component) => {
+      cmp.components().forEach((child) => removeAllListeners(child));
+      cmp.off(`change:${keyCollectionsStateMap}`);
+      cmp.stopListening(cmp.components(), 'add');
+      cmp.stopListening(cmp.components(), 'remove');
+      cmp.collectionStateListeners = [];
+    };
+
+    if (!cmp.collectionStateListeners) {
+      cmp.collectionStateListeners = [];
+    }
+
+    if (!cmp.collectionStateListeners.length) {
+      cmp.on(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange);
+    }
+
+    if (!cmp.collectionStateListeners.includes(listenerKey)) {
+      cmp.collectionStateListeners.push(listenerKey);
+      cmp.listenTo(cmps, 'add', addListener);
       cmp.listenTo(cmps, 'remove', removeListener);
     }
 
-    cmps.forEach((cmp) => setCollectionStateMapAndPropagate(cmp, collectionsStateMap, collectionId));
-
-    cmp.on(`change:${keyCollectionsStateMap}`, handleCollectionStateMapChange);
+    cmp.__onDestroy = () => removeAllListeners(cmp);
+    cmps.forEach((childCmp) => setCollectionStateMapAndPropagate(childCmp, collectionsStateMap, collectionId));
   }, cmp);
 }
 
 function handleCollectionStateMapChange(this: Component) {
   const updatedCollectionsStateMap = this.get(keyCollectionsStateMap);
+
   this.components()
     ?.toArray()
     .forEach((component: Component) => {
@@ -357,7 +404,7 @@ function setCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
       ...cmp.get(keyCollectionsStateMap),
       ...collectionsStateMap,
     };
-    cmp.set(keyCollectionsStateMap, updatedCollectionStateMap);
+    cmp.set(keyCollectionsStateMap, updatedCollectionStateMap, AvoidStoreOptions);
     cmp.dataResolverWatchers.updateCollectionStateMap(updatedCollectionStateMap);
 
     const parentCollectionsId = Object.keys(updatedCollectionStateMap);
