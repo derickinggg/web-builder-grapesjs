@@ -1,4 +1,3 @@
-import { enumToArray } from '../../../utils';
 import DataVariable from '../../DataVariable';
 import { SimpleOperator } from './BaseOperator';
 
