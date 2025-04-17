@@ -1,6 +1,6 @@
 import { isArray } from 'underscore';
 import { ObjectAny } from '../../../common';
-import Component, { keySymbol, keySymbols } from '../../../dom_components/model/Component';
+import Component, { keySymbol } from '../../../dom_components/model/Component';
 import { ComponentAddType, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
 import EditorModel from '../../../editor/model/Editor';
 import { isObject, toLowerCase } from '../../../utils/mixins';

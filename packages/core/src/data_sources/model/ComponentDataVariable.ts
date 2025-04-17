@@ -57,6 +57,12 @@ export default class ComponentDataVariable extends ComponentWithDataResolver<Dat
     this.dataResolver.set('defaultValue', newValue);
   }
 
+  /**
+   * Sets the data source path and resets related properties.
+   * This will set collectionId and variableType to undefined as it's typically
+   * used when changing to a completely different data source.
+   * @param newPath The new path to set as the data source
+   */
   resetDataSourcePath(newPath: string) {
     this.set('dataResolver', {
       path: newPath,
