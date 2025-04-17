@@ -1,19 +1,18 @@
-import Component from '../../../dom_components/model/Component';
 import {
-  ComponentDefinition as ComponentProperties,
+  ComponentAddType,
   ComponentDefinitionDefined,
   ComponentOptions,
+  ComponentProperties,
   ToHTMLOptions,
-  ComponentAddType,
 } from '../../../dom_components/model/types';
 import { toLowerCase } from '../../../utils/mixins';
 import { DataCondition, DataConditionProps, DataConditionType } from './DataCondition';
 import { ConditionProps } from './DataConditionEvaluator';
 import { StringOperation } from './operators/StringOperator';
-import { ObjectAny } from '../../../common';
 import { DataConditionIfTrueType, DataConditionIfFalseType } from './constants';
-import { ModelDestroyOptions } from 'backbone';
-import { keyCollectionsStateMap } from '../data_collection/constants';
+import { ComponentWithDataResolver } from '../ComponentWithDataResolver';
+import Component from '../../../dom_components/model/Component';
+import { DataResolver } from '../../types';
 import { DataCollectionStateMap } from '../data_collection/types';
 
 export type DataConditionDisplayType = typeof DataConditionIfTrueType | typeof DataConditionIfFalseType;
@@ -23,9 +22,7 @@ export interface ComponentDataConditionProps extends ComponentProperties {
   dataResolver: DataConditionProps;
 }
 
-export default class ComponentDataCondition extends Component {
-  dataResolver: DataCondition;
-
+export default class ComponentDataCondition extends ComponentWithDataResolver<DataConditionProps> {
   get defaults(): ComponentDefinitionDefined {
     return {
       // @ts-ignore
@@ -50,21 +47,6 @@ export default class ComponentDataCondition extends Component {
     };
   }
 
-  constructor(props: ComponentDataConditionProps, opt: ComponentOptions) {
-    const collectionsStateMap = props[keyCollectionsStateMap] as DataCollectionStateMap;
-    // @ts-ignore
-    super(props, opt);
-
-    const { condition } = props.dataResolver;
-    this.dataResolver = new DataCondition({ condition }, { em: opt.em, collectionsStateMap });
-
-    this.listenToPropsChange();
-  }
-
-  getDataResolver() {
-    return this.get('dataResolver');
-  }
-
   isTrue() {
     return this.dataResolver.isTrue();
   }
@@ -85,10 +67,6 @@ export default class ComponentDataCondition extends Component {
     return this.isTrue() ? this.getIfTrueContent() : this.getIfFalseContent();
   }
 
-  setDataResolver(props: DataConditionProps) {
-    return this.set('dataResolver', props);
-  }
-
   setCondition(newCondition: ConditionProps) {
     this.dataResolver.setCondition(newCondition);
   }
@@ -101,59 +79,20 @@ export default class ComponentDataCondition extends Component {
     this.setComponentsAtIndex(1, content);
   }
 
-  getCollectionsStateMap() {
-    return this.get(keyCollectionsStateMap) ?? {};
-  }
-
   getInnerHTML(opts?: ToHTMLOptions): string {
     return this.getOutputContent()?.getInnerHTML(opts) ?? '';
+  }
+
+  protected createResolverInstance(
+    props: DataConditionProps,
+    options: ComponentOptions & { collectionsStateMap: DataCollectionStateMap },
+  ): DataResolver {
+    return new DataCondition(props, options);
   }
 
   private setComponentsAtIndex(index: number, newContent: ComponentAddType) {
     const component = this.components().at(index);
     component?.components(newContent);
-  }
-
-  private listenToPropsChange() {
-    this.listenTo(
-      this.dataResolver,
-      'change',
-      (() => {
-        this.__changesUp({ m: this });
-      }).bind(this),
-    );
-
-    this.on('change:dataResolver', () => {
-      this.dataResolver.set(this.get('dataResolver'));
-    });
-
-    this.on(`change:${keyCollectionsStateMap}`, () => {
-      this.dataResolver.updateCollectionsStateMap(this.get(keyCollectionsStateMap));
-    });
-  }
-
-  private removePropsListeners() {
-    this.stopListening(this.dataResolver);
-    this.off('change:dataResolver');
-    this.off(`change:${keyCollectionsStateMap}`);
-  }
-
-  toJSON(opts?: ObjectAny): ComponentProperties {
-    const json = super.toJSON(opts);
-    const dataResolver = this.dataResolver.toJSON();
-    delete dataResolver.type;
-    delete dataResolver.ifTrue;
-    delete dataResolver.ifFalse;
-
-    return {
-      ...json,
-      dataResolver,
-    };
-  }
-
-  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
-    this.removePropsListeners();
-    return super.destroy(options);
   }
 
   static isComponent(el: HTMLElement) {

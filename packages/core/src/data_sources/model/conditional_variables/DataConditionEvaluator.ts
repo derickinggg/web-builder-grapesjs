@@ -1,6 +1,6 @@
 import { DataVariableProps } from '../DataVariable';
 import EditorModel from '../../../editor/model/Editor';
-import { resolveDynamicValue, isDataVariable, getDataResolverInstanceValue } from '../../utils';
+import { valueOrResolve, isDataVariable, getDataResolverInstanceValue } from '../../utils';
 import { ExpressionProps, LogicGroupProps } from './DataCondition';
 import { LogicalGroupEvaluator } from './LogicalGroupEvaluator';
 import { SimpleOperator } from './operators/BaseOperator';
@@ -63,7 +63,7 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
   }
 
   private getOperator() {
-    const em = this.em;
+    const { em, collectionsStateMap } = this;
     const condition = this.get('condition');
     if (!condition || isBoolean(condition)) return;
     let resolvedOperator: SimpleOperator<DataConditionSimpleOperation> | LogicalGroupEvaluator | undefined;
@@ -76,7 +76,7 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
 
     if (this.isExpression(condition)) {
       const { left, operator } = condition;
-      const evaluatedLeft = resolveDynamicValue(left, em);
+      const evaluatedLeft = valueOrResolve(left, { em, collectionsStateMap });
 
       resolvedOperator = this.resolveOperator(evaluatedLeft, operator);
     }
@@ -140,7 +140,7 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
     if (condition && typeof condition === 'object' && property in condition) {
       const value = (condition as ExpressionProps)[property];
 
-      return getDataResolverInstanceValue(value, { em, collectionsStateMap });
+      return valueOrResolve(value, { em, collectionsStateMap });
     }
 
     return undefined;

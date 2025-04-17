@@ -53,7 +53,8 @@ import {
 } from './SymbolUtils';
 import { ComponentDataResolverWatchers } from './ComponentDataResolverWatchers';
 import { DynamicWatchersOptions } from './ComponentResolverWatcher';
-import { keyIsCollectionItem, keyCollectionsStateMap } from '../../data_sources/model/data_collection/constants';
+import { keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
+import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 
 export interface IComponent extends ExtractMethods<Component> {}
 export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {}
@@ -72,6 +73,9 @@ export const keySymbolOvrd = '__symbol_ovrd';
 export const keyUpdate = ComponentsEvents.update;
 export const keyUpdateInside = ComponentsEvents.updateInside;
 
+const propagateCollectionsStateMap = (cmp: Component) => {
+  cmp.onCollectionsStateMapUpdate();
+};
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
  * immediately reflected on the canvas and in the code to export (indeed, when you ask to export the code we just go through all
@@ -258,14 +262,11 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @private
    * @ts-ignore */
   collection!: Components;
-  collectionStateListeners: string[] = [];
   dataResolverWatchers: ComponentDataResolverWatchers;
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
-    const dataResolverWatchers = new ComponentDataResolverWatchers(undefined, {
-      em: opt.em,
-      collectionsStateMap: props[keyCollectionsStateMap],
-    });
+    const em = opt.em;
+    const dataResolverWatchers = new ComponentDataResolverWatchers(undefined, { em });
     super(props, {
       ...opt,
       dataResolverWatchers,
@@ -274,7 +275,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.dataResolverWatchers = dataResolverWatchers;
 
     bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps');
-    const em = opt.em;
 
     // Propagate properties from parent if indicated
     const parent = this.parent();
@@ -316,6 +316,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.listenTo(this, 'change:tagName', this.tagUpdated);
     this.listenTo(this, 'change:attributes', this.attrUpdated);
     this.listenTo(this, 'change:attributes:id', this._idUpdated);
+    this.listenTo(this.components(), 'add remove', propagateCollectionsStateMap);
     this.on('change:toolbar', this.__emitUpdateTlb);
     this.on('change', this.__onChange);
     this.on(keyUpdateInside, this.__propToParent);
@@ -343,6 +344,13 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
   }
 
+  get collectionsStateMap(): DataCollectionStateMap {
+    const parent = this.parent();
+    if (!parent) return {};
+
+    return parent.collectionsStateMap;
+  }
+
   set<A extends string>(
     keyOrAttributes: A | Partial<ComponentProperties>,
     valueOrOptions?: ComponentProperties[A] | ComponentSetOptions,
@@ -367,6 +375,12 @@ export default class Component extends StyleableModel<ComponentProperties> {
     const evaluatedProps = this.dataResolverWatchers.addProps(attributes, options);
 
     return super.set(evaluatedProps, options);
+  }
+
+  onCollectionsStateMapUpdate() {
+    this.dataResolverWatchers.onCollectionsStateMapUpdate();
+    const cmps = this.components();
+    cmps.forEach((cmp) => cmp.onCollectionsStateMapUpdate());
   }
 
   __postAdd(opts: { recursive?: boolean } = {}) {
@@ -1596,11 +1610,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
     delete obj.open; // used in Layers
     delete obj._undoexc;
     delete obj.delegate;
-    if (this.get(keyIsCollectionItem)) {
+    if (this.collectionsStateMap && Object.getOwnPropertyNames(this.collectionsStateMap).length > 0) {
       delete obj[keySymbol];
       delete obj[keySymbolOvrd];
       delete obj[keySymbols];
-      delete obj[keyCollectionsStateMap];
       delete obj[keyIsCollectionItem];
       delete obj.attributes.id;
     }

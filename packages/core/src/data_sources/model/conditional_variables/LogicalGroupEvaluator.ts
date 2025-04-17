@@ -18,6 +18,7 @@ export class LogicalGroupEvaluator {
       const condition = new DataConditionEvaluator({ condition: statement }, { em: this.em });
       return condition.evaluate();
     });
+
     return this.operator.evaluate(results);
   }
 }

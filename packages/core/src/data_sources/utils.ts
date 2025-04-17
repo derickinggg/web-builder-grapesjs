@@ -1,5 +1,5 @@
 import EditorModel from '../editor/model/Editor';
-import { DataResolver, DataResolverProps } from './types';
+import { DataResolver, DataResolverProps, ResolverFromProps } from './types';
 import { DataCollectionStateMap } from './model/data_collection/types';
 import { DataCollectionItemType } from './model/data_collection/constants';
 import { DataConditionType, DataCondition } from './model/conditional_variables/DataCondition';
@@ -25,16 +25,14 @@ export function isDataCondition(variable: any) {
   return variable?.type === DataConditionType;
 }
 
-export function resolveDynamicValue(variable: any, em: EditorModel) {
-  return isDataResolverProps(variable)
-    ? getDataResolverInstanceValue(variable, { em, collectionsStateMap: {} })
-    : variable;
+export function valueOrResolve(variable: any, opts: { em: EditorModel; collectionsStateMap: DataCollectionStateMap }) {
+  return isDataResolverProps(variable) ? getDataResolverInstanceValue(variable, opts) : variable;
 }
 
 export function getDataResolverInstance(
   resolverProps: DataResolverProps,
   options: { em: EditorModel; collectionsStateMap: DataCollectionStateMap },
-) {
+): ResolverFromProps<typeof resolverProps> | undefined {
   const { type } = resolverProps;
   let resolver: DataResolver;
 

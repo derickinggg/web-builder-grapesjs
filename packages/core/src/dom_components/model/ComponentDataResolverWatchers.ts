@@ -1,6 +1,5 @@
 import { ObjectAny } from '../../common';
-import { keyCollectionsStateMap, keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
-import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
+import { keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
 import Component from './Component';
 import {
   ComponentResolverWatcher,
@@ -38,11 +37,6 @@ export class ComponentDataResolverWatchers {
     this.updateSymbolOverride();
   }
 
-  updateCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
-    this.propertyWatcher.updateCollectionStateMap(collectionsStateMap);
-    this.attributeWatcher.updateCollectionStateMap(collectionsStateMap);
-  }
-
   addProps(props: ObjectAny, options: DynamicWatchersOptions = {}) {
     const excludedFromEvaluation = ['components'];
 
@@ -78,7 +72,7 @@ export class ComponentDataResolverWatchers {
     const keys = this.propertyWatcher.getValuesResolvingFromCollections();
     const attributesKeys = this.attributeWatcher.getValuesResolvingFromCollections();
 
-    const combinedKeys = [keyCollectionsStateMap, 'locked', ...keys];
+    const combinedKeys = [...keys];
     const haveOverridenAttributes = Object.keys(attributesKeys).length;
     if (haveOverridenAttributes) combinedKeys.push('attributes');
 
@@ -87,6 +81,11 @@ export class ComponentDataResolverWatchers {
       child.setSymbolOverride(combinedKeys, { fromDataSource: true });
     });
     this.component.setSymbolOverride(combinedKeys, { fromDataSource: true });
+  }
+
+  onCollectionsStateMapUpdate() {
+    this.propertyWatcher.onCollectionsStateMapUpdate();
+    this.attributeWatcher.onCollectionsStateMapUpdate();
   }
 
   getDynamicPropsDefs() {

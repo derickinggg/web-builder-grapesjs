@@ -2,7 +2,7 @@ import { Model } from '../../../common';
 import EditorModel from '../../../editor/model/Editor';
 import DataVariable, { DataVariableProps } from '../DataVariable';
 import DataResolverListener from '../DataResolverListener';
-import { resolveDynamicValue, isDataVariable } from '../../utils';
+import { valueOrResolve, isDataVariable } from '../../utils';
 import { DataConditionEvaluator, ConditionProps } from './DataConditionEvaluator';
 import { BooleanOperation } from './operators/BooleanOperator';
 import { StringOperation } from './operators/StringOperator';
@@ -109,6 +109,8 @@ export class DataCondition extends Model<DataConditionProps> {
   }
 
   getDataValue(skipDynamicValueResolution: boolean = false): any {
+    const { em, collectionsStateMap } = this;
+    const options = { em, collectionsStateMap };
     const ifTrue = this.getIfTrue();
     const ifFalse = this.getIfFalse();
 
@@ -117,7 +119,7 @@ export class DataCondition extends Model<DataConditionProps> {
       return isConditionTrue ? ifTrue : ifFalse;
     }
 
-    return isConditionTrue ? resolveDynamicValue(ifTrue, this.em) : resolveDynamicValue(ifFalse, this.em);
+    return isConditionTrue ? valueOrResolve(ifTrue, options) : valueOrResolve(ifFalse, options);
   }
 
   resolvesFromCollection() {

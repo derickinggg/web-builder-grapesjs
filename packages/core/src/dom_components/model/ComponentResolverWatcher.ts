@@ -1,5 +1,4 @@
 import { ObjectAny } from '../../common';
-import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import { getDataResolverInstance, getDataResolverInstanceValue, isDataResolverProps } from '../../data_sources/utils';
 import EditorModel from '../../editor/model/Editor';
@@ -13,14 +12,12 @@ export interface DynamicWatchersOptions {
 
 export interface ComponentResolverWatcherOptions {
   em: EditorModel;
-  collectionsStateMap?: DataCollectionStateMap;
 }
 
 type UpdateFn = (component: Component | undefined, key: string, value: any) => void;
 
 export class ComponentResolverWatcher {
   private em: EditorModel;
-  private collectionsStateMap: DataCollectionStateMap = {};
   private resolverListeners: Record<string, DataResolverListener> = {};
 
   constructor(
@@ -29,28 +26,10 @@ export class ComponentResolverWatcher {
     options: ComponentResolverWatcherOptions,
   ) {
     this.em = options.em;
-    this.collectionsStateMap = options.collectionsStateMap ?? {};
   }
 
   bindComponent(component: Component) {
     this.component = component;
-  }
-
-  updateCollectionStateMap(collectionsStateMap: DataCollectionStateMap) {
-    this.collectionsStateMap = collectionsStateMap;
-
-    const collectionVariablesKeys = this.getValuesResolvingFromCollections();
-    const collectionVariablesObject: { [key: string]: DataResolverProps | null } = {};
-    collectionVariablesKeys.forEach((key) => {
-      this.resolverListeners[key].resolver.updateCollectionsStateMap(collectionsStateMap);
-      collectionVariablesObject[key] = null;
-    });
-    const newVariables = this.getSerializableValues(collectionVariablesObject);
-    const evaluatedValues = this.addDynamicValues(newVariables);
-
-    Object.keys(evaluatedValues).forEach((key) => {
-      this.updateFn(this.component, key, evaluatedValues[key]);
-    });
   }
 
   setDynamicValues(values: ObjectAny | undefined, options: DynamicWatchersOptions = {}) {
@@ -72,6 +51,28 @@ export class ComponentResolverWatcher {
     }
 
     return evaluatedValues;
+  }
+
+  onCollectionsStateMapUpdate() {
+    const collectionVariablesKeys = this.getValuesResolvingFromCollections();
+    const collectionVariablesObject: { [key: string]: DataResolverProps | null } = {};
+    collectionVariablesKeys.forEach((key) => {
+      this.resolverListeners[key].resolver.updateCollectionsStateMap(this.collectionsStateMap);
+      collectionVariablesObject[key] = null;
+    });
+    const newVariables = this.getSerializableValues(collectionVariablesObject);
+    const evaluatedValues = this.addDynamicValues(newVariables);
+
+    Object.keys(evaluatedValues).forEach((key) => {
+      this.updateFn(this.component, key, evaluatedValues[key]);
+    });
+  }
+
+  private get collectionsStateMap() {
+    const component = this.component;
+    if (!component) return {};
+
+    return component.collectionsStateMap;
   }
 
   private updateListeners(values: { [key: string]: any }) {
