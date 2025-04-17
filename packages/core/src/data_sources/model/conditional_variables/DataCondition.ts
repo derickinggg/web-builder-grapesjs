@@ -128,6 +128,8 @@ export class DataCondition extends Model<DataConditionProps> {
 
   updateCollectionsStateMap(collectionsStateMap: DataCollectionStateMap) {
     this.collectionsStateMap = collectionsStateMap;
+    this._conditionEvaluator.updateCollectionStateMap(collectionsStateMap);
+    this.listenToDataVariables();
     this.emitConditionEvaluationChange();
   }
 
