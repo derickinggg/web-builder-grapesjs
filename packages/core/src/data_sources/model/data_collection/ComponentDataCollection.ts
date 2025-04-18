@@ -15,10 +15,7 @@ import {
   DataCollectionProps,
   DataCollectionStateMap,
 } from './types';
-import {
-  detachSymbolInstance,
-  getSymbolInstances,
-} from '../../../dom_components/model/SymbolUtils';
+import { detachSymbolInstance, getSymbolInstances } from '../../../dom_components/model/SymbolUtils';
 import { updateFromWatcher } from '../../../dom_components/model/ComponentDataResolverWatchers';
 import { ModelDestroyOptions } from 'backbone';
 import Components from '../../../dom_components/model/Components';
