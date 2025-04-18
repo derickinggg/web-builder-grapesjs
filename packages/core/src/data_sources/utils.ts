@@ -26,7 +26,10 @@ export function isDataCondition(variable: any) {
 }
 
 export function valueOrResolve(variable: any, opts: { em: EditorModel; collectionsStateMap: DataCollectionStateMap }) {
-  return isDataResolverProps(variable) ? getDataResolverInstanceValue(variable, opts) : variable;
+  if (!isDataResolverProps(variable)) return variable;
+  if (isDataVariable(variable)) DataVariable.resolveDataResolver(variable, opts);
+
+  return getDataResolverInstanceValue(variable, opts);
 }
 
 export function getDataResolverInstance(
