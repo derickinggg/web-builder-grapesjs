@@ -2,7 +2,6 @@ import { ObjectAny } from '../../common';
 import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import { getDataResolverInstance, getDataResolverInstanceValue, isDataResolverProps } from '../../data_sources/utils';
 import EditorModel from '../../editor/model/Editor';
-import { DataResolverProps } from '../../data_sources/types';
 import Component from './Component';
 
 export interface DynamicWatchersOptions {
@@ -54,18 +53,17 @@ export class ComponentResolverWatcher {
   }
 
   onCollectionsStateMapUpdate() {
-    const collectionVariablesKeys = this.getValuesResolvingFromCollections();
-    const collectionVariablesObject: { [key: string]: DataResolverProps | null } = {};
-    collectionVariablesKeys.forEach((key) => {
-      this.resolverListeners[key].resolver.updateCollectionsStateMap(this.collectionsStateMap);
-      collectionVariablesObject[key] = null;
-    });
-    const newVariables = this.getSerializableValues(collectionVariablesObject);
-    const evaluatedValues = this.addDynamicValues(newVariables);
+    const resolvesFromCollections = this.getValuesResolvingFromCollections();
+    if (!resolvesFromCollections.length) return;
+    resolvesFromCollections.forEach((key) =>
+      this.resolverListeners[key].resolver.updateCollectionsStateMap(this.collectionsStateMap),
+    );
 
-    Object.keys(evaluatedValues).forEach((key) => {
-      this.updateFn(this.component, key, evaluatedValues[key]);
-    });
+    const evaluatedValues = this.addDynamicValues(
+      this.getSerializableValues(Object.fromEntries(resolvesFromCollections.map((key) => [key, null]))),
+    );
+
+    Object.entries(evaluatedValues).forEach(([key, value]) => this.updateFn(this.component, key, value));
   }
 
   private get collectionsStateMap() {

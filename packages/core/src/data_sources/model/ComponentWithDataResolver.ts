@@ -49,9 +49,9 @@ export abstract class ComponentWithDataResolver<T extends DataResolverProps> ext
     return this.set('dataResolver', props);
   }
 
-  onCollectionsStateMapUpdate(): void {
-    this.dataResolver.updateCollectionsStateMap(this.collectionsStateMap);
-    super.onCollectionsStateMapUpdate();
+  onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap): void {
+    this.dataResolver.updateCollectionsStateMap(collectionsStateMap);
+    super.onCollectionsStateMapUpdate(collectionsStateMap);
   }
 
   protected listenToPropsChange() {

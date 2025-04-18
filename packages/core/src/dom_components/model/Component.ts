@@ -50,10 +50,10 @@ import {
   updateSymbolCls,
   updateSymbolComps,
   updateSymbolProps,
+  getSymbolsToUpdate,
 } from './SymbolUtils';
 import { ComponentDataResolverWatchers } from './ComponentDataResolverWatchers';
 import { DynamicWatchersOptions } from './ComponentResolverWatcher';
-import { keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 
 export interface IComponent extends ExtractMethods<Component> {}
@@ -73,9 +73,6 @@ export const keySymbolOvrd = '__symbol_ovrd';
 export const keyUpdate = ComponentsEvents.update;
 export const keyUpdateInside = ComponentsEvents.updateInside;
 
-const propagateCollectionsStateMap = (cmp: Component) => {
-  cmp.onCollectionsStateMapUpdate();
-};
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
  * immediately reflected on the canvas and in the code to export (indeed, when you ask to export the code we just go through all
@@ -263,6 +260,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @ts-ignore */
   collection!: Components;
   dataResolverWatchers: ComponentDataResolverWatchers;
+  collectionsStateMap: DataCollectionStateMap = {};
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
     const em = opt.em;
@@ -274,7 +272,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     dataResolverWatchers.bindComponent(this);
     this.dataResolverWatchers = dataResolverWatchers;
 
-    bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps');
+    bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps', 'syncOnComponentChange');
 
     // Propagate properties from parent if indicated
     const parent = this.parent();
@@ -316,7 +314,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.listenTo(this, 'change:tagName', this.tagUpdated);
     this.listenTo(this, 'change:attributes', this.attrUpdated);
     this.listenTo(this, 'change:attributes:id', this._idUpdated);
-    this.listenTo(this.components(), 'add remove', propagateCollectionsStateMap);
     this.on('change:toolbar', this.__emitUpdateTlb);
     this.on('change', this.__onChange);
     this.on(keyUpdateInside, this.__propToParent);
@@ -342,13 +339,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       isSymbol(this) && initSymbol(this);
       em?.trigger(ComponentsEvents.create, this, opt);
     }
-  }
-
-  get collectionsStateMap(): DataCollectionStateMap {
-    const parent = this.parent();
-    if (!parent) return {};
-
-    return parent.collectionsStateMap;
   }
 
   set<A extends string>(
@@ -377,10 +367,47 @@ export default class Component extends StyleableModel<ComponentProperties> {
     return super.set(evaluatedProps, options);
   }
 
-  onCollectionsStateMapUpdate() {
+  onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {
+    this.collectionsStateMap = collectionsStateMap;
     this.dataResolverWatchers.onCollectionsStateMapUpdate();
+
     const cmps = this.components();
-    cmps.forEach((cmp) => cmp.onCollectionsStateMapUpdate());
+    cmps.forEach((cmp) => cmp.onCollectionsStateMapUpdate(collectionsStateMap));
+  }
+
+  syncComponentsCollectionState() {
+    this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.listenTo(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.components().forEach((cmp) => cmp.syncComponentsCollectionState());
+  }
+
+  stopSyncComponentCollectionState() {
+    this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.components().forEach((cmp) => cmp.stopSyncComponentCollectionState());
+  }
+
+  syncOnComponentChange(model: Component, collection: Components, opts: any) {
+    if (!this.collectionsStateMap || !Object.keys(this.collectionsStateMap).length) return;
+    const options = opts || collection || {};
+
+    // Reset (in reset, 'model' is Collection, 'collection' is opts )
+    if (!opts) {
+      const modelsRemoved = options.previousModels || [];
+      modelsRemoved.forEach((cmp: Component) => cmp.stopSyncComponentCollectionState());
+      this.components().forEach((cmp) => {
+        cmp.syncComponentsCollectionState();
+        cmp.onCollectionsStateMapUpdate(this.collectionsStateMap);
+      });
+    } else if (options.add) {
+      // Add
+      const modelAdded = model;
+      modelAdded.syncComponentsCollectionState();
+      modelAdded.onCollectionsStateMapUpdate(this.collectionsStateMap);
+    } else {
+      // Remove
+      const modelRemoved = model;
+      modelRemoved.stopSyncComponentCollectionState();
+    }
   }
 
   __postAdd(opts: { recursive?: boolean } = {}) {
@@ -426,6 +453,29 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
     em.trigger(event, this, pros);
     styleKeys.forEach((key) => em.trigger(`${event}:${key}`, this, pros));
+
+    const collectionsStateMap = this.collectionsStateMap;
+    const allParentCollectionIds = Object.keys(collectionsStateMap);
+    if (!allParentCollectionIds.length) return;
+
+    const isAtInitialPosition = allParentCollectionIds.every(
+      (key) => collectionsStateMap[key].currentIndex === collectionsStateMap[key].startIndex,
+    );
+    if (!isAtInitialPosition) return;
+
+    const componentsToUpdate = getSymbolsToUpdate(this);
+    componentsToUpdate.forEach((component) => {
+      const componentCollectionsState = component.collectionsStateMap;
+      const componentParentCollectionIds = Object.keys(componentCollectionsState);
+
+      const isChildOfOriginalCollections = componentParentCollectionIds.every((id) =>
+        allParentCollectionIds.includes(id),
+      );
+
+      if (isChildOfOriginalCollections) {
+        component.addStyle(newStyles);
+      }
+    });
   }
 
   __changesUp(opts: any) {
@@ -1614,7 +1664,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
       delete obj[keySymbol];
       delete obj[keySymbolOvrd];
       delete obj[keySymbols];
-      delete obj[keyIsCollectionItem];
       delete obj.attributes.id;
     }
 
@@ -1846,6 +1895,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
   }
 
   destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
+    this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
     this.dataResolverWatchers.destroy();
     this.__onDestroy();
     return super.destroy(options);

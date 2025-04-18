@@ -1,5 +1,4 @@
 import { ObjectAny } from '../../common';
-import { keyIsCollectionItem } from '../../data_sources/model/data_collection/constants';
 import Component from './Component';
 import {
   ComponentResolverWatcher,
@@ -67,12 +66,13 @@ export class ComponentDataResolverWatchers {
   }
 
   private updateSymbolOverride() {
-    if (!this.component || !this.component.get(keyIsCollectionItem)) return;
+    const isCollectionItem = !!Object.keys(this.component?.collectionsStateMap ?? {}).length;
+    if (!this.component || !isCollectionItem) return;
 
     const keys = this.propertyWatcher.getValuesResolvingFromCollections();
     const attributesKeys = this.attributeWatcher.getValuesResolvingFromCollections();
 
-    const combinedKeys = [...keys];
+    const combinedKeys = ['locked', ...keys];
     const haveOverridenAttributes = Object.keys(attributesKeys).length;
     if (haveOverridenAttributes) combinedKeys.push('attributes');
 
