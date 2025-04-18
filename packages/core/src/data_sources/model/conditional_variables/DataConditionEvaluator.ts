@@ -40,7 +40,6 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
 
     const resolvedOperator = this.getOperator();
     if (!resolvedOperator) return false;
-
     return resolvedOperator.evaluate(this.getResolvedLeftValue(), this.getResolvedRightValue());
   }
 
@@ -63,20 +62,20 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
   }
 
   private getOperator() {
-    const { em, collectionsStateMap } = this;
+    const opts = { em: this.em, collectionsStateMap: this.collectionsStateMap };
     const condition = this.get('condition');
     if (!condition || isBoolean(condition)) return;
     let resolvedOperator: SimpleOperator<DataConditionSimpleOperation> | LogicalGroupEvaluator | undefined;
 
     if (this.isLogicGroup(condition)) {
       const { logicalOperator, statements } = condition;
-      const operator = new BooleanOperator(logicalOperator, { em });
-      resolvedOperator = new LogicalGroupEvaluator(operator, statements, { em });
+      const operator = new BooleanOperator(logicalOperator, opts);
+      resolvedOperator = new LogicalGroupEvaluator(operator, statements, opts);
     }
 
     if (this.isExpression(condition)) {
       const { left, operator } = condition;
-      const evaluatedLeft = valueOrResolve(left, { em, collectionsStateMap });
+      const evaluatedLeft = valueOrResolve(left, opts);
 
       resolvedOperator = this.resolveOperator(evaluatedLeft, operator);
     }
@@ -139,7 +138,6 @@ export class DataConditionEvaluator extends Model<DataConditionEvaluatorProps> {
 
     if (condition && typeof condition === 'object' && property in condition) {
       const value = (condition as ExpressionProps)[property];
-
       return valueOrResolve(value, { em, collectionsStateMap });
     }
 
