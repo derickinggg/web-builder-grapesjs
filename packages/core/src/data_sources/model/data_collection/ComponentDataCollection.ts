@@ -298,6 +298,7 @@ export default class ComponentDataCollection extends Component {
 
   stopSyncComponentCollectionState() {
     this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.onCollectionsStateMapUpdate({});
   }
 
   syncOnComponentChange(model: Component, collection: Components, opts: any) {

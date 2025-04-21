@@ -383,6 +383,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
   stopSyncComponentCollectionState() {
     this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.onCollectionsStateMapUpdate({});
     this.components().forEach((cmp) => cmp.stopSyncComponentCollectionState());
   }
 
