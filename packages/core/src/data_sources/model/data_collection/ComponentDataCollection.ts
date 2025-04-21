@@ -223,14 +223,16 @@ export default class ComponentDataCollection extends Component {
     const item = items[index];
     const parentCollectionStateMap = this.collectionsStateMap;
 
+    const offset = index - startIndex;
+    const remainingItems = totalItems - (1 + offset);
     const collectionState = {
       collectionId,
       currentIndex: index,
       currentItem: item,
-      startIndex: startIndex,
-      endIndex: endIndex,
-      totalItems: totalItems,
-      remainingItems: totalItems - (index + 1),
+      startIndex,
+      endIndex,
+      totalItems,
+      remainingItems,
     };
 
     const collectionsStateMap: DataCollectionStateMap = {
