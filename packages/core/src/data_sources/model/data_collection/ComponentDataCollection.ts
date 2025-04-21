@@ -196,10 +196,7 @@ export default class ComponentDataCollection extends Component {
       const collectionsStateMap = this.getCollectionsStateMapForItem(items, index);
 
       if (isFirstItem) {
-        const mainSymbol = firstChild.get(keySymbol);
-        if (mainSymbol) {
-          getSymbolInstances(mainSymbol)?.forEach((i) => detachSymbolInstance(i, { skipRefs: true }));
-        }
+        getSymbolInstances(firstChild)?.forEach((cmp) => detachSymbolInstance(cmp));
 
         setCollectionStateMapAndPropagate(firstChild, collectionsStateMap);
         // TODO: Move to component view
@@ -208,7 +205,7 @@ export default class ComponentDataCollection extends Component {
         continue;
       }
 
-      const instance = firstChild!.clone({ symbol: true });
+      const instance = firstChild!.clone({ symbol: true, symbolInv: true });
       instance.set('locked', true, AvoidStoreOptions);
       setCollectionStateMapAndPropagate(instance, collectionsStateMap);
       components.push(instance);
