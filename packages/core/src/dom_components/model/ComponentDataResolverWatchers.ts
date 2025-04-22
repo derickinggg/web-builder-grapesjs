@@ -72,7 +72,7 @@ export class ComponentDataResolverWatchers {
     const keys = this.propertyWatcher.getValuesResolvingFromCollections();
     const attributesKeys = this.attributeWatcher.getValuesResolvingFromCollections();
 
-    const combinedKeys = ['locked', ...keys];
+    const combinedKeys = ['locked', 'layerable', ...keys];
     const haveOverridenAttributes = Object.keys(attributesKeys).length;
     if (haveOverridenAttributes) combinedKeys.push('attributes');
 

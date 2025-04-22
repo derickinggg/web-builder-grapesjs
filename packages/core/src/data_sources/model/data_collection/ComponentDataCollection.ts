@@ -169,6 +169,7 @@ export default class ComponentDataCollection extends Component {
 
   private getCollectionItems() {
     const firstChild = this.ensureFirstChild();
+    const initialDisplayValue = firstChild.getStyle()['display'] ?? '';
     // TODO: Move to component view
     firstChild.addStyle({ display: 'none' }, AvoidStoreOptions);
     const components: Component[] = [firstChild];
@@ -200,13 +201,13 @@ export default class ComponentDataCollection extends Component {
 
         setCollectionStateMapAndPropagate(firstChild, collectionsStateMap);
         // TODO: Move to component view
-        firstChild.addStyle({ display: '' }, AvoidStoreOptions);
+        firstChild.addStyle({ display: initialDisplayValue }, AvoidStoreOptions);
 
         continue;
       }
 
       const instance = firstChild!.clone({ symbol: true, symbolInv: true });
-      instance.set('locked', true, AvoidStoreOptions);
+      instance.set({ locked: true, layerable: false }, AvoidStoreOptions);
       setCollectionStateMapAndPropagate(instance, collectionsStateMap);
       components.push(instance);
     }
@@ -335,7 +336,7 @@ export default class ComponentDataCollection extends Component {
 }
 
 function setCollectionStateMapAndPropagate(cmp: Component, collectionsStateMap: DataCollectionStateMap) {
-  cmp.setSymbolOverride(['locked']);
+  cmp.setSymbolOverride(['locked', 'layerable']);
   cmp.syncComponentsCollectionState();
   cmp.onCollectionsStateMapUpdate(collectionsStateMap);
 }
