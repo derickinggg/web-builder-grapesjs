@@ -55,6 +55,7 @@ import {
 import { ComponentDataResolverWatchers } from './ComponentDataResolverWatchers';
 import { DynamicWatchersOptions } from './ComponentResolverWatcher';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
+import { checkAndGetSyncableCollectionItemId } from '../../data_sources/utils';
 
 export interface IComponent extends ExtractMethods<Component> {}
 export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {}
@@ -383,7 +384,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
   stopSyncComponentCollectionState() {
     this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
-    this.onCollectionsStateMapUpdate({});
+    this.collectionsStateMap = {};
     this.components().forEach((cmp) => cmp.stopSyncComponentCollectionState());
   }
 
@@ -1724,6 +1725,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
    */
   getId(): string {
     let attrs = this.get('attributes') || {};
+    const { shouldSync, itemId } = checkAndGetSyncableCollectionItemId(this);
+    if (shouldSync) {
+      attrs.id = itemId;
+    }
     return attrs.id || this.ccid || this.cid;
   }
 

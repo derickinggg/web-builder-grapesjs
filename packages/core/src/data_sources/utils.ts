@@ -4,10 +4,11 @@ import { DataCollectionStateMap } from './model/data_collection/types';
 import { DataCollectionItemType } from './model/data_collection/constants';
 import { DataConditionType, DataCondition } from './model/conditional_variables/DataCondition';
 import DataVariable, { DataVariableProps, DataVariableType } from './model/DataVariable';
-import Component from '../dom_components/model/Component';
 import { ComponentDefinition, ComponentOptions } from '../dom_components/model/types';
 import { serialize } from '../utils/mixins';
 import { DataConditionIfFalseType, DataConditionIfTrueType } from './model/conditional_variables/constants';
+import { getSymbolMain } from '../dom_components/model/SymbolUtils';
+import Component from '../dom_components/model/Component';
 
 export function isDataResolverProps(value: any): value is DataResolverProps {
   return typeof value === 'object' && [DataVariableType, DataConditionType].includes(value?.type);
@@ -89,4 +90,34 @@ export function enumToArray(enumObj: any) {
   return Object.keys(enumObj)
     .filter((key) => isNaN(Number(key)))
     .map((key) => enumObj[key]);
+}
+
+function shouldSyncCollectionSymbol(component: Component): boolean {
+  const componentCollectionMap = component.collectionsStateMap;
+  if (!componentCollectionMap) return false;
+
+  const parentCollectionIds = Object.keys(componentCollectionMap);
+  if (!parentCollectionIds.length) return false;
+
+  const mainSymbolComponent = getSymbolMain(component);
+
+  if (!mainSymbolComponent || mainSymbolComponent === component) return false;
+
+  const mainSymbolCollectionMap = mainSymbolComponent.collectionsStateMap;
+  const mainSymbolParentIds = Object.keys(mainSymbolCollectionMap);
+
+  const isSubsetOfOriginalCollections = mainSymbolParentIds.every((id) => parentCollectionIds.includes(id));
+
+  return isSubsetOfOriginalCollections;
+}
+
+function getIdFromCollectionSymbol(component: Component): string {
+  const mainSymbolComponent = getSymbolMain(component);
+  return mainSymbolComponent ? mainSymbolComponent.getId() : '';
+}
+
+export function checkAndGetSyncableCollectionItemId(component: Component) {
+  const shouldSync = shouldSyncCollectionSymbol(component);
+  const itemId = shouldSync ? getIdFromCollectionSymbol(component) : null;
+  return { shouldSync, itemId };
 }
