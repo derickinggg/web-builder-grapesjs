@@ -59,7 +59,7 @@ export enum ComponentsEvents {
    * editor.on('component:styleUpdate', (component) => { ... });
    */
   styleUpdate = 'component:styleUpdate',
-  stylePropertyUpdate = 'component:styleUpdate:',
+  styleUpdateProperty = 'component:styleUpdate:',
 
   /**
    * @event `component:select` Component selected.

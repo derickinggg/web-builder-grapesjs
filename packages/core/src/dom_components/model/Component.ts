@@ -453,7 +453,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     const pros = { style: newStyles };
 
     this.emitWithEditor(ComponentsEvents.styleUpdate, this, pros);
-    styleKeys.forEach((key) => this.emitWithEditor(`${ComponentsEvents.stylePropertyUpdate}${key}`, this, pros));
+    styleKeys.forEach((key) => this.emitWithEditor(`${ComponentsEvents.styleUpdateProperty}${key}`, this, pros));
 
     const collectionsStateMap = this.collectionsStateMap;
     const allParentCollectionIds = Object.keys(collectionsStateMap);
