@@ -185,10 +185,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
     };
   }
 
-  get type() {
-    return this.get('type') || 'default';
-  }
-
   get tagName() {
     return this.get('tagName')!;
   }
@@ -227,6 +223,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
   get page() {
     return this.frame?.getPage();
+  }
+
+  getType() {
+    return this.get('type') || 'default';
   }
 
   preInit() {}
