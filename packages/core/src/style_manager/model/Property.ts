@@ -567,7 +567,8 @@ export default class Property<T extends PropertyPropsCustom = PropertyPropsCusto
 
     const id = this.getId();
     const property = this.getName();
-    const { requires, requiresParent, toRequire, unstylable, isVisible } = this.attributes;
+    const { requires, requiresParent, toRequire, isVisible } = this.attributes;
+    const unstylable = trg.get('unstylable');
     const stylableReq = trg.get('stylable-require');
     let stylable = trg.get('stylable');
 
