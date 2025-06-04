@@ -52,8 +52,8 @@ import {
   updateSymbolProps,
   getSymbolsToUpdate,
 } from './SymbolUtils';
-import { ComponentDataResolverWatchers } from './ComponentDataResolverWatchers';
-import { DynamicWatchersOptions } from './ComponentResolverWatcher';
+import { ModelDataResolverWatchers } from './ModelDataResolverWatchers';
+import { DynamicWatchersOptions } from './ModelResolverWatcher';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import { checkAndGetSyncableCollectionItemId } from '../../data_sources/utils';
 
@@ -264,18 +264,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
    * @private
    * @ts-ignore */
   collection!: Components;
-  dataResolverWatchers: ComponentDataResolverWatchers;
-  collectionsStateMap: DataCollectionStateMap = {};
 
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
     const em = opt.em;
-    const dataResolverWatchers = new ComponentDataResolverWatchers(undefined, { em });
-    super(props, {
-      ...opt,
-      dataResolverWatchers,
-    } as any);
-    dataResolverWatchers.bindComponent(this);
-    this.dataResolverWatchers = dataResolverWatchers;
+    super(props, opt);
 
     bindAll(this, '__upSymbProps', '__upSymbCls', '__upSymbComps', 'syncOnComponentChange');
 
@@ -353,7 +345,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
   ): this {
     let attributes: Partial<ComponentProperties>;
     let options: ComponentSetOptions & {
-      dataResolverWatchers?: ComponentDataResolverWatchers;
+      dataResolverWatchers?: ModelDataResolverWatchers;
     } = { skipWatcherUpdates: false, fromDataSource: false };
     if (typeof keyOrAttributes === 'object') {
       attributes = keyOrAttributes;
@@ -368,7 +360,6 @@ export default class Component extends StyleableModel<ComponentProperties> {
 
     this.dataResolverWatchers = this.dataResolverWatchers || options.dataResolverWatchers;
     const evaluatedProps = this.dataResolverWatchers.addProps(attributes, options);
-
     return super.set(evaluatedProps, options);
   }
 
