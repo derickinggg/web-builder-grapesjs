@@ -17,10 +17,13 @@ import {
   isDataResolverProps,
 } from '../../data_sources/utils';
 import { DataResolver } from '../../data_sources/types';
+import { ModelDataResolverWatchers } from '../../dom_components/model/ModelDataResolverWatchers';
+import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
+import { DynamicWatchersOptions } from '../../dom_components/model/ModelResolverWatcher';
 
 export type StyleProps = Record<string, string | string[] | DataVariableProps | DataConditionProps>;
 
-export interface UpdateStyleOptions extends SetOptions {
+export interface UpdateStyleOptions extends SetOptions, DynamicWatchersOptions {
   partial?: boolean;
   addStyle?: StyleProps;
   inline?: boolean;
@@ -38,10 +41,15 @@ export const getLastStyleValue = (value: string | string[]) => {
 export default class StyleableModel<T extends ObjectHash = any> extends Model<T> {
   em?: EditorModel;
   views: StyleableView[] = [];
-  styleResolverListeners: Record<string, DataResolverListener> = {};
+  dataResolverWatchers: ModelDataResolverWatchers;
+  collectionsStateMap: DataCollectionStateMap = {};
 
   constructor(attributes: T, options: { em?: EditorModel } = {}) {
-    super(attributes, options);
+    const em = options.em!;
+    const dataResolverWatchers = new ModelDataResolverWatchers(undefined, { em });
+    super(attributes, { ...options, dataResolverWatchers });
+    dataResolverWatchers.bindModel(this);
+    this.dataResolverWatchers = dataResolverWatchers;
     this.em = options.em;
   }
 
@@ -68,15 +76,12 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
    * @return {Object}
    */
   getStyle(prop?: string | ObjectAny, opts: { skipResolve?: boolean } = {}): StyleProps {
-    const style = this.get('style') || {};
-    const result: ObjectAny = { ...style };
-
-    if (this.em && !opts.skipResolve) {
-      const resolvedStyle = this.getResolvedStyles({ ...result });
-      // @ts-ignore
-      return prop && isString(prop) ? resolvedStyle[prop] : resolvedStyle;
+    const style: ObjectAny = this.get('style') || {};
+    if (!opts.skipResolve) {
+      return prop && isString(prop) ? { ...style }[prop] : { ...style };
     }
 
+    const result: ObjectAny = { ...style, ...this.dataResolverWatchers.getDynamicStylesDefs() };
     return prop && isString(prop) ? result[prop] : result;
   }
 
@@ -101,28 +106,16 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
     }
 
     const propNew = { ...prop };
-    const newStyle = { ...propNew };
+    let newStyle = { ...propNew };
 
     keys(newStyle).forEach((key) => {
       // Remove empty style properties
-      if (newStyle[key] === '') {
+      if (newStyle[key] === '' || key === '__p') {
         delete newStyle[key];
         return;
       }
-
-      const styleValue = newStyle[key];
-      if (isDataResolverProps(styleValue)) {
-        const dataResolver = getDataResolverInstance(styleValue, {
-          em: this.em!,
-          collectionsStateMap: {},
-        });
-
-        if (dataResolver) {
-          newStyle[key] = dataResolver;
-          this.listenToDataResolver(dataResolver, key);
-        }
-      }
     });
+    newStyle = this.dataResolverWatchers.setStyles(newStyle, opts);
 
     this.set('style', newStyle, opts as any);
 
@@ -146,19 +139,6 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
     return newStyle;
   }
 
-  listenToDataResolver(resolver: DataResolver, styleProp: string) {
-    const resolverListener = this.styleResolverListeners[styleProp];
-    if (resolverListener) {
-      resolverListener.listenToResolver();
-    } else {
-      this.styleResolverListeners[styleProp] = new DataResolverListener({
-        em: this.em!,
-        resolver,
-        onUpdate: () => this.updateView(),
-      });
-    }
-  }
-
   getView(frame?: Frame) {
     let { views, em } = this;
     const frm = frame || em?.getCurrentFrameModel();
@@ -177,31 +157,6 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
 
   updateView() {
     this.views.forEach((view) => view.updateStyles());
-  }
-
-  getResolvedStyles(style: StyleProps): StyleProps {
-    const resultStyle = { ...style };
-
-    keys(resultStyle).forEach((key) => {
-      const styleValue = resultStyle[key];
-
-      if (typeof styleValue === 'string' || Array.isArray(styleValue)) {
-        return;
-      }
-
-      if (isDataResolverProps(styleValue)) {
-        resultStyle[key] = getDataResolverInstanceValue(styleValue, {
-          em: this.em!,
-          collectionsStateMap: {},
-        });
-      }
-
-      if (isDataResolver(styleValue)) {
-        resultStyle[key] = styleValue.getDataValue();
-      }
-    });
-
-    return resultStyle;
   }
 
   /**

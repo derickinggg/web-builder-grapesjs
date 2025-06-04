@@ -113,7 +113,7 @@ export default class CssRule extends StyleableModel<CssRuleProperties> {
   }
 
   constructor(props: CssRuleProperties, opt: any = {}) {
-    super(props);
+    super(props, { em: opt.em });
     this.config = props || {};
     this.opt = opt;
     this.em = opt.em;
@@ -319,7 +319,7 @@ export default class CssRule extends StyleableModel<CssRuleProperties> {
       if (isEmpty(obj.style)) delete obj.style;
     }
 
-    return obj;
+    return { ...obj, style: this.dataResolverWatchers.getStylesDefsOrValues(obj.style) };
   }
 
   /**
