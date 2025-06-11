@@ -87,6 +87,9 @@ export enum DataSourcesEvents {
    * @event `data:path` Data record path update.
    * @example
    * editor.on('data:path:SOURCE_ID.RECORD_ID.PROP_NAME', ({ dataSource, dataRecord, path }) => { ... });
+   * editor.on('data:path', ({ dataSource, dataRecord, path }) => {
+   *  console.log('Path update in any data source')
+   * });
    */
   path = 'data:path',
 
