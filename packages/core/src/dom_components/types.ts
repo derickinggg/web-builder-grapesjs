@@ -92,6 +92,13 @@ export enum ComponentsEvents {
   render = 'component:render',
 
   /**
+   * @event `component:input` Event triggered on `input` DOM event. This is useful to catch direct input changes in the component (eg. Text component).
+   * @example
+   * editor.on('component:input', (component) => { ... });
+   */
+  input = 'component:input',
+
+  /**
    * @event `component:resize` Component resized. This event is triggered when the component is resized in the canvas.
    * @example
    * editor.on('component:resize', ({ component, type }) => {
