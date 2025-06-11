@@ -16,6 +16,8 @@
  * * [remove](#remove) - Remove a data source by its ID.
  * * [clear](#clear) - Remove all data sources.
  *
+ * [DataSource]: datasource.html
+ *
  * @module DataSources
  */
 
