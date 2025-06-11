@@ -94,7 +94,7 @@ export default class CssComposer extends ItemManagerModule<CssComposerConfig & {
    * @private
    */
   constructor(em: EditorModel) {
-    super(em, 'CssComposer', null, {}, defConfig());
+    super(em, 'CssComposer', null, CssEvents, defConfig());
     const { config } = this;
 
     const ppfx = config.pStylePrefix;
