@@ -70,6 +70,13 @@ export enum ComponentsEvents {
   selectBefore = 'component:select:before',
 
   /**
+   * @event `component:mount` Component is mounted in the canvas.
+   * @example
+   * editor.on('component:mount', (component) => { ... });
+   */
+  mount = 'component:mount',
+
+  /**
    * @event `component:script:mount` Component with script is mounted.
    * @example
    * editor.on('component:script:mount', ({ component, view, el }) => { ... });
