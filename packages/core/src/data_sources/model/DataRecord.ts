@@ -118,7 +118,7 @@ export default class DataRecord<T extends DataRecordProps = DataRecordProps> ext
     const paths = this.getPaths(prop);
     const data = { dataSource, dataRecord: this, path: paths[0], options };
     em.trigger(DataSourcesEvents.path, data);
-    em.trigger(`${DataSourcesEvents.path}:${dataSource.id}`, data);
+    em.trigger(`${DataSourcesEvents.pathSource}:${dataSource.id}`, data);
     paths.forEach((path) => em.trigger(`${DataSourcesEvents.path}:${path}`, { ...data, path }));
   }
 
