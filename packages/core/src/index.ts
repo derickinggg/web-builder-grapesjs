@@ -151,6 +151,11 @@ export type { default as DataVariable } from './data_sources/model/DataVariable'
 export type { default as ComponentDataVariable } from './data_sources/model/ComponentDataVariable';
 export type { default as ComponentDataCollection } from './data_sources/model/data_collection/ComponentDataCollection';
 export type { default as ComponentDataCondition } from './data_sources/model/conditional_variables/ComponentDataCondition';
-export type { DataCondition } from './data_sources/model/conditional_variables/DataCondition';
+export type {
+  DataCondition,
+  LogicGroupProps,
+  DataConditionProps,
+  ExpressionProps,
+} from './data_sources/model/conditional_variables/DataCondition';
 
 export default grapesjs;
