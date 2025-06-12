@@ -1,5 +1,6 @@
 import FrameView from '../../canvas/view/FrameView';
 import { View } from '../../common';
+import EditorModel from '../../editor/model/Editor';
 import CssRule from '../model/CssRule';
 import { CssEvents } from '../types';
 
@@ -20,7 +21,7 @@ export default class CssRuleView extends View<CssRule> {
     return this.config.frameView;
   }
 
-  get em() {
+  get em(): EditorModel {
     return this.model.em!;
   }
 
