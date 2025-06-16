@@ -91,7 +91,7 @@ export class ModelResolverWatcher {
       this.resolverListeners[key] = new DataResolverListener({
         em,
         resolver,
-        onUpdate: (value) => this.updateFn.bind(this)(this.model, key, value),
+        onUpdate: (value) => this.updateFn(this.model, key, value),
       });
     }
   }
