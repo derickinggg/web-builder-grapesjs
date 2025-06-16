@@ -336,6 +336,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
       isSymbol(this) && initSymbol(this);
       em?.trigger(ComponentsEvents.create, this, opt);
     }
+
+    if (avoidInline(em)) {
+      this.dataResolverWatchers.disableStyles();
+    }
   }
 
   set<A extends string>(
@@ -803,8 +807,10 @@ export default class Component extends StyleableModel<ComponentProperties> {
    */
   getStyle(options: any = {}, optsAdd: any = {}) {
     const { em } = this;
-    const prop = isString(options) ? options : '';
-    const opts = prop ? optsAdd : options;
+    const isOptionsString = isString(options);
+    const prop = isOptionsString ? options : '';
+    const opts = isOptionsString || options === '' ? optsAdd : options;
+    const skipResolve = !!opts?.skipResolve;
 
     if (avoidInline(em) && !opts.inline) {
       const state = em.get('state');
@@ -813,15 +819,15 @@ export default class Component extends StyleableModel<ComponentProperties> {
       this.rule = rule;
 
       if (rule) {
-        return rule.getStyle(prop);
+        return rule.getStyle(prop, { skipResolve });
       }
 
-      // Return empty style if not rule have been found. We cannot return inline style with the next return
+      // Return empty style if no rule have been found. We cannot return inline style with the next return
       // because else on load inline style is set a #id or .class style
       return {};
     }
 
-    return super.getStyle.call(this, prop);
+    return super.getStyle.call(this, prop, { skipResolve });
   }
 
   /**
@@ -840,7 +846,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
       prop = { ...prop, ...(style as any) };
       const state = em.get('state');
       const cc = em.Css;
-      const propOrig = this.getStyle(opts);
+      const propOrig = this.getStyle({ ...opts, skipResolve: true });
       const newStyle = { ...propOrig, ...prop };
       this.rule = cc.setIdRule(this.getId(), newStyle, { state, ...opts });
       const diff = shallowDiff(propOrig, prop);

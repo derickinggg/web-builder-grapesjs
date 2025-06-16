@@ -71,6 +71,14 @@ export class ModelDataResolverWatchers {
     return this.styleWatcher.setDynamicValues(styles, options);
   }
 
+  /**
+   * Disables inline style management for the component. Style handling is shifted to CSS rules
+   */
+  disableStyles() {
+    this.styleWatcher.removeListeners();
+    this.styleWatcher.destroy();
+  }
+
   removeAttributes(attributes: string[]) {
     this.attributeWatcher.removeListeners(attributes);
     this.updateSymbolOverride();
