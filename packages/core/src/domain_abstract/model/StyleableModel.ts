@@ -5,18 +5,10 @@ import Selectors from '../../selector_manager/model/Selectors';
 import { shallowDiff } from '../../utils/mixins';
 import EditorModel from '../../editor/model/Editor';
 import { DataVariableProps } from '../../data_sources/model/DataVariable';
-import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import CssRuleView from '../../css_composer/view/CssRuleView';
 import ComponentView from '../../dom_components/view/ComponentView';
 import Frame from '../../canvas/model/Frame';
 import { DataConditionProps } from '../../data_sources/model/conditional_variables/DataCondition';
-import {
-  getDataResolverInstance,
-  getDataResolverInstanceValue,
-  isDataResolver,
-  isDataResolverProps,
-} from '../../data_sources/utils';
-import { DataResolver } from '../../data_sources/types';
 import { ModelDataResolverWatchers } from '../../dom_components/model/ModelDataResolverWatchers';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import { DynamicWatchersOptions } from '../../dom_components/model/ModelResolverWatcher';
@@ -38,7 +30,7 @@ export const getLastStyleValue = (value: string | string[]) => {
   return isArray(value) ? value[value.length - 1] : value;
 };
 
-export default class StyleableModel<T extends ObjectHash = any> extends Model<T> {
+export default class StyleableModel<T extends ObjectHash = any> extends Model<T, UpdateStyleOptions> {
   em?: EditorModel;
   views: StyleableView[] = [];
   dataResolverWatchers: ModelDataResolverWatchers;
@@ -49,6 +41,7 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
     const dataResolverWatchers = new ModelDataResolverWatchers(undefined, { em });
     super(attributes, { ...options, dataResolverWatchers });
     dataResolverWatchers.bindModel(this);
+    dataResolverWatchers.setStyles(this.get('style')!);
     this.dataResolverWatchers = dataResolverWatchers;
     this.em = options.em;
   }
@@ -96,7 +89,7 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T>
       prop = this.parseStyle(prop);
     }
 
-    const propOrig = this.getStyle(opts);
+    const propOrig = this.getStyle({ skipResolve: true });
 
     if (opts.partial || opts.avoidStore) {
       opts.avoidStore = true;
