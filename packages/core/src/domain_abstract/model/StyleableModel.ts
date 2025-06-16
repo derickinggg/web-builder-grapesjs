@@ -9,6 +9,7 @@ import CssRuleView from '../../css_composer/view/CssRuleView';
 import ComponentView from '../../dom_components/view/ComponentView';
 import Frame from '../../canvas/model/Frame';
 import { DataConditionProps } from '../../data_sources/model/conditional_variables/DataCondition';
+import { ToCssOptions } from '../../css_composer/model/CssRule';
 import { ModelDataResolverWatchers } from '../../dom_components/model/ModelDataResolverWatchers';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import { DynamicWatchersOptions } from '../../dom_components/model/ModelResolverWatcher';
@@ -189,9 +190,9 @@ export default class StyleableModel<T extends ObjectHash = any> extends Model<T,
    * @param {Object} [opts={}] Options
    * @return {String}
    */
-  styleToString(opts: ObjectAny = {}) {
+  styleToString(opts: ToCssOptions = {}) {
     const result: string[] = [];
-    const style = this.getStyle(opts);
+    const style = opts.style || this.getStyle(opts);
     const imp = opts.important;
 
     for (let prop in style) {
