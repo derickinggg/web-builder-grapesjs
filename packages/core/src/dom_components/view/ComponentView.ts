@@ -48,6 +48,7 @@ TComp> {
   getChildrenSelector?: Function;
   getTemplate?: Function;
   scriptContainer?: HTMLElement;
+  rendered = false;
 
   preinitialize(opt: any = {}) {
     this.opts = opt;
@@ -136,7 +137,7 @@ TComp> {
   /**
    * Callback executed when the `active` event is triggered on component
    */
-  onActive(ev: Event) {}
+  onActive(ev?: Event) {}
 
   /**
    * Callback executed when the `disable` event is triggered on component
@@ -591,6 +592,7 @@ TComp> {
         view: this,
         el,
       });
+      this.rendered = true;
     }
   }
 
