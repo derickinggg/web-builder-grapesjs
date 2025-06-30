@@ -360,9 +360,7 @@ TComp> {
       ...(textable && { contenteditable: 'false' }),
     };
 
-    // Remove all current attributes
-    each(el.attributes, (attr) => attrs.push(attr.nodeName));
-    attrs.forEach((attr) => $el.removeAttr(attr));
+    this.__clearAttributes();
     this.updateStyle();
     this.updateHighlight();
     const attr = {
@@ -374,6 +372,13 @@ TComp> {
     keys(attr).forEach((key) => attr[key] === false && delete attr[key]);
 
     $el.attr(attr);
+  }
+
+  __clearAttributes() {
+    const { el, $el } = this;
+    const attrs: string[] = [];
+    each(el.attributes, (attr) => attrs.push(attr.nodeName));
+    attrs.forEach((attr) => $el.removeAttr(attr));
   }
 
   /**
