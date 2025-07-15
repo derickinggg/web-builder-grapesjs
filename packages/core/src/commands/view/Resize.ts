@@ -183,7 +183,6 @@ export default {
             unit: unitHeight,
           },
         };
-        console.log('resize onStart', eventProps);
         editor.trigger(ComponentsEvents.resizeStart, eventProps);
         editor.trigger(ComponentsEvents.resize, { ...eventProps, type: 'start' });
         options.afterStart?.();
@@ -214,7 +213,6 @@ export default {
           rect: resizer.rectDim!,
           moved: resizer.moved,
         };
-        console.log('resize onEnd', eventProps);
         editor.trigger(ComponentsEvents.resizeEnd, eventProps);
         editor.trigger(ComponentsEvents.resize, { ...resizeEventOpts, type: 'end' });
         options.afterEnd?.();
@@ -280,7 +278,6 @@ export default {
           delta: resizer.delta!,
           pointer: resizer.currentPos!,
         };
-        console.log('resize onUpdate', eventProps);
         editor.trigger(ComponentsEvents.resizeUpdate, eventProps);
         !styleUpdated && updateStyle();
       },
