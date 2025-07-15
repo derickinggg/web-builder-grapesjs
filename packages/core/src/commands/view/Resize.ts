@@ -61,6 +61,17 @@ export interface ComponentResizeEventUpdateProps extends ComponentResizeEventPro
   updateStyle: (styles?: StyleProps) => void;
 }
 
+export interface ConvertPxToUnitProps {
+  el: HTMLElement;
+  valuePx: number;
+  unit: string;
+  /**
+   * DPI (Dots Per Inch) value to use for conversion.
+   * @default 96
+   */
+  dpi?: number;
+}
+
 export default {
   run(editor, _, options: ComponentResizeOptions) {
     const { Canvas, Utils, em } = editor;
@@ -255,5 +266,51 @@ export default {
 
   stop() {
     this.canvasResizer?.blur();
+  },
+
+  convertPxToUnit(props: ConvertPxToUnitProps): string {
+    const { el, valuePx, unit, dpi = 96 } = props;
+    const win = el.ownerDocument.defaultView;
+    const winWidth = win?.innerWidth || 1;
+    const winHeight = window.innerHeight || 1;
+
+    switch (unit) {
+      case 'pt':
+        return `${valuePx * (72 / dpi)}${unit}`;
+      case 'pc':
+        return `${valuePx * (6 / dpi)}${unit}`;
+      case 'in':
+        return `${valuePx / dpi}${unit}`;
+      case 'cm':
+        return `${valuePx / (dpi / 2.54)}${unit}`;
+      case 'mm':
+        return `${valuePx / (dpi / 25.4)}${unit}`;
+      case 'vw':
+        return `${(valuePx / winWidth) * 100}${unit}`;
+      case 'vh':
+        return `${(valuePx / winHeight) * 100}${unit}`;
+      case 'vmin': {
+        const vmin = Math.min(winWidth, winHeight);
+        return `${(valuePx / vmin) * 100}${unit}`;
+      }
+      case 'vmax': {
+        const vmax = Math.max(winWidth, winHeight);
+        return `${(valuePx / vmax) * 100}${unit}`;
+      }
+      case '%': {
+        const parentSize = el.parentElement?.offsetWidth || 1;
+        return `${(valuePx / parentSize) * 100}${unit}`;
+      }
+      case 'svw':
+      case 'lvw':
+      case 'dvw':
+        return `${(valuePx / winWidth) * 100}${unit}`;
+      case 'svh':
+      case 'lvh':
+      case 'dvh':
+        return `${(valuePx / winHeight) * 100}${unit}`;
+      default:
+        return `${valuePx}px`;
+    }
   },
 } as CommandObject<ComponentResizeOptions, { canvasResizer?: Resizer }>;
