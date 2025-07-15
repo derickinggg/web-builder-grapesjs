@@ -2,7 +2,7 @@ import { Position } from '../../common';
 import Component from '../../dom_components/model/Component';
 import { ComponentsEvents } from '../../dom_components/types';
 import ComponentView from '../../dom_components/view/ComponentView';
-import StyleableModel from '../../domain_abstract/model/StyleableModel';
+import StyleableModel, { StyleProps } from '../../domain_abstract/model/StyleableModel';
 import { getUnitFromValue } from '../../utils/mixins';
 import Resizer, { RectDim, ResizerOptions } from '../../utils/Resizer';
 import { CommandObject } from './CommandAbstract';
@@ -13,6 +13,11 @@ export interface ComponentResizeOptions extends ResizerOptions {
   el?: HTMLElement;
   afterStart?: () => void;
   afterEnd?: () => void;
+  /**
+   * When the element is using an absolute position, the resizer, by default, will try to
+   * update position values (eg. 'top'/'left')
+   */
+  skipPositionUpdate?: boolean;
   /**
    * @deprecated
    */
@@ -48,10 +53,12 @@ export interface ComponentResizeEventEndProps extends ComponentResizeEventProps 
   moved: boolean;
 }
 
-export interface ComponentResizeEventUpdateProps extends Omit<ComponentResizeEventProps, 'event'> {
+export interface ComponentResizeEventUpdateProps extends ComponentResizeEventProps {
   partial: boolean;
   delta: Position;
   pointer: Position;
+  style: StyleProps;
+  updateStyle: (styles?: StyleProps) => void;
 }
 
 export default {
@@ -68,6 +75,7 @@ export default {
       el: elOpts,
       componentView,
       component,
+      skipPositionUpdate,
       ...resizableOpts
     } = options;
     const el = elOpts || componentView?.el || component.getEl()!;
@@ -182,12 +190,12 @@ export default {
           return;
         }
 
-        const { store, selectedHandler, config, resizer } = options;
+        const { store, selectedHandler, config, resizer, event } = options;
         const { keyHeight, keyWidth, autoHeight, autoWidth, unitWidth, unitHeight } = config;
         const onlyHeight = ['tc', 'bc'].indexOf(selectedHandler!) >= 0;
         const onlyWidth = ['cl', 'cr'].indexOf(selectedHandler!) >= 0;
         const partial = !store;
-        const style: any = {};
+        const style: StyleProps = {};
 
         if (!onlyHeight) {
           const bodyw = Canvas.getBody()?.offsetWidth || 0;
@@ -199,27 +207,33 @@ export default {
           style[keyHeight!] = autoHeight ? 'auto' : `${rect.h}${unitHeight}`;
         }
 
-        if (em.getDragMode(component)) {
-          style.top = `${rect.t}${unitHeight}`;
-          style.left = `${rect.l}${unitWidth}`;
+        if (!skipPositionUpdate && em.getDragMode(component)) {
+          style.top = `${rect.t}px`;
+          style.left = `${rect.l}px`;
         }
 
-        const finalStyle = {
-          ...style,
-          __p: partial,
+        let styleUpdated = false;
+
+        const updateStyle = (customStyle?: StyleProps) => {
+          styleUpdated = true;
+          const finalStyle = { ...(customStyle || style), __p: partial };
+          modelToStyle.addStyle(finalStyle, { avoidStore: partial });
+          em.Styles.__emitCmpStyleUpdate(finalStyle as any, { components: component });
         };
-        modelToStyle.addStyle(finalStyle, { avoidStore: partial });
-        em.Styles.__emitCmpStyleUpdate(finalStyle, { components: em.getSelected() });
 
         const eventProps: ComponentResizeEventUpdateProps = {
           ...resizeEventOpts,
           rect,
           partial,
+          event,
+          style,
+          updateStyle,
           delta: resizer.delta!,
           pointer: resizer.currentPos!,
         };
         console.log('resize onUpdate', eventProps);
-        editor.trigger(ComponentsEvents.resizeEnd, eventProps);
+        editor.trigger(ComponentsEvents.resizeUpdate, eventProps);
+        !styleUpdated && updateStyle();
       },
       ...resizableOpts,
       ...options.options,

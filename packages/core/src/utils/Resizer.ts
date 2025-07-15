@@ -30,6 +30,7 @@ interface ResizerUpdateTargetOptions {
   selectedHandler?: string;
   resizer: Resizer;
   config: ResizerOptions;
+  event: PointerEvent;
 }
 
 interface ResizerOnUpdateContainerOptions {
@@ -551,7 +552,7 @@ export default class Resizer {
       alt: ev.altKey,
     };
     this.rectDim = this.calc(this);
-    this.updateRect(false);
+    this.updateRect(false, ev);
     this.onMove?.(ev, { docs, config, el, resizer: this });
   }
 
@@ -568,7 +569,7 @@ export default class Resizer {
     off(docs, 'pointerup', this.stop);
 
     if (this.moved || !config.updateOnMove) {
-      this.updateRect(true);
+      this.updateRect(true, ev);
     }
 
     this.toggleFrames();
@@ -580,7 +581,7 @@ export default class Resizer {
   /**
    * Update rect
    */
-  updateRect(store: boolean) {
+  updateRect(store: boolean, event: PointerEvent) {
     const el = this.el!;
     const resizer = this;
     const config = this.opts;
@@ -596,6 +597,7 @@ export default class Resizer {
         selectedHandler,
         resizer,
         config,
+        event,
       });
     } else {
       const elStyle = el.style as Record<string, any>;
