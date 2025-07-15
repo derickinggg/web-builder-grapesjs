@@ -235,6 +235,8 @@ export interface ResizerOptions {
    * @default false
    */
   updateOnMove?: boolean;
+
+  docs?: Document[];
 }
 
 type Handlers = Record<string, HTMLElement | null>;
@@ -429,7 +431,7 @@ export default class Resizer {
    * Returns documents
    */
   getDocumentEl() {
-    return [this.el!.ownerDocument, document];
+    return this.opts.docs || [this.el!.ownerDocument, document];
   }
 
   /**
@@ -482,6 +484,7 @@ export default class Resizer {
 
     e.preventDefault();
     e.stopPropagation();
+    this.selectedHandler?.setPointerCapture(e.pointerId);
     const parentEl = this.getParentEl();
     const resizer = this;
     const config = opts;
@@ -572,6 +575,7 @@ export default class Resizer {
       this.updateRect(true, ev);
     }
 
+    this.selectedHandler?.releasePointerCapture(ev.pointerId);
     this.toggleFrames();
     this.onEnd?.(ev, { docs, config, el, resizer: this });
     this.moved = false;
@@ -667,11 +671,9 @@ export default class Resizer {
     const el = e.target as HTMLElement;
 
     if (this.isHandler(el)) {
-      // el.setPointerCapture(e.pointerId);
       this.selectedHandler = el;
       this.start(e);
     } else if (el !== this.el) {
-      // el.releasePointerCapture(e.pointerId);
       delete this.selectedHandler;
       this.blur();
     }

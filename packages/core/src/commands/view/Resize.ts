@@ -1,4 +1,4 @@
-import { Position } from '../../common';
+import { LiteralUnion, Position } from '../../common';
 import Component from '../../dom_components/model/Component';
 import { ComponentsEvents } from '../../dom_components/types';
 import ComponentView from '../../dom_components/view/ComponentView';
@@ -65,7 +65,7 @@ export interface ComponentResizeEventUpdateProps extends ComponentResizeEventPro
 export interface ConvertPxToUnitProps {
   el: HTMLElement;
   valuePx: number;
-  unit?: string;
+  unit?: LiteralUnion<ConvertUnitsToPx, string>;
   /**
    * @default 3
    */
@@ -75,6 +75,25 @@ export interface ConvertPxToUnitProps {
    * @default 96
    */
   dpi?: number;
+}
+
+export enum ConvertUnitsToPx {
+  pt = 'pt',
+  pc = 'pc',
+  in = 'in',
+  cm = 'cm',
+  mm = 'mm',
+  vw = 'vw',
+  vh = 'vh',
+  vmin = 'vmin',
+  vmax = 'vmax',
+  svw = 'svw',
+  lvw = 'lvw',
+  dvw = 'dvw',
+  svh = 'svh',
+  lvh = 'lvh',
+  dvh = 'dvh',
+  perc = '%',
 }
 
 export default {
@@ -113,6 +132,7 @@ export default {
       prefix: editor.getConfig().stylePrefix,
       posFetcher: canvasView.getElementPos.bind(canvasView),
       mousePosFetcher: Canvas.getMouseRelativePos.bind(Canvas),
+      docs: [document],
       onStart(ev, opts) {
         onStart(ev, opts);
         const { el, config, resizer } = opts;
@@ -295,50 +315,50 @@ export default {
     let untiResult = unit;
 
     switch (unit) {
-      case 'pt':
+      case ConvertUnitsToPx.pt:
         valueResult = valuePx * (72 / dpi);
         break;
-      case 'pc':
+      case ConvertUnitsToPx.pc:
         valueResult = valuePx * (6 / dpi);
         break;
-      case 'in':
+      case ConvertUnitsToPx.in:
         valueResult = valuePx / dpi;
         break;
-      case 'cm':
+      case ConvertUnitsToPx.cm:
         valueResult = valuePx / (dpi / 2.54);
         break;
-      case 'mm':
+      case ConvertUnitsToPx.mm:
         valueResult = valuePx / (dpi / 25.4);
         break;
-      case 'vw':
+      case ConvertUnitsToPx.vw:
         valueResult = (valuePx / winWidth) * 100;
         break;
-      case 'vh':
+      case ConvertUnitsToPx.vh:
         valueResult = (valuePx / winHeight) * 100;
         break;
-      case 'vmin': {
+      case ConvertUnitsToPx.vmin: {
         const vmin = Math.min(winWidth, winHeight);
         valueResult = (valuePx / vmin) * 100;
         break;
       }
-      case 'vmax': {
+      case ConvertUnitsToPx.vmax: {
         const vmax = Math.max(winWidth, winHeight);
         valueResult = (valuePx / vmax) * 100;
         break;
       }
-      case '%': {
+      case ConvertUnitsToPx.perc: {
         const parentSize = el.parentElement?.offsetWidth || 1;
         valueResult = (valuePx / parentSize) * 100;
         break;
       }
-      case 'svw':
-      case 'lvw':
-      case 'dvw':
+      case ConvertUnitsToPx.svw:
+      case ConvertUnitsToPx.lvw:
+      case ConvertUnitsToPx.dvw:
         valueResult = (valuePx / winWidth) * 100;
         break;
-      case 'svh':
-      case 'lvh':
-      case 'dvh':
+      case ConvertUnitsToPx.svh:
+      case ConvertUnitsToPx.lvh:
+      case ConvertUnitsToPx.dvh:
         valueResult = (valuePx / winHeight) * 100;
         break;
       default:
