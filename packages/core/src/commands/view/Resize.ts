@@ -59,12 +59,17 @@ export interface ComponentResizeEventUpdateProps extends ComponentResizeEventPro
   pointer: Position;
   style: StyleProps;
   updateStyle: (styles?: StyleProps) => void;
+  convertPxToUnit: (props: ConvertPxToUnitProps) => string;
 }
 
 export interface ConvertPxToUnitProps {
   el: HTMLElement;
   valuePx: number;
-  unit: string;
+  unit?: string;
+  /**
+   * @default 3
+   */
+  roundDecimals?: number;
   /**
    * DPI (Dots Per Inch) value to use for conversion.
    * @default 96
@@ -195,8 +200,8 @@ export default {
         options.afterEnd?.();
       },
 
-      updateTarget(el, rect, options) {
-        updateTarget(el, rect, options);
+      updateTarget: (_el, rect, options) => {
+        updateTarget(_el, rect, options);
         if (!modelToStyle) {
           return;
         }
@@ -211,11 +216,23 @@ export default {
         if (!onlyHeight) {
           const bodyw = Canvas.getBody()?.offsetWidth || 0;
           const width = rect.w < bodyw ? rect.w : bodyw;
-          style[keyWidth!] = autoWidth ? 'auto' : `${width}${unitWidth}`;
+          style[keyWidth!] = autoWidth
+            ? 'auto'
+            : this.convertPxToUnit({
+                el,
+                valuePx: width,
+                unit: unitWidth,
+              });
         }
 
         if (!onlyWidth) {
-          style[keyHeight!] = autoHeight ? 'auto' : `${rect.h}${unitHeight}`;
+          style[keyHeight!] = autoHeight
+            ? 'auto'
+            : this.convertPxToUnit({
+                el,
+                valuePx: rect.h,
+                unit: unitHeight,
+              });
         }
 
         if (!skipPositionUpdate && em.getDragMode(component)) {
@@ -239,6 +256,7 @@ export default {
           event,
           style,
           updateStyle,
+          convertPxToUnit: (props: Omit<ConvertPxToUnitProps, 'el'>) => this.convertPxToUnit({ el, ...props }),
           delta: resizer.delta!,
           pointer: resizer.currentPos!,
         };
@@ -269,48 +287,70 @@ export default {
   },
 
   convertPxToUnit(props: ConvertPxToUnitProps): string {
-    const { el, valuePx, unit, dpi = 96 } = props;
+    const { el, valuePx, unit, dpi = 96, roundDecimals = 3 } = props;
     const win = el.ownerDocument.defaultView;
     const winWidth = win?.innerWidth || 1;
     const winHeight = window.innerHeight || 1;
+    let valueResult = valuePx;
+    let untiResult = unit;
 
     switch (unit) {
       case 'pt':
-        return `${valuePx * (72 / dpi)}${unit}`;
+        valueResult = valuePx * (72 / dpi);
+        break;
       case 'pc':
-        return `${valuePx * (6 / dpi)}${unit}`;
+        valueResult = valuePx * (6 / dpi);
+        break;
       case 'in':
-        return `${valuePx / dpi}${unit}`;
+        valueResult = valuePx / dpi;
+        break;
       case 'cm':
-        return `${valuePx / (dpi / 2.54)}${unit}`;
+        valueResult = valuePx / (dpi / 2.54);
+        break;
       case 'mm':
-        return `${valuePx / (dpi / 25.4)}${unit}`;
+        valueResult = valuePx / (dpi / 25.4);
+        break;
       case 'vw':
-        return `${(valuePx / winWidth) * 100}${unit}`;
+        valueResult = (valuePx / winWidth) * 100;
+        break;
       case 'vh':
-        return `${(valuePx / winHeight) * 100}${unit}`;
+        valueResult = (valuePx / winHeight) * 100;
+        break;
       case 'vmin': {
         const vmin = Math.min(winWidth, winHeight);
-        return `${(valuePx / vmin) * 100}${unit}`;
+        valueResult = (valuePx / vmin) * 100;
+        break;
       }
       case 'vmax': {
         const vmax = Math.max(winWidth, winHeight);
-        return `${(valuePx / vmax) * 100}${unit}`;
+        valueResult = (valuePx / vmax) * 100;
+        break;
       }
       case '%': {
         const parentSize = el.parentElement?.offsetWidth || 1;
-        return `${(valuePx / parentSize) * 100}${unit}`;
+        valueResult = (valuePx / parentSize) * 100;
+        break;
       }
       case 'svw':
       case 'lvw':
       case 'dvw':
-        return `${(valuePx / winWidth) * 100}${unit}`;
+        valueResult = (valuePx / winWidth) * 100;
+        break;
       case 'svh':
       case 'lvh':
       case 'dvh':
-        return `${(valuePx / winHeight) * 100}${unit}`;
+        valueResult = (valuePx / winHeight) * 100;
+        break;
       default:
-        return `${valuePx}px`;
+        untiResult = 'px';
     }
+
+    return `${+valueResult.toFixed(roundDecimals)}${untiResult}`;
   },
-} as CommandObject<ComponentResizeOptions, { canvasResizer?: Resizer }>;
+} as CommandObject<
+  ComponentResizeOptions,
+  {
+    canvasResizer?: Resizer;
+    convertPxToUnit: (props: ConvertPxToUnitProps) => string;
+  }
+>;
