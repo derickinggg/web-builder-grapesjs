@@ -119,6 +119,7 @@ export default class EditorModel extends Model {
   destroyed = false;
   _config: InitEditorConfig;
   _storageTimeout?: ReturnType<typeof setTimeout>;
+  _isStoring: boolean = false;
   attrsOrig: any;
   timedInterval?: ReturnType<typeof setTimeout>;
   updateItr?: ReturnType<typeof setTimeout>;
@@ -461,7 +462,15 @@ export default class EditorModel extends Model {
    * */
   handleUpdates(model: any, val: any, opt: any = {}) {
     // Component has been added temporarily - do not update storage or record changes
-    if (this.__skip || !this.loadTriggered || opt.temporary || opt.noCount || opt.avoidStore || opt.partial) {
+    if (
+      this.__skip ||
+      this._isStoring ||
+      !this.loadTriggered ||
+      opt.temporary ||
+      opt.noCount ||
+      opt.avoidStore ||
+      opt.partial
+    ) {
       return;
     }
 
@@ -869,9 +878,17 @@ export default class EditorModel extends Model {
    * @public
    */
   async store<T extends StorageOptions>(options?: T) {
+    if (this._isStoring) {
+      return;
+    }
+    this._isStoring = true;
+
     const data = this.storeData();
     await this.Storage.store(data, options);
     this.clearDirtyCount();
+    setTimeout(() => {
+      this._isStoring = false;
+    }, 50);
     return data;
   }
 
