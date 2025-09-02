@@ -412,7 +412,7 @@ export default class EditorModel extends Model {
       window.onbeforeunload = changes ? () => true : null;
     }
 
-    if (stm.isAutosave() && changes >= stm.getStepsBeforeSave()) {
+    if (stm.isAutosave() && changes >= stm.getStepsBeforeSave() && !this._isStoring) {
       this.store().catch((err) => this.logError(err));
     }
   }
@@ -462,15 +462,7 @@ export default class EditorModel extends Model {
    * */
   handleUpdates(model: any, val: any, opt: any = {}) {
     // Component has been added temporarily - do not update storage or record changes
-    if (
-      this.__skip ||
-      this._isStoring ||
-      !this.loadTriggered ||
-      opt.temporary ||
-      opt.noCount ||
-      opt.avoidStore ||
-      opt.partial
-    ) {
+    if (this.__skip || !this.loadTriggered || opt.temporary || opt.noCount || opt.avoidStore || opt.partial) {
       return;
     }
 
@@ -878,17 +870,17 @@ export default class EditorModel extends Model {
    * @public
    */
   async store<T extends StorageOptions>(options?: T) {
-    if (this._isStoring) {
-      return;
-    }
+    if (this._isStoring) return;
     this._isStoring = true;
-
+    // We use a 1ms timeout to defer the cleanup to the next tick of the event loop.
+    // This prevents a race condition where a store operation, like 'sync:content',
+    // might increase the dirty count before it can be properly cleared.
+    setTimeout(() => {
+      this.clearDirtyCount();
+      this._isStoring = false;
+    }, 1);
     const data = this.storeData();
     await this.Storage.store(data, options);
-    this.clearDirtyCount();
-    setTimeout(() => {
-      this._isStoring = false;
-    }, 50);
     return data;
   }
 
