@@ -364,13 +364,13 @@ export default class Component extends StyleableModel<ComponentProperties> {
     this.components().forEach((cmp) => cmp.syncComponentsCollectionState());
   }
 
-  stopSyncComponentCollectionState() {
+  protected stopSyncComponentCollectionState() {
     this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
     this.collectionsStateMap = {};
     this.components().forEach((cmp) => cmp.stopSyncComponentCollectionState());
   }
 
-  syncOnComponentChange(model: Component, collection: Components, opts: any) {
+  protected syncOnComponentChange(model: Component, collection: Components, opts: any) {
     if (!this.collectionsStateMap || !Object.keys(this.collectionsStateMap).length) return;
     const options = opts || collection || {};
 

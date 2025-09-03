@@ -26,9 +26,11 @@ export interface DataCollectionState {
   [DataCollectionStateType.remainingItems]: number;
 }
 
-export interface DataCollectionStateMap {
+export type DataCollectionStateMap = {
   [key: string]: DataCollectionState;
-}
+} & {
+  __pages?: { [DataCollectionStateType.currentItem]: DataCollectionState };
+};
 
 export interface ComponentDataCollectionProps extends ComponentDefinition {
   type: typeof DataCollectionType;
