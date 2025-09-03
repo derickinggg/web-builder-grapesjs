@@ -3,11 +3,9 @@ import { ObjectAny } from '../../../common';
 import Component, { keySymbol } from '../../../dom_components/model/Component';
 import { ComponentAddType, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
 import EditorModel from '../../../editor/model/Editor';
-import { isObject, toLowerCase } from '../../../utils/mixins';
+import { toLowerCase } from '../../../utils/mixins';
 import DataResolverListener from '../DataResolverListener';
-import DataSource from '../DataSource';
-import DataVariable, { DataVariableProps, DataVariableType } from '../DataVariable';
-import { isDataVariable } from '../../utils';
+import { DataVariableProps } from '../DataVariable';
 import { DataCollectionItemType, DataCollectionType, keyCollectionDefinition } from './constants';
 import {
   ComponentDataCollectionProps,
@@ -17,13 +15,11 @@ import {
 } from './types';
 import { detachSymbolInstance, getSymbolInstances } from '../../../dom_components/model/SymbolUtils';
 import { keyDataValues, updateFromWatcher } from '../../../dom_components/model/ModelDataResolverWatchers';
-import { ModelDestroyOptions } from 'backbone';
-import Components from '../../../dom_components/model/Components';
+import ComponentWithCollectionsState, { DataVariableMap } from '../ComponentWithCollectionsState';
 
 const AvoidStoreOptions = { avoidStore: true, partial: true };
-type DataVariableMap = Record<string, DataVariableProps>;
 
-export default class ComponentDataCollection extends Component {
+export default class ComponentDataCollection extends ComponentWithCollectionsState {
   dataSourceWatcher?: DataResolverListener;
 
   get defaults(): ComponentDefinitionDefined {
@@ -123,6 +119,51 @@ export default class ComponentDataCollection extends Component {
     this.firstChild.components(content);
   }
 
+  onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {
+    super.onCollectionsStateMapUpdate(collectionsStateMap);
+
+    const items = this.getDataSourceItems();
+    const { startIndex } = this.resolveCollectionConfig(items);
+    const cmps = this.components();
+    cmps.forEach((cmp, index) => {
+      const key = this.getItemKey(items, startIndex + index);
+      const collectionsStateMap = this.getCollectionsStateMapForItem(items, key);
+      cmp.onCollectionsStateMapUpdate(collectionsStateMap);
+    });
+  }
+
+  protected stopSyncComponentCollectionState() {
+    this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
+    this.onCollectionsStateMapUpdate({});
+  }
+
+  protected setCollectionStateMapAndPropagate(cmp: Component, collectionsStateMap: DataCollectionStateMap) {
+    cmp.setSymbolOverride(['locked', 'layerable', keyDataValues]);
+    cmp.syncComponentsCollectionState();
+    cmp.onCollectionsStateMapUpdate(collectionsStateMap);
+  }
+
+  protected onDataSourceChange() {
+    this.rebuildChildrenFromCollection();
+  }
+
+  protected listenToPropsChange() {
+    this.on(`change:${keyCollectionDefinition}`, () => {
+      this.rebuildChildrenFromCollection();
+      this.listenToDataSource();
+    });
+
+    this.listenToDataSource();
+  }
+
+  protected get dataSourceProps(): DataVariableProps | undefined {
+    return this.dataResolver.dataSource;
+  }
+
+  protected get dataResolver(): DataCollectionProps {
+    return this.get(keyCollectionDefinition) || {};
+  }
+
   private get firstChild() {
     return this.components().at(0);
   }
@@ -131,39 +172,6 @@ export default class ComponentDataCollection extends Component {
     this.set(keyCollectionDefinition, {
       ...this.dataResolver,
       ...updates,
-    });
-  }
-
-  private getDataSourceItems() {
-    const items = getDataSourceItems(this.dataResolver.dataSource, this.em);
-    if (isArray(items)) {
-      return items;
-    }
-
-    const clone = { ...items };
-    delete clone['__p'];
-    return clone;
-  }
-
-  private get dataResolver() {
-    return (this.get(keyCollectionDefinition) || {}) as DataCollectionProps;
-  }
-
-  private get collectionDataSource() {
-    return this.dataResolver.dataSource;
-  }
-
-  private listenToDataSource() {
-    const { em } = this;
-    const path = this.collectionDataSource?.path;
-    if (!path) return;
-    this.dataSourceWatcher = new DataResolverListener({
-      em,
-      resolver: new DataVariable(
-        { type: DataVariableType, path },
-        { em, collectionsStateMap: this.collectionsStateMap },
-      ),
-      onUpdate: this.rebuildChildrenFromCollection,
     });
   }
 
@@ -200,13 +208,13 @@ export default class ComponentDataCollection extends Component {
 
     for (let index = startIndex; index <= endIndex; index++) {
       const isFirstItem = index === startIndex;
-      const key = isArray(items) ? index : Object.keys(items)[index];
+      const key = this.getItemKey(items, index);
       const collectionsStateMap = this.getCollectionsStateMapForItem(items, key);
 
       if (isFirstItem) {
         getSymbolInstances(firstChild)?.forEach((cmp) => detachSymbolInstance(cmp));
 
-        setCollectionStateMapAndPropagate(firstChild, collectionsStateMap);
+        this.setCollectionStateMapAndPropagate(firstChild, collectionsStateMap);
         // TODO: Move to component view
         firstChild.addStyle({ display: resolvedDisplay }, AvoidStoreOptions);
 
@@ -215,7 +223,7 @@ export default class ComponentDataCollection extends Component {
 
       const instance = firstChild!.clone({ symbol: true, symbolInv: true });
       instance.set({ locked: true, layerable: false }, AvoidStoreOptions);
-      setCollectionStateMapAndPropagate(instance, collectionsStateMap);
+      this.setCollectionStateMapAndPropagate(instance, collectionsStateMap);
       components.push(instance);
     }
 
@@ -287,46 +295,6 @@ export default class ComponentDataCollection extends Component {
     );
   }
 
-  private listenToPropsChange() {
-    this.on(`change:${keyCollectionDefinition}`, () => {
-      this.rebuildChildrenFromCollection();
-      this.listenToDataSource();
-    });
-    this.listenToDataSource();
-  }
-
-  private removePropsListeners() {
-    this.off(`change:${keyCollectionDefinition}`);
-    this.dataSourceWatcher?.destroy();
-  }
-
-  onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {
-    super.onCollectionsStateMapUpdate(collectionsStateMap);
-
-    const items = this.getDataSourceItems();
-    const { startIndex } = this.resolveCollectionConfig(items);
-    const cmps = this.components();
-    cmps.forEach((cmp, index) => {
-      const collectionsStateMap = this.getCollectionsStateMapForItem(items, startIndex + index);
-      cmp.onCollectionsStateMapUpdate(collectionsStateMap);
-    });
-  }
-
-  stopSyncComponentCollectionState() {
-    this.stopListening(this.components(), 'add remove reset', this.syncOnComponentChange);
-    this.onCollectionsStateMapUpdate({});
-  }
-
-  syncOnComponentChange(model: Component, collection: Components, opts: any) {
-    const collectionsStateMap = this.collectionsStateMap;
-    // Avoid assigning wrong collectionsStateMap value to children components
-    this.collectionsStateMap = {};
-
-    super.syncOnComponentChange(model, collection, opts);
-    this.collectionsStateMap = collectionsStateMap;
-    this.onCollectionsStateMapUpdate(collectionsStateMap);
-  }
-
   private get collectionId() {
     return this.getDataResolver().collectionId as string;
   }
@@ -344,21 +312,10 @@ export default class ComponentDataCollection extends Component {
     const firstChild = this.firstChild as any;
     return { ...json, components: [firstChild] };
   }
-
-  destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR {
-    this.removePropsListeners();
-    return super.destroy(options);
-  }
 }
 
 function getLength(items: DataVariableProps[] | object) {
   return isArray(items) ? items.length : Object.keys(items).length;
-}
-
-function setCollectionStateMapAndPropagate(cmp: Component, collectionsStateMap: DataCollectionStateMap) {
-  cmp.setSymbolOverride(['locked', 'layerable', keyDataValues]);
-  cmp.syncComponentsCollectionState();
-  cmp.onCollectionsStateMapUpdate(collectionsStateMap);
 }
 
 function logErrorIfMissing(property: any, propertyPath: string, em: EditorModel) {
@@ -388,38 +345,4 @@ function validateCollectionDef(dataResolver: DataCollectionProps, em: EditorMode
   }
 
   return true;
-}
-
-function getDataSourceItems(
-  dataSource: DataCollectionDataSource,
-  em: EditorModel,
-): DataVariableProps[] | DataVariableMap {
-  switch (true) {
-    case isObject(dataSource) && dataSource instanceof DataSource: {
-      const id = dataSource.get('id')!;
-      return listDataSourceVariables(id, em);
-    }
-    case isDataVariable(dataSource): {
-      const path = dataSource.path;
-      if (!path) return [];
-      const isDataSourceId = path.split('.').length === 1;
-      if (isDataSourceId) {
-        return listDataSourceVariables(path, em);
-      } else {
-        return em.DataSources.getValue(path, []);
-      }
-    }
-    default:
-      return [];
-  }
-}
-
-function listDataSourceVariables(dataSource_id: string, em: EditorModel): DataVariableProps[] {
-  const records = em.DataSources.getValue(dataSource_id, []);
-  const keys = Object.keys(records);
-
-  return keys.map((key) => ({
-    type: DataVariableType,
-    path: dataSource_id + '.' + key,
-  }));
 }
