@@ -412,7 +412,7 @@ export default class EditorModel extends Model {
       window.onbeforeunload = changes ? () => true : null;
     }
 
-    if (stm.isAutosave() && changes >= stm.getStepsBeforeSave() && !this._isStoring) {
+    if (stm.isAutosave() && changes >= stm.getStepsBeforeSave()) {
       this.store().catch((err) => this.logError(err));
     }
   }
@@ -877,10 +877,12 @@ export default class EditorModel extends Model {
     // might increase the dirty count before it can be properly cleared.
     setTimeout(() => {
       this.clearDirtyCount();
-      this._isStoring = false;
     }, 1);
     const data = this.storeData();
     await this.Storage.store(data, options);
+    setTimeout(() => {
+      this._isStoring = false;
+    }, 1);
     return data;
   }
 
