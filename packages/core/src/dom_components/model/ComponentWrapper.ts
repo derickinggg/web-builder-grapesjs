@@ -1,10 +1,17 @@
-import { isUndefined } from 'underscore';
+import { isArray, isUndefined } from 'underscore';
 import { attrToString } from '../../utils/dom';
 import Component from './Component';
 import ComponentHead, { type as typeHead } from './ComponentHead';
 import { ToHTMLOptions } from './types';
+import Components from './Components';
+import DataResolverListener from '../../data_sources/model/DataResolverListener';
+import { DataVariableProps } from '../../data_sources/model/DataVariable';
+import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
+import ComponentWithCollectionsState, { DataVariableMap } from '../../data_sources/model/ComponentWithCollectionsState';
 
-export default class ComponentWrapper extends Component {
+export default class ComponentWrapper extends ComponentWithCollectionsState {
+  dataSourceWatcher?: DataResolverListener;
+
   get defaults() {
     return {
       // @ts-ignore
@@ -28,6 +35,21 @@ export default class ComponentWrapper extends Component {
         'background-size',
       ],
     };
+  }
+
+  constructor(props: any, opt: any) {
+    super(props, opt);
+
+    const hasDataResolver = this.getDataResolver();
+    console.log('🚀 ~ ComponentWrapper ~ constructor ~ hasDataResolver:', hasDataResolver);
+    if (hasDataResolver) {
+      this.syncComponentsCollectionState();
+      console.log(
+        '🚀 ~ ComponentWrapper ~ constructor ~ this.getCollectionsStateMap():',
+        this.getCollectionsStateMap(),
+      );
+      this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+    }
   }
 
   preInit() {
@@ -76,6 +98,82 @@ export default class ComponentWrapper extends Component {
     const docElAttr = (asDoc && attrToString(docEl?.getAttrToHTML())) || '';
     const docElAttrStr = docElAttr ? ` ${docElAttr}` : '';
     return asDoc ? `${doctype}<html${docElAttrStr}>${headStr}${body}</html>` : body;
+  }
+
+  setDataResolver(dataResolver: DataVariableProps) {
+    return this.set('dataResolver', dataResolver);
+  }
+
+  getDataResolver() {
+    return this.get('dataResolver');
+  }
+
+  onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {
+    const { page, head } = this;
+    super.onCollectionsStateMapUpdate(collectionsStateMap);
+    head.onCollectionsStateMapUpdate(collectionsStateMap);
+    if (page) page.collectionsStateMap = collectionsStateMap;
+  }
+
+  syncComponentsCollectionState() {
+    super.syncComponentsCollectionState();
+    this.head.syncComponentsCollectionState();
+  }
+
+  syncOnComponentChange(model: Component, collection: Components, opts: any) {
+    const collectionsStateMap: any = this.getCollectionsStateMap();
+
+    this.collectionsStateMap = collectionsStateMap;
+    super.syncOnComponentChange(model, collection, opts);
+    this.onCollectionsStateMapUpdate(collectionsStateMap);
+  }
+
+  protected listenToPropsChange() {
+    this.on(`change:dataResolver`, () => {
+      this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+      this.listenToDataSource();
+    });
+
+    this.listenToDataSource();
+  }
+
+  private getCollectionsStateMapForItem(items: DataVariableProps[] | DataVariableMap, key: number | string) {
+    const totalItems = Object.keys(items).length;
+    let item: DataVariableProps = (items as any)[key];
+    const numericKey = typeof key === 'string' ? Object.keys(items).indexOf(key) : key;
+    const offset = numericKey - 0;
+    const remainingItems = totalItems - (1 + offset);
+    const collectionState = {
+      collectionId: '__pages',
+      currentIndex: numericKey,
+      currentItem: item,
+      currentKey: key,
+      startIndex: 0,
+      endIndex: totalItems - 1,
+      totalItems: totalItems,
+      remainingItems,
+    };
+
+    return collectionState;
+  }
+
+  private getCollectionsStateMap(): DataCollectionStateMap {
+    const path = this.dataSourcePath;
+    if (!path) return this.collectionsStateMap;
+    const items = this.getDataSourceItems();
+    const pages = [];
+    const length = Object.keys(items).length;
+    for (let index = 0; index <= length; index++) {
+      const key = this.getItemKey(items, index);
+      const collectionsStateMap = this.getCollectionsStateMapForItem(items, key);
+      pages.push(collectionsStateMap);
+    }
+
+    const collectionsStateMap = {
+      __pages: { currentItem: pages },
+    };
+
+    return collectionsStateMap as any;
   }
 
   __postAdd() {
