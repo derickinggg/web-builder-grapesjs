@@ -43,46 +43,57 @@ describe('ComponentWrapper', () => {
   describe('ComponentWrapper with DataResolver', () => {
     let em: EditorModel;
     let dsm: DataSourceManager;
-    let dataSource: DataSource;
+    let pagesDataSource: DataSource;
+    let flatPagesDataSource: DataSource;
     let wrapper: ComponentWrapper;
-    let firstRecord: DataRecord;
 
-    const records = [
-      {
-        id: 'pages',
-        data: [
-          { id: 'page1', page: 'page1', title: 'Title1', content: 'content 1' },
-          { id: 'page2', page: 'page2', title: 'Title2', content: 'content 2' },
-          { id: 'page3', page: 'page3', title: 'Title3', content: 'content 3' },
-        ],
-      },
+    const pagesData = [
+      { id: 'page1', page: 'page1', title: 'Title1', content: 'content 1' },
+      { id: 'page2', page: 'page2', title: 'Title2', content: 'content 2' },
+      { id: 'page3', page: 'page3', title: 'Title3', content: 'content 3' },
     ];
 
     beforeEach(() => {
       ({ em, dsm } = setupTestEditor());
       wrapper = em.getWrapper() as ComponentWrapper;
 
-      dataSource = dsm.add({
-        id: 'my_data_source_id',
-        records,
+      pagesDataSource = dsm.add({
+        id: 'pagesDataSource',
+        records: [{ id: 'pages', data: pagesData }],
       });
 
-      firstRecord = dataSource.getRecord('page1')!;
+      flatPagesDataSource = dsm.add({
+        id: 'flatPagesDataSource',
+        records: pagesData,
+      });
     });
 
     afterEach(() => {
       em.destroy();
     });
 
-    function createDataResolver(path: string): DataVariableProps {
-      return {
-        type: DataVariableType,
-        path,
-      };
-    }
+    const createDataResolver = (path: string): DataVariableProps => ({
+      type: DataVariableType,
+      path,
+    });
+
+    const setResolver = (path: string) => {
+      wrapper.setDataResolver(createDataResolver(path));
+      wrapper.resolverCurrentItem = 0;
+    };
+
+    const appendChildWithTitle = () =>
+      wrapper.append({
+        type: 'default',
+        title: {
+          type: 'data-variable',
+          collectionId: keyRootData,
+          path: 'title',
+        },
+      })[0];
 
     test('sets dataResolver and updates wrapper.page/head collectionsStateMap', () => {
-      wrapper.setDataResolver(createDataResolver('my_data_source_id.pages.data'));
+      setResolver('pagesDataSource.pages.data');
       const stateMap = wrapper.collectionsStateMap;
 
       expect(stateMap).toHaveProperty(keyRootData);
@@ -91,20 +102,25 @@ describe('ComponentWrapper', () => {
     });
 
     test('children reflect resolved value from dataResolver', () => {
-      wrapper.setDataResolver(createDataResolver('my_data_source_id.pages.data'));
-      const child = wrapper.append({
-        type: 'default',
-      })[0];
+      setResolver('pagesDataSource.pages.data');
+      const child = appendChildWithTitle();
+
       expect(child.collectionsStateMap).toEqual(wrapper.collectionsStateMap);
+      expect(child.collectionsStateMap).toEqual({
+        [keyRootData]: pagesData[0],
+      });
+      expect(child.get('title')).toBe(pagesData[0].title);
     });
 
-    test('updating record propagates to children', () => {
-      wrapper.setDataResolver(createDataResolver('my_data_source_id.pages.data'));
-      const child = wrapper.append({
-        type: 'default',
-      })[0];
+    test('updating record propagates to children2', () => {
+      setResolver('flatPagesDataSource');
+      const child = appendChildWithTitle();
 
       expect(child.collectionsStateMap).toEqual(wrapper.collectionsStateMap);
+      expect(child.collectionsStateMap).toEqual({
+        [keyRootData]: pagesData[0],
+      });
+      expect(child.get('title')).toBe(pagesData[0].title);
     });
   });
 });
