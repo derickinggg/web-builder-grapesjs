@@ -9,6 +9,9 @@ import { DataVariableProps } from '../../data_sources/model/DataVariable';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import ComponentWithCollectionsState, { DataVariableMap } from '../../data_sources/model/ComponentWithCollectionsState';
 
+export const keyRootData = '__rootData';
+
+
 export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
 
@@ -132,7 +135,7 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     const offset = numericKey - 0;
     const remainingItems = totalItems - (1 + offset);
     const collectionState = {
-      collectionId: '__pages',
+      collectionId: keyRootData,
       currentIndex: numericKey,
       currentItem: item,
       currentKey: key,

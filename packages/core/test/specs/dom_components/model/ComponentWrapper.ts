@@ -2,7 +2,7 @@ import { DataSourceManager, DataSource, DataRecord } from '../../../../src';
 import { DataVariableProps, DataVariableType } from '../../../../src/data_sources/model/DataVariable';
 import Component from '../../../../src/dom_components/model/Component';
 import ComponentHead from '../../../../src/dom_components/model/ComponentHead';
-import ComponentWrapper from '../../../../src/dom_components/model/ComponentWrapper';
+import ComponentWrapper, { keyRootData } from '../../../../src/dom_components/model/ComponentWrapper';
 import Editor from '../../../../src/editor';
 import EditorModel from '../../../../src/editor/model/Editor';
 import { setupTestEditor } from '../../../common';
@@ -84,7 +84,7 @@ describe('ComponentWrapper', () => {
       wrapper.setDataResolver(createDataResolver('my_data_source_id.pages.data'));
       const stateMap = wrapper.collectionsStateMap;
 
-      expect(stateMap).toHaveProperty('__pages');
+      expect(stateMap).toHaveProperty(keyRootData);
       expect(wrapper.page?.collectionsStateMap).toEqual(stateMap);
       expect(wrapper.head.collectionsStateMap).toEqual(stateMap);
     });
