@@ -16,7 +16,7 @@ type ResolverCurrentItemType = string | number | undefined;
 
 export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
-  _resolverCurrentItem: ResolverCurrentItemType;
+  private _resolverCurrentItem: ResolverCurrentItemType;
 
   get defaults() {
     return {
