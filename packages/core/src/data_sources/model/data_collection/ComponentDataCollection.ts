@@ -19,7 +19,7 @@ import ComponentWithCollectionsState, { DataVariableMap } from '../ComponentWith
 
 const AvoidStoreOptions = { avoidStore: true, partial: true };
 
-export default class ComponentDataCollection extends ComponentWithCollectionsState {
+export default class ComponentDataCollection extends ComponentWithCollectionsState<DataCollectionProps> {
   dataSourceWatcher?: DataResolverListener;
 
   get defaults(): ComponentDefinitionDefined {
@@ -49,10 +49,6 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
     this.rebuildChildrenFromCollection();
 
     return cmp;
-  }
-
-  getDataResolver() {
-    return this.get('dataResolver');
   }
 
   getItemsCount() {
@@ -85,10 +81,6 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
 
   getCollectionItemComponents() {
     return this.firstChild.components();
-  }
-
-  setDataResolver(props: DataCollectionProps) {
-    return this.set('dataResolver', props);
   }
 
   setCollectionId(collectionId: string) {
@@ -296,7 +288,7 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
   }
 
   private get collectionId() {
-    return this.getDataResolver().collectionId as string;
+    return this.getDataResolver()?.collectionId ?? '';
   }
 
   static isComponent(el: HTMLElement) {

@@ -9,7 +9,7 @@ import { DataVariableProps } from '../../data_sources/model/DataVariable';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
 import ComponentWithCollectionsState, { DataVariableMap } from '../../data_sources/model/ComponentWithCollectionsState';
 
-export default class ComponentWrapper extends ComponentWithCollectionsState {
+export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
 
   get defaults() {
@@ -41,13 +41,9 @@ export default class ComponentWrapper extends ComponentWithCollectionsState {
     super(props, opt);
 
     const hasDataResolver = this.getDataResolver();
-    console.log('🚀 ~ ComponentWrapper ~ constructor ~ hasDataResolver:', hasDataResolver);
+
     if (hasDataResolver) {
       this.syncComponentsCollectionState();
-      console.log(
-        '🚀 ~ ComponentWrapper ~ constructor ~ this.getCollectionsStateMap():',
-        this.getCollectionsStateMap(),
-      );
       this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
     }
   }
@@ -98,14 +94,6 @@ export default class ComponentWrapper extends ComponentWithCollectionsState {
     const docElAttr = (asDoc && attrToString(docEl?.getAttrToHTML())) || '';
     const docElAttrStr = docElAttr ? ` ${docElAttr}` : '';
     return asDoc ? `${doctype}<html${docElAttrStr}>${headStr}${body}</html>` : body;
-  }
-
-  setDataResolver(dataResolver: DataVariableProps) {
-    return this.set('dataResolver', dataResolver);
-  }
-
-  getDataResolver() {
-    return this.get('dataResolver');
   }
 
   onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {

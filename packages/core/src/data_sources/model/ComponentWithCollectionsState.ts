@@ -11,7 +11,7 @@ import { isArray } from 'underscore';
 
 export type DataVariableMap = Record<string, DataVariableProps>;
 
-export default class ComponentWithCollectionsState extends Component {
+export default class ComponentWithCollectionsState<DataResolverType> extends Component {
   collectionsStateMap: DataCollectionStateMap = {};
   dataSourceWatcher?: DataResolverListener;
 
@@ -40,6 +40,14 @@ export default class ComponentWithCollectionsState extends Component {
   syncComponentsCollectionState() {
     super.syncComponentsCollectionState();
     this.components().forEach((cmp) => cmp.syncComponentsCollectionState?.());
+  }
+
+  setDataResolver(dataResolver: DataResolverType | undefined) {
+    return this.set('dataResolver', dataResolver);
+  }
+
+  getDataResolver(): DataResolverType | undefined {
+    return this.get('dataResolver');
   }
 
   protected listenToDataSource() {
