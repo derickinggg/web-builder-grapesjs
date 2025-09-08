@@ -1,19 +1,22 @@
-import { isArray, isUndefined } from 'underscore';
+import { isUndefined } from 'underscore';
 import { attrToString } from '../../utils/dom';
 import Component from './Component';
 import ComponentHead, { type as typeHead } from './ComponentHead';
-import { ToHTMLOptions } from './types';
+import { ComponentOptions, ComponentProperties, ToHTMLOptions } from './types';
 import Components from './Components';
 import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import { DataVariableProps } from '../../data_sources/model/DataVariable';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
-import ComponentWithCollectionsState, { DataVariableMap } from '../../data_sources/model/ComponentWithCollectionsState';
+import ComponentWithCollectionsState, {
+  DataSourceRecords,
+} from '../../data_sources/model/ComponentWithCollectionsState';
+import { keyRootData } from '../constants';
 
-export const keyRootData = '__rootData';
-
+type ResolverCurrentItemType = string | number | undefined;
 
 export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
+  _resolverCurrentItem: ResolverCurrentItemType;
 
   get defaults() {
     return {
@@ -40,13 +43,13 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     };
   }
 
-  constructor(props: any, opt: any) {
+  constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
     super(props, opt);
 
     const hasDataResolver = this.getDataResolver();
+    this.syncComponentsCollectionState();
 
     if (hasDataResolver) {
-      this.syncComponentsCollectionState();
       this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
     }
   }
@@ -119,6 +122,15 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     this.onCollectionsStateMapUpdate(collectionsStateMap);
   }
 
+  get resolverCurrentItem() {
+    return this._resolverCurrentItem;
+  }
+
+  set resolverCurrentItem(value: ResolverCurrentItemType) {
+    this._resolverCurrentItem = value;
+    this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+  }
+
   protected listenToPropsChange() {
     this.on(`change:dataResolver`, () => {
       this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
@@ -128,43 +140,23 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     this.listenToDataSource();
   }
 
-  private getCollectionsStateMapForItem(items: DataVariableProps[] | DataVariableMap, key: number | string) {
-    const totalItems = Object.keys(items).length;
-    let item: DataVariableProps = (items as any)[key];
-    const numericKey = typeof key === 'string' ? Object.keys(items).indexOf(key) : key;
-    const offset = numericKey - 0;
-    const remainingItems = totalItems - (1 + offset);
-    const collectionState = {
-      collectionId: keyRootData,
-      currentIndex: numericKey,
-      currentItem: item,
-      currentKey: key,
-      startIndex: 0,
-      endIndex: totalItems - 1,
-      totalItems: totalItems,
-      remainingItems,
-    };
-
-    return collectionState;
-  }
-
   private getCollectionsStateMap(): DataCollectionStateMap {
-    const path = this.dataSourcePath;
-    if (!path) return this.collectionsStateMap;
+    const { dataSourcePath, resolverCurrentItem } = this;
+
+    if (!dataSourcePath) return {};
+
     const items = this.getDataSourceItems();
-    const pages = [];
-    const length = Object.keys(items).length;
-    for (let index = 0; index <= length; index++) {
-      const key = this.getItemKey(items, index);
-      const collectionsStateMap = this.getCollectionsStateMapForItem(items, key);
-      pages.push(collectionsStateMap);
+
+    if (!isUndefined(resolverCurrentItem)) {
+      const selected = items[resolverCurrentItem as keyof DataSourceRecords];
+      return {
+        [keyRootData]: selected,
+      } as DataCollectionStateMap;
     }
 
-    const collectionsStateMap = {
-      __pages: { currentItem: pages },
-    };
-
-    return collectionsStateMap as any;
+    return {
+      [keyRootData]: items,
+    } as DataCollectionStateMap;
   }
 
   __postAdd() {

@@ -11,6 +11,8 @@ import { isArray } from 'underscore';
 
 export type DataVariableMap = Record<string, DataVariableProps>;
 
+export type DataSourceRecords = DataVariableProps[] | DataVariableMap;
+
 export default class ComponentWithCollectionsState<DataResolverType> extends Component {
   collectionsStateMap: DataCollectionStateMap = {};
   dataSourceWatcher?: DataResolverListener;
@@ -98,7 +100,7 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     return clone;
   }
 
-  protected listDataSourceItems(dataSource: DataSource | DataVariableProps): DataVariableProps[] | DataVariableMap {
+  protected listDataSourceItems(dataSource: DataSource | DataVariableProps): DataSourceRecords {
     const em = this.em;
     switch (true) {
       case isObject(dataSource) && dataSource instanceof DataSource: {
