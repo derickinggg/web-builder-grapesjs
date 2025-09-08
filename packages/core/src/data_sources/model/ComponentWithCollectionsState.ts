@@ -105,14 +105,14 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     switch (true) {
       case isObject(dataSource) && dataSource instanceof DataSource: {
         const id = dataSource.get('id')!;
-        return this.listDataSourceVariables(id);
+        return this.getDataSourceRecordsItems(id);
       }
       case isDataVariable(dataSource): {
         const path = dataSource.path;
         if (!path) return [];
         const isDataSourceId = path.split('.').length === 1;
         if (isDataSourceId) {
-          return this.listDataSourceVariables(path);
+          return this.getDataSourceRecordsItems(path);
         } else {
           return em.DataSources.getValue(path, []);
         }
@@ -132,14 +132,10 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     this.dataSourceWatcher = undefined;
   }
 
-  private listDataSourceVariables(path: string): DataVariableProps[] {
+  private getDataSourceRecordsItems(path: string): any[] {
     const records = this.em.DataSources.getValue(path, []);
-    const keys = Object.keys(records);
 
-    return keys.map((key) => ({
-      type: DataVariableType,
-      path: path + '.' + key,
-    }));
+    return Object.entries(records).map(([_, value]) => value);
   }
 
   destroy(options?: ObjectAny): false | JQueryXHR {
