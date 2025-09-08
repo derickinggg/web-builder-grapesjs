@@ -39,8 +39,6 @@ export interface PagePropertiesDefined extends Pick<PageProperties, 'id' | 'name
 }
 
 export default class Page extends Model<PagePropertiesDefined> {
-  collectionsStateMap: DataCollectionStateMap = {};
-
   defaults() {
     return {
       name: '',

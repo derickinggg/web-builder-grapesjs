@@ -97,7 +97,6 @@ describe('ComponentWrapper', () => {
       const stateMap = wrapper.collectionsStateMap;
 
       expect(stateMap).toHaveProperty(keyRootData);
-      expect(wrapper.page?.collectionsStateMap).toEqual(stateMap);
       expect(wrapper.head.collectionsStateMap).toEqual(stateMap);
     });
 

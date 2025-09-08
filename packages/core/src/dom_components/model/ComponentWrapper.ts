@@ -103,10 +103,9 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
   }
 
   onCollectionsStateMapUpdate(collectionsStateMap: DataCollectionStateMap) {
-    const { page, head } = this;
+    const { head } = this;
     super.onCollectionsStateMapUpdate(collectionsStateMap);
     head.onCollectionsStateMapUpdate(collectionsStateMap);
-    if (page) page.collectionsStateMap = collectionsStateMap;
   }
 
   syncComponentsCollectionState() {
