@@ -11,6 +11,7 @@ import ComponentWithCollectionsState, {
   DataSourceRecords,
 } from '../../data_sources/model/ComponentWithCollectionsState';
 import { keyRootData } from '../constants';
+import { isDataResolverProps } from '../../data_sources/utils';
 
 type ResolverCurrentItemType = string | number | undefined;
 
@@ -144,13 +145,14 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
 
     if (!dataSourcePath) return {};
 
-    const items = this.getDataSourceItems();
+    let items: any = this.getDataSourceItems();
 
     if (!isUndefined(resolverCurrentItem)) {
-      const selected = items[resolverCurrentItem as keyof DataSourceRecords];
-      return {
-        [keyRootData]: selected,
-      } as DataCollectionStateMap;
+      if (isDataResolverProps(items)) {
+        (items as any).path = (items as any).path + '.' + resolverCurrentItem;
+      } else {
+        items = items[resolverCurrentItem];
+      }
     }
 
     return {

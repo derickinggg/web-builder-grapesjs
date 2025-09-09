@@ -5,8 +5,7 @@ import { isDataVariable } from '../utils';
 import {
   DataCollectionStateMap,
   DataCollectionState,
-  DataCollectionStateType,
-  RootDataType,
+  DataCollectionStateType
 } from './data_collection/types';
 
 export const DataVariableType = 'data-variable' as const;
@@ -164,12 +163,11 @@ export default class DataVariable extends Model<DataVariableProps> {
     const collectionItem = collectionsStateMap[collectionId];
     if (!collectionItem) return defaultValue;
 
-    if (!variableType) {
-      if (collectionId === keyRootData) {
-        const rootData = collectionItem as RootDataType;
-        return path ? rootData[path as keyof RootDataType] : rootData;
-      }
+    if (collectionId === keyRootData) {
+      return { type: 'data-variable', path: `${(collectionItem as any).path!}.${path}` };
+    }
 
+    if (!variableType) {
       em.logError(`Missing collection variable type for collection: ${collectionId}`);
       return defaultValue;
     }
