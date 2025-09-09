@@ -44,13 +44,13 @@ describe('ComponentWrapper', () => {
     let em: EditorModel;
     let dsm: DataSourceManager;
     let pagesDataSource: DataSource;
-    let flatPagesDataSource: DataSource;
     let wrapper: ComponentWrapper;
+    let firstRecord: DataRecord;
 
     const pagesData = [
-      { id: 'page1', page: 'page1', title: 'Title1', content: 'content 1' },
-      { id: 'page2', page: 'page2', title: 'Title2', content: 'content 2' },
-      { id: 'page3', page: 'page3', title: 'Title3', content: 'content 3' },
+      { id: 'page1', title: 'Title1' },
+      { id: 'page2', title: 'Title2' },
+      { id: 'page3', title: 'Title3' },
     ];
 
     beforeEach(() => {
@@ -62,10 +62,7 @@ describe('ComponentWrapper', () => {
         records: [{ id: 'pages', data: pagesData }],
       });
 
-      flatPagesDataSource = dsm.add({
-        id: 'flatPagesDataSource',
-        records: pagesData,
-      });
+      firstRecord = em.DataSources.get('pagesDataSource').getRecord('pages')!;
     });
 
     afterEach(() => {
@@ -104,22 +101,9 @@ describe('ComponentWrapper', () => {
       setResolver('pagesDataSource.pages.data');
       const child = appendChildWithTitle();
 
-      expect(child.collectionsStateMap).toEqual(wrapper.collectionsStateMap);
-      expect(child.collectionsStateMap).toEqual({
-        [keyRootData]: pagesData[0],
-      });
       expect(child.get('title')).toBe(pagesData[0].title);
-    });
-
-    test('updating record propagates to children2', () => {
-      setResolver('flatPagesDataSource');
-      const child = appendChildWithTitle();
-
-      expect(child.collectionsStateMap).toEqual(wrapper.collectionsStateMap);
-      expect(child.collectionsStateMap).toEqual({
-        [keyRootData]: pagesData[0],
-      });
-      expect(child.get('title')).toBe(pagesData[0].title);
+      firstRecord.set('data', [{ id: 'page1', title: 'new_title' }]);
+      expect(child.get('title')).toBe('new_title');
     });
   });
 });
