@@ -4,8 +4,6 @@ import DataVariable, { DataVariableProps, DataVariableType } from '../../data_so
 import Components from '../../dom_components/model/Components';
 import Component from '../../dom_components/model/Component';
 import { ObjectAny } from '../../common';
-import { isDataVariable } from '../utils';
-import { isObject } from '../../utils/mixins';
 import DataSource from './DataSource';
 import { isArray } from 'underscore';
 
@@ -84,7 +82,7 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     this.onCollectionsStateMapUpdate(this.collectionsStateMap);
   }
 
-  protected getDataSourceItems() {
+  protected getDataSourceItems(): DataSourceRecords {
     const dataSourceProps = this.dataSourceProps;
     if (!dataSourceProps) return [];
     const items = this.listDataSourceItems(dataSourceProps);
@@ -117,23 +115,6 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     this.off(`change:dataResolver`);
     this.dataSourceWatcher?.destroy();
     this.dataSourceWatcher = undefined;
-  }
-
-  private listDataSourceVariables(path: string): any {
-    const paths = path.split('.');
-    const DataSourcePath = paths[0];
-    const records = this.em.DataSources.getValue(DataSourcePath, []);
-    if (paths.length > 1)
-      return {
-        type: DataVariableType,
-        path,
-      };
-    const keys = Object.keys(records);
-
-    return keys.map((key) => ({
-      type: DataVariableType,
-      path: path + '.' + key,
-    }));
   }
 
   destroy(options?: ObjectAny): false | JQueryXHR {

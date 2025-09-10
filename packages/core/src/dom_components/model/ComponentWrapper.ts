@@ -7,15 +7,16 @@ import Components from './Components';
 import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import { DataVariableProps } from '../../data_sources/model/DataVariable';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
-import ComponentWithCollectionsState from '../../data_sources/model/ComponentWithCollectionsState';
+import ComponentWithCollectionsState, {
+  DataSourceRecords,
+} from '../../data_sources/model/ComponentWithCollectionsState';
 import { keyRootData } from '../constants';
-import { isDataResolverProps } from '../../data_sources/utils';
 
-type ResolverCurrentItemType = string | number | undefined;
+type ResolverCurrentItemType = string | number;
 
 export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
-  private _resolverCurrentItem: ResolverCurrentItemType;
+  private _resolverCurrentItem?: ResolverCurrentItemType;
 
   get defaults() {
     return {
@@ -120,7 +121,7 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     this.onCollectionsStateMapUpdate(collectionsStateMap);
   }
 
-  get resolverCurrentItem() {
+  get resolverCurrentItem(): ResolverCurrentItemType | undefined {
     return this._resolverCurrentItem;
   }
 
@@ -145,20 +146,17 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
   private getCollectionsStateMap(): DataCollectionStateMap {
     const { dataSourcePath, resolverCurrentItem } = this;
 
-    if (!dataSourcePath) return {};
-
-    let items: any = this.getDataSourceItems();
-
-    if (!isUndefined(resolverCurrentItem)) {
-      if (isDataResolverProps(items)) {
-        (items as any).path = (items as any).path + '.' + resolverCurrentItem;
-      } else {
-        items = items[resolverCurrentItem];
-      }
+    if (!dataSourcePath) {
+      return {};
     }
 
+    const allItems = this.getDataSourceItems();
+    const selectedItems = !isUndefined(resolverCurrentItem)
+      ? allItems[resolverCurrentItem as keyof DataSourceRecords]
+      : allItems;
+
     return {
-      [keyRootData]: items,
+      [keyRootData]: selectedItems,
     } as DataCollectionStateMap;
   }
 
