@@ -427,9 +427,9 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
   }
 
-  __onStyleChange(newStyles: StyleProps) {
+  __onStyleChange(newStyles: StyleProps, opts?: UpdateStyleOptions) {
     const { em } = this;
-    if (!em) return;
+    if (!em || opts?.noEvent) return;
 
     const styleKeys = keys(newStyles);
     const pros = { style: newStyles };
@@ -456,7 +456,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
       );
 
       if (isChildOfOriginalCollections) {
-        component.addStyle(newStyles);
+        component.addStyle({ ...newStyles }, { noEvent: true });
       }
     });
   }
@@ -845,7 +845,7 @@ export default class Component extends StyleableModel<ComponentProperties> {
     }
 
     if (!opt.temporary) {
-      this.__onStyleChange(opts.addStyle || prop);
+      this.__onStyleChange(opts.addStyle || prop, opts);
     }
 
     return prop;
