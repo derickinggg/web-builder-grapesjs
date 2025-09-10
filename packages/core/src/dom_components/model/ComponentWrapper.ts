@@ -7,9 +7,7 @@ import Components from './Components';
 import DataResolverListener from '../../data_sources/model/DataResolverListener';
 import { DataVariableProps } from '../../data_sources/model/DataVariable';
 import { DataCollectionStateMap } from '../../data_sources/model/data_collection/types';
-import ComponentWithCollectionsState, {
-  DataSourceRecords,
-} from '../../data_sources/model/ComponentWithCollectionsState';
+import ComponentWithCollectionsState from '../../data_sources/model/ComponentWithCollectionsState';
 import { keyRootData } from '../constants';
 import { isDataResolverProps } from '../../data_sources/utils';
 
@@ -51,7 +49,7 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     this.syncComponentsCollectionState();
 
     if (hasDataResolver) {
-      this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+      this.onDataSourceChange();
     }
   }
 
@@ -128,6 +126,10 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
 
   set resolverCurrentItem(value: ResolverCurrentItemType) {
     this._resolverCurrentItem = value;
+    this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+  }
+
+  protected onDataSourceChange() {
     this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
   }
 
