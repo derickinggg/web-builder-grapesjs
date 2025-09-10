@@ -254,7 +254,7 @@ describe('Collection component', () => {
         expect(secondGrandchild().get('name')).toBe('new_content_value');
       });
 
-      test('Updating the value to a different collection variable', (done) => {
+      test('Updating the value to a different collection variable', () => {
         firstChild.set('name', {
           type: DataVariableType,
           variableType: DataCollectionStateType.currentItem,
