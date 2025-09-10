@@ -56,13 +56,10 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     const path = this.dataSourcePath;
     if (!path) return;
 
-    const { em } = this;
+    const { em, collectionsStateMap } = this;
     this.dataSourceWatcher = new DataResolverListener({
       em,
-      resolver: new DataVariable(
-        { type: DataVariableType, path },
-        { em, collectionsStateMap: this.collectionsStateMap },
-      ),
+      resolver: new DataVariable({ type: DataVariableType, path }, { em, collectionsStateMap }),
       onUpdate: () => this.onDataSourceChange(),
     });
   }
@@ -96,25 +93,20 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     }
 
     const clone = { ...items };
-    delete clone['__p'];
     return clone;
   }
 
   protected listDataSourceItems(dataSource: DataSource | DataVariableProps): DataSourceRecords {
-    const em = this.em;
-    switch (true) {
-      case isObject(dataSource) && dataSource instanceof DataSource: {
-        const id = dataSource.get('id')!;
-        return this.listDataSourceVariables(id);
-      }
-      case isDataVariable(dataSource): {
-        const path = dataSource.path;
-        if (!path) return [];
-        return this.listDataSourceVariables(path);
-      }
-      default:
-        return [];
+    const path = dataSource instanceof DataSource ? dataSource.get('id')! : dataSource.path;
+    if (!path) return [];
+    let value = this.em.DataSources.getValue(path, []);
+
+    const isDatasourceId = path.split('.').length === 1;
+    if (isDatasourceId) {
+      value = Object.entries(value).map(([_, value]) => value);
     }
+
+    return value;
   }
 
   protected getItemKey(items: DataVariableProps[] | { [x: string]: DataVariableProps }, index: number) {

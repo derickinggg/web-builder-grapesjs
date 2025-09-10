@@ -17,7 +17,7 @@ export interface DataResolverListenerProps {
 }
 
 interface ListenerWithCallback extends DataSourceListener {
-  callback: () => void;
+  callback: (opts?: any) => void;
 }
 
 export default class DataResolverListener {
@@ -39,7 +39,11 @@ export default class DataResolverListener {
     this.onUpdate(value);
   };
 
-  private createListener(obj: any, event: string, callback: () => void = this.onChange): ListenerWithCallback {
+  private createListener(
+    obj: any,
+    event: string,
+    callback: (opts?: any) => void = this.onChange,
+  ): ListenerWithCallback {
     return { obj, event, callback };
   }
 
@@ -98,6 +102,14 @@ export default class DataResolverListener {
     dataListeners.push(
       this.createListener(em.DataSources.all, 'add remove reset', onChangeAndRewatch),
       this.createListener(em, `${DataSourcesEvents.path}:${normPath}`),
+    );
+
+    dataListeners.push(
+      this.createListener(em, 'data:path', ({ path: eventPath }: { path: string }) => {
+        if (eventPath.startsWith(path)) {
+          this.onChange();
+        }
+      }),
     );
 
     return dataListeners;

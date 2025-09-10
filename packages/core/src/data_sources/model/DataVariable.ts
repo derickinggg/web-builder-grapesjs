@@ -5,7 +5,8 @@ import { isDataVariable } from '../utils';
 import {
   DataCollectionStateMap,
   DataCollectionState,
-  DataCollectionStateType
+  DataCollectionStateType,
+  RootDataType,
 } from './data_collection/types';
 
 export const DataVariableType = 'data-variable' as const;
@@ -164,7 +165,7 @@ export default class DataVariable extends Model<DataVariableProps> {
     if (!collectionItem) return defaultValue;
 
     if (collectionId === keyRootData) {
-      return { type: 'data-variable', path: `${(collectionItem as any).path!}.${path}` };
+      return path ? (collectionItem as RootDataType)?.[path as keyof RootDataType] : collectionItem;
     }
 
     if (!variableType) {
