@@ -255,19 +255,19 @@ describe('Collection variable components', () => {
       const component = components.models[0];
       const firstChild = component.components().at(0);
       const firstGrandchild = firstChild.components().at(0);
-      const secondChild = () => component.components().at(1);
-      const secondGrandchild = () => secondChild().components().at(0);
+      const secondChild = component.components().at(1);
+      const secondGrandchild = secondChild.components().at(0);
 
       expect(firstGrandchild.getInnerHTML()).toBe('user1');
-      expect(secondGrandchild().getInnerHTML()).toBe('user2');
+      expect(secondGrandchild.getInnerHTML()).toBe('user2');
 
       firstRecord.set('user', 'new_user1_value');
       expect(firstGrandchild.getInnerHTML()).toBe('new_user1_value');
-      expect(secondGrandchild().getInnerHTML()).toBe('user2');
+      expect(secondGrandchild.getInnerHTML()).toBe('user2');
 
       secondRecord.set('user', 'new_user2_value');
       expect(firstGrandchild.getInnerHTML()).toBe('new_user1_value');
-      expect(secondGrandchild().getInnerHTML()).toBe('new_user2_value');
+      expect(secondGrandchild.getInnerHTML()).toBe('new_user2_value');
     });
   });
 });

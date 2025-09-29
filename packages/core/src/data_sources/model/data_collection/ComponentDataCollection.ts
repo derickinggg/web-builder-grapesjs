@@ -169,9 +169,9 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
 
   private rebuildChildrenFromCollection() {
     const items = this.getDataSourceItems();
-    const itemsCount = size(items);
+    const { totalItems } = this.resolveCollectionConfig(items);
 
-    if (itemsCount === this.components().length) {
+    if (totalItems === this.components().length) {
       this.onCollectionsStateMapUpdate(this.collectionsStateMap);
       return;
     }
