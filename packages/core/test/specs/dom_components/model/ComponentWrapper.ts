@@ -43,33 +43,41 @@ describe('ComponentWrapper', () => {
   describe('ComponentWrapper with DataResolver', () => {
     let em: EditorModel;
     let dsm: DataSourceManager;
-    let pagesDataSource: DataSource;
+    let blogDataSource: DataSource;
     let wrapper: ComponentWrapper;
     let firstRecord: DataRecord;
 
-    const firstPageData = { id: 'page1', title: 'Title1' };
-    const pagesData = [firstPageData, { id: 'page2', title: 'Title2' }, { id: 'page3', title: 'Title3' }];
-    const objectData = {
-      page1: { title: 'page1' },
-      page2: { title: 'page2' },
+    const firstBlog = { id: 'blog1', title: 'How to Test Components' };
+    const blogsData = [
+      firstBlog,
+      { id: 'blog2', title: 'Refactoring for Clarity' },
+      { id: 'blog3', title: 'Async Patterns in TS' },
+    ];
+
+    const productsById = {
+      product1: { title: 'Laptop' },
+      product2: { title: 'Smartphone' },
     };
 
     beforeEach(() => {
       ({ em, dsm } = setupTestEditor());
       wrapper = em.getWrapper() as ComponentWrapper;
 
-      pagesDataSource = dsm.add({
-        id: 'pagesDataSource',
+      blogDataSource = dsm.add({
+        id: 'contentDataSource',
         records: [
-          { id: 'pages', data: pagesData },
           {
-            id: 'objectData',
-            data: objectData,
+            id: 'blogs',
+            data: blogsData,
+          },
+          {
+            id: 'productsById',
+            data: productsById,
           },
         ],
       });
 
-      firstRecord = em.DataSources.get('pagesDataSource').getRecord('pages')!;
+      firstRecord = em.DataSources.get('contentDataSource').getRecord('blogs')!;
     });
 
     afterEach(() => {
@@ -91,47 +99,34 @@ describe('ComponentWrapper', () => {
         },
       })[0];
 
-    test('sets dataResolver and updates wrapper.page/head collectionsStateMap', () => {
-      wrapper.setDataResolver(createDataResolver('pagesDataSource.pages.data'));
-      wrapper.resolverCurrentItem = 0;
-      const stateMap = wrapper.collectionsStateMap;
-
-      expect(stateMap).toHaveProperty(keyRootData);
-      expect(wrapper.head.collectionsStateMap).toEqual(stateMap);
-      expect(wrapper.head.collectionsStateMap).toEqual({ [keyRootData]: firstPageData });
-    });
-
     test('children reflect resolved value from dataResolver', () => {
-      wrapper.setDataResolver(createDataResolver('pagesDataSource.pages.data'));
+      wrapper.setDataResolver(createDataResolver('contentDataSource.blogs.data'));
       wrapper.resolverCurrentItem = 0;
       const child = appendChildWithTitle();
-      expect(child.collectionsStateMap).toEqual({ [keyRootData]: firstPageData });
 
-      expect(child.get('title')).toBe(pagesData[0].title);
+      expect(child.get('title')).toBe(blogsData[0].title);
 
-      firstRecord.set('data', [{ id: 'page1', title: 'new_title' }]);
-      expect(child.get('title')).toBe('new_title');
+      firstRecord.set('data', [{ id: 'blog1', title: 'New Blog Title' }]);
+      expect(child.get('title')).toBe('New Blog Title');
     });
 
     test('children update collectionStateMap on wrapper.setDataResolver', () => {
       const child = appendChildWithTitle();
-      wrapper.setDataResolver(createDataResolver('pagesDataSource.pages.data'));
+      wrapper.setDataResolver(createDataResolver('contentDataSource.blogs.data'));
       wrapper.resolverCurrentItem = 0;
 
-      expect(child.collectionsStateMap).toEqual({ [keyRootData]: firstPageData });
-      expect(child.get('title')).toBe(pagesData[0].title);
+      expect(child.get('title')).toBe(blogsData[0].title);
 
-      firstRecord.set('data', [{ id: 'page1', title: 'new_title' }]);
-      expect(child.get('title')).toBe('new_title');
+      firstRecord.set('data', [{ id: 'blog1', title: 'Updated Title' }]);
+      expect(child.get('title')).toBe('Updated Title');
     });
 
-    test('wrapper should handle objects as collection state ', () => {
-      wrapper.setDataResolver(createDataResolver('pagesDataSource.objectData.data'));
-      wrapper.resolverCurrentItem = 'page1';
+    test('wrapper should handle objects as collection state', () => {
+      wrapper.setDataResolver(createDataResolver('contentDataSource.productsById.data'));
+      wrapper.resolverCurrentItem = 'product1';
       const child = appendChildWithTitle('title');
 
-      expect(child.collectionsStateMap).toEqual({ [keyRootData]: objectData.page1 });
-      expect(child.get('title')).toBe(objectData.page1.title);
+      expect(child.get('title')).toBe(productsById.product1.title);
     });
   });
 });

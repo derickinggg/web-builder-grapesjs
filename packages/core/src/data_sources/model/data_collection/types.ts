@@ -30,11 +30,10 @@ export interface DataCollectionState {
 
 export type RootDataType = Array<ObjectAny> | ObjectAny;
 
-export type DataCollectionStateMap = {
-  [key: string]: DataCollectionState;
-} & {
-  [keyRootData]?: RootDataType;
-};
+export interface DataCollectionStateMap {
+  [key: string]: DataCollectionState | RootDataType | undefined;
+  rootData?: RootDataType;
+}
 
 export interface ComponentDataCollectionProps extends ComponentDefinition {
   type: typeof DataCollectionType;
