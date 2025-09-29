@@ -17,6 +17,7 @@ type ResolverCurrentItemType = string | number;
 export default class ComponentWrapper extends ComponentWithCollectionsState<DataVariableProps> {
   dataSourceWatcher?: DataResolverListener;
   private _resolverCurrentItem?: ResolverCurrentItemType;
+  private _isWatchingCollectionStateMap = false;
 
   get defaults() {
     return {
@@ -47,10 +48,9 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
     super(props, opt);
 
     const hasDataResolver = this.getDataResolver();
-    this.syncComponentsCollectionState();
-
     if (hasDataResolver) {
       this.onDataSourceChange();
+      this.syncComponentsCollectionState();
     }
   }
 
@@ -135,9 +135,18 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
   }
 
   protected listenToPropsChange() {
-    this.on(`change:dataResolver`, () => {
-      this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
-      this.listenToDataSource();
+    this.on(`change:dataResolver`, (_, value) => {
+      const hasResolver = !isUndefined(value);
+
+      if (hasResolver && !this._isWatchingCollectionStateMap) {
+        this._isWatchingCollectionStateMap = true;
+        this.syncComponentsCollectionState();
+        this.onCollectionsStateMapUpdate(this.getCollectionsStateMap());
+        this.listenToDataSource();
+      } else if (!hasResolver && this._isWatchingCollectionStateMap) {
+        this._isWatchingCollectionStateMap = false;
+        this.stopSyncComponentCollectionState();
+      }
     });
 
     this.listenToDataSource();
