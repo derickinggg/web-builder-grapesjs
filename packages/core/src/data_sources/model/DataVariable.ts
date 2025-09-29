@@ -146,26 +146,25 @@ export default class DataVariable extends Model<DataVariableProps> {
   }
 
   static resolveCollectionVariable(
-    {
-      collectionId = '',
-      variableType,
-      path,
-      defaultValue = '',
-    }: {
+    params: {
       collectionId?: string;
       variableType?: DataCollectionStateType;
       path?: string;
       defaultValue?: string;
     },
-    { em, collectionsStateMap }: DataVariableOptions,
+    ctx: DataVariableOptions,
   ) {
+    const { collectionId = '', variableType, path, defaultValue = '' } = params;
+    const { em, collectionsStateMap } = ctx;
+
     if (!collectionsStateMap) return defaultValue;
 
     const collectionItem = collectionsStateMap[collectionId];
     if (!collectionItem) return defaultValue;
 
     if (collectionId === keyRootData) {
-      return path ? (collectionItem as RootDataType)?.[path as keyof RootDataType] : collectionItem;
+      const root = collectionItem as RootDataType;
+      return path ? root?.[path as keyof RootDataType] : root;
     }
 
     if (!variableType) {
@@ -174,10 +173,11 @@ export default class DataVariable extends Model<DataVariableProps> {
     }
 
     if (variableType === 'currentItem') {
-      return DataVariable.resolveCurrentItem(collectionItem, path, collectionId, em);
+      return DataVariable.resolveCurrentItem(collectionItem as DataCollectionState, path, collectionId, em);
     }
 
-    return collectionItem[variableType] ?? defaultValue;
+    const state = collectionItem as DataCollectionState;
+    return state[variableType] ?? defaultValue;
   }
 
   private static resolveCurrentItem(
