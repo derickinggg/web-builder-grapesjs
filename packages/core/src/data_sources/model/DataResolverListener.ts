@@ -105,7 +105,7 @@ export default class DataResolverListener {
     );
 
     dataListeners.push(
-      this.createListener(em, 'data:path', ({ path: eventPath }: { path: string }) => {
+      this.createListener(em, DataSourcesEvents.path, ({ path: eventPath }: { path: string }) => {
         if (eventPath.startsWith(path)) {
           this.onChange();
         }
