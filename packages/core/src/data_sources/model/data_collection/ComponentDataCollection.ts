@@ -1,4 +1,4 @@
-import { isArray } from 'underscore';
+import { isArray, size } from 'underscore';
 import { ObjectAny } from '../../../common';
 import Component, { keySymbol } from '../../../dom_components/model/Component';
 import { ComponentAddType, ComponentDefinitionDefined, ComponentOptions } from '../../../dom_components/model/types';
@@ -168,14 +168,24 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
   }
 
   private rebuildChildrenFromCollection() {
-    this.components().reset(this.getCollectionItems(), updateFromWatcher as any);
+    const items = this.getDataSourceItems();
+    const itemsCount = size(items);
+
+    if (itemsCount === this.components().length) {
+      this.onCollectionsStateMapUpdate(this.collectionsStateMap);
+      return;
+    }
+
+    const collectionItems = this.getCollectionItems(items as any);
+    this.components().reset(collectionItems, updateFromWatcher as any);
   }
 
-  private getCollectionItems() {
+  private getCollectionItems(items?: any[]) {
     const firstChild = this.ensureFirstChild();
     const displayStyle = firstChild.getStyle()['display'];
     const isDisplayNoneOrMissing = !displayStyle || displayStyle === 'none';
     const resolvedDisplay = isDisplayNoneOrMissing ? '' : displayStyle;
+
     // TODO: Move to component view
     firstChild.addStyle({ display: 'none' }, AvoidStoreOptions);
     const components: Component[] = [firstChild];
@@ -186,34 +196,31 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
     }
 
     const collectionId = this.collectionId;
-    const items = this.getDataSourceItems();
-    const { startIndex, endIndex } = this.resolveCollectionConfig(items);
+    const dataItems = items ?? this.getDataSourceItems();
+    const { startIndex, endIndex } = this.resolveCollectionConfig(dataItems);
 
     const isDuplicatedId = this.hasDuplicateCollectionId();
     if (isDuplicatedId) {
       this.em.logError(
         `The collection ID "${collectionId}" already exists in the parent collection state. Overriding it is not allowed.`,
       );
-
       return components;
     }
 
     for (let index = startIndex; index <= endIndex; index++) {
       const isFirstItem = index === startIndex;
-      const key = this.getItemKey(items, index);
-      const collectionsStateMap = this.getCollectionsStateMapForItem(items, key);
+      const key = this.getItemKey(dataItems, index);
+      const collectionsStateMap = this.getCollectionsStateMapForItem(dataItems, key);
 
       if (isFirstItem) {
         getSymbolInstances(firstChild)?.forEach((cmp) => detachSymbolInstance(cmp));
-
         this.setCollectionStateMapAndPropagate(firstChild, collectionsStateMap);
         // TODO: Move to component view
         firstChild.addStyle({ display: resolvedDisplay }, AvoidStoreOptions);
-
         continue;
       }
 
-      const instance = firstChild!.clone({ symbol: true, symbolInv: true });
+      const instance = firstChild.clone({ symbol: true, symbolInv: true });
       instance.set({ locked: true, layerable: false }, AvoidStoreOptions);
       this.setCollectionStateMapAndPropagate(instance, collectionsStateMap);
       components.push(instance);
