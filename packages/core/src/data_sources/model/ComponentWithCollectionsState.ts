@@ -37,11 +37,6 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     this.onCollectionsStateMapUpdate(prev);
   }
 
-  syncComponentsCollectionState() {
-    super.syncComponentsCollectionState();
-    this.components().forEach((cmp) => cmp.syncComponentsCollectionState?.());
-  }
-
   setDataResolver(dataResolver: DataResolverType | undefined) {
     return this.set('dataResolver', dataResolver);
   }
