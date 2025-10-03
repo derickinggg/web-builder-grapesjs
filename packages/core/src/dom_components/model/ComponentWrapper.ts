@@ -47,7 +47,7 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
   constructor(props: ComponentProperties = {}, opt: ComponentOptions) {
     super(props, opt);
 
-    const hasDataResolver = this.getDataResolver();
+    const hasDataResolver = this.dataResolverProps;
     if (hasDataResolver) {
       this.onDataSourceChange();
       this.syncComponentsCollectionState();
@@ -153,7 +153,7 @@ export default class ComponentWrapper extends ComponentWithCollectionsState<Data
   }
 
   private getCollectionsStateMap(): DataCollectionStateMap {
-    const { dataSourcePath, resolverCurrentItem } = this;
+    const { dataResolverPath: dataSourcePath, resolverCurrentItem } = this;
 
     if (!dataSourcePath) {
       return {};

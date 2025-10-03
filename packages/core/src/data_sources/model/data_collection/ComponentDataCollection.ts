@@ -295,7 +295,7 @@ export default class ComponentDataCollection extends ComponentWithCollectionsSta
   }
 
   private get collectionId() {
-    return this.getDataResolver()?.collectionId ?? '';
+    return this.dataResolverProps?.collectionId ?? '';
   }
 
   static isComponent(el: HTMLElement) {

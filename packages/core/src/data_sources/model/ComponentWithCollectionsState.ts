@@ -41,15 +41,16 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     return this.set('dataResolver', dataResolver);
   }
 
-  getDataResolver(): DataResolverType | undefined {
+  get dataResolverProps(): DataResolverType | undefined {
     return this.get('dataResolver');
   }
 
   protected listenToDataSource() {
-    const path = this.dataSourcePath;
+    const path = this.dataResolverPath;
     if (!path) return;
 
     const { em, collectionsStateMap } = this;
+    this.dataSourceWatcher?.destroy();
     this.dataSourceWatcher = new DataResolverListener({
       em,
       resolver: new DataVariable({ type: DataVariableType, path }, { em, collectionsStateMap }),
@@ -69,7 +70,7 @@ export default class ComponentWithCollectionsState<DataResolverType> extends Com
     return this.get('dataResolver');
   }
 
-  protected get dataSourcePath(): string | undefined {
+  protected get dataResolverPath(): string | undefined {
     return this.dataSourceProps?.path;
   }
 
