@@ -2,24 +2,34 @@
 
 An AI-powered website builder that allows users to create stunning websites with natural language prompts. Built with Next.js, GrapesJS, and AI integration.
 
+🚀 **Live Demo**: [https://ai-website-builder-derick-tays-projects.vercel.app](https://ai-website-builder-derick-tays-projects.vercel.app)
+
 ## Features
 
 - 🤖 **AI-Powered Generation**: Create websites by describing what you want
 - 🎨 **Visual Editor**: Drag-and-drop interface powered by GrapesJS
-- 🔐 **User Authentication**: Secure authentication with Clerk
 - 📱 **Responsive Design**: Mobile-first approach with responsive templates
 - 💾 **Project Management**: Save, edit, and manage multiple projects
-- 🚀 **Instant Deployment**: One-click deployment to Vercel
+- 🚀 **Instant Export**: Export your website as HTML
 - 🎯 **Template Library**: Pre-built templates for various use cases
+- 🔓 **No Authentication Required**: Start building immediately without sign-up
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS, Radix UI
 - **Editor**: GrapesJS
-- **Authentication**: Clerk
-- **AI**: OpenAI API (or mock for demo)
+- **API**: Next.js API Routes
 - **Deployment**: Vercel
+
+## Demo Features
+
+The demo version includes:
+- Full website builder functionality
+- AI-powered website generation (mock responses)
+- Project management with in-memory storage
+- Template library
+- HTML export functionality
 
 ## Getting Started
 
@@ -29,37 +39,45 @@ An AI-powered website builder that allows users to create stunning websites with
    npm install
    ```
 
-3. Set up environment variables:
-   Create a `.env.local` file with:
-   ```
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-   CLERK_SECRET_KEY=your_clerk_secret_key
-   OPENAI_API_KEY=your_openai_api_key
-   ```
-
-4. Run the development server:
+3. Run the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000)
+4. Open [http://localhost:3000](http://localhost:3000)
 
-## Deployment
+## API Endpoints
 
-The app is configured for easy deployment to Vercel:
+The application includes the following API endpoints:
 
-1. Push your code to GitHub
-2. Import the project in Vercel
-3. Set the environment variables
-4. Deploy!
+- `POST /api/ai/generate` - Generate website content with AI
+- `GET /api/projects` - Get all projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/[id]` - Get specific project
+- `PUT /api/projects/[id]` - Update project
+- `DELETE /api/projects/[id]` - Delete project
+- `POST /api/projects/[id]/save` - Save project data
+- `GET /api/projects/[id]/save` - Get project data
+- `GET /api/projects/[id]/export` - Export project as HTML
+- `GET /api/templates` - Get website templates
 
 ## Usage
 
-1. **Sign Up/Sign In**: Create an account or sign in
-2. **Create Project**: Click "New Project" to start
-3. **AI Generation**: Use the "Generate with AI" button to describe your website
+1. **Visit the homepage**: Browse features and click "Get Started"
+2. **Create Project**: Click "New Project" in the dashboard
+3. **AI Generation**: Use the "Generate with AI" button to create content
 4. **Edit**: Use the visual editor to customize your design
 5. **Save & Export**: Save your project or export as HTML
+
+## Future Enhancements
+
+- Real OpenAI integration for AI generation
+- Database persistence (PostgreSQL/MongoDB)
+- User authentication with Clerk
+- Custom domain support
+- Advanced templates
+- Collaboration features
+- Version control
 
 ## License
 

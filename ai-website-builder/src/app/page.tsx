@@ -72,10 +72,10 @@ export default function Home() {
             <span className="text-xl font-bold">AI Website Builder</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/sign-in">
-              <Button variant="ghost">Sign In</Button>
+            <Link href="/dashboard">
+              <Button variant="ghost">Dashboard</Button>
             </Link>
-            <Link href="/sign-up">
+            <Link href="/dashboard">
               <Button>Get Started</Button>
             </Link>
           </div>
@@ -104,15 +104,17 @@ export default function Home() {
               No coding skills required. Just describe what you want, and watch the magic happen.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/sign-up">
+              <Link href="/dashboard">
                 <Button size="lg" className="group">
                   Start Building for Free
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline">
-                Watch Demo
-              </Button>
+              <Link href="/dashboard">
+                <Button size="lg" variant="outline">
+                  Try Demo
+                </Button>
+              </Link>
             </div>
             <div className="mt-8 flex items-center justify-center space-x-4 text-sm text-muted-foreground">
               <div className="flex items-center">
@@ -297,7 +299,7 @@ export default function Home() {
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
               Join thousands of users who are creating stunning websites with AI
             </p>
-            <Link href="/sign-up">
+            <Link href="/dashboard">
               <Button size="lg" variant="secondary" className="group">
                 Start Building Now
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,56 +29,67 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 
 export default function DashboardPage() {
-  const [projects, setProjects] = useState([
-    {
-      id: "1",
-      name: "My Portfolio",
-      description: "Personal portfolio website",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      published: true,
-      url: "https://myportfolio.example.com"
-    },
-    {
-      id: "2",
-      name: "Business Landing Page",
-      description: "Landing page for my startup",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      published: false,
-      url: null
-    }
-  ]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
 
-  const handleCreateProject = () => {
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.projects.getAll();
+      if (response.success) {
+        setProjects(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+      toast.error("Failed to load projects");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
     if (!newProjectName.trim()) {
       toast.error("Please enter a project name");
       return;
     }
 
-    const newProject = {
-      id: Date.now().toString(),
-      name: newProjectName,
-      description: newProjectDescription,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      published: false,
-      url: null
-    };
+    try {
+      const response = await api.projects.create({
+        name: newProjectName,
+        description: newProjectDescription
+      });
 
-    setProjects([...projects, newProject]);
-    setNewProjectName("");
-    setNewProjectDescription("");
-    setIsCreateDialogOpen(false);
-    toast.success("Project created successfully!");
+      if (response.success) {
+        setProjects([...projects, response.data]);
+        setNewProjectName("");
+        setNewProjectDescription("");
+        setIsCreateDialogOpen(false);
+        toast.success("Project created successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to create project:", error);
+      toast.error("Failed to create project");
+    }
   };
 
-  const handleDeleteProject = (projectId: string) => {
-    setProjects(projects.filter(p => p.id !== projectId));
-    toast.success("Project deleted successfully!");
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      const response = await api.projects.delete(projectId);
+      if (response.success) {
+        setProjects(projects.filter(p => p.id !== projectId));
+        toast.success("Project deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      toast.error("Failed to delete project");
+    }
   };
 
   return (
@@ -91,11 +103,13 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-muted-foreground">
-              Welcome, {user?.firstName || "User"}
+              Welcome, User
             </span>
-            <Button variant="ghost" size="sm">
-              Sign Out
-            </Button>
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                Sign Out
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -155,7 +169,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Projects Grid */}
-        {projects.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading projects...</p>
+            </div>
+          </div>
+        ) : projects.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Layout className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

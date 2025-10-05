@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api";
 
 // Dynamically import the builder to avoid SSR issues
 const WebsiteBuilder = dynamic(
@@ -16,20 +17,47 @@ export default function BuilderPage() {
   const router = useRouter();
   const projectId = params.id as string;
   const [projectData, setProjectData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load project data from localStorage (in a real app, this would be from a database)
-    const savedData = localStorage.getItem(`project-${projectId}`);
-    if (savedData) {
-      setProjectData(JSON.parse(savedData));
-    }
+    loadProjectData();
   }, [projectId]);
 
-  const handleSave = (data: any) => {
-    // Save to localStorage (in a real app, this would be to a database)
-    localStorage.setItem(`project-${projectId}`, JSON.stringify(data));
-    toast.success("Project saved successfully!");
+  const loadProjectData = async () => {
+    try {
+      const response = await api.projects.getData(projectId);
+      if (response.success && response.data) {
+        setProjectData(response.data.projectData);
+      }
+    } catch (error) {
+      console.error("Failed to load project data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleSave = async (data: any) => {
+    try {
+      const response = await api.projects.save(projectId, data);
+      if (response.success) {
+        toast.success("Project saved successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      toast.error("Failed to save project");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <WebsiteBuilder

@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
 
 // Note: In production, you would use OpenAI API here
 // For now, we'll create a mock response
 
 export async function POST(request: Request) {
-  const { userId } = auth();
-
-  if (!userId) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
 
   try {
     const { prompt, type } = await request.json();
